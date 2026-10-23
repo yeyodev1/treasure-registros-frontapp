@@ -1,0 +1,24 @@
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+import router from './router'
+import { useUserStore } from './stores/user'
+import '@fortawesome/fontawesome-free/css/all.min.css'
+import '@/styles/global.scss'
+
+const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia)
+app.use(router)
+
+const userStore = useUserStore(pinia)
+
+window.addEventListener('auth:token-expired', () => {
+  userStore.clear()
+  if (!router.currentRoute.value.meta.public) {
+    router.replace({ name: 'Login', query: { next: router.currentRoute.value.fullPath } })
+  }
+})
+
+app.mount('#app')
