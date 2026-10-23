@@ -1,0 +1,14 @@
+{
+  "name": "Registros ISM · Treasure of Galápagos",
+  "short_name": "Registros ISM",
+  "description": "Listado de registros del Manual de Gestión de Seguridad del Y/P Treasure of Galápagos I",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1b2b25",
+  "theme_color": "#1b2b25",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
