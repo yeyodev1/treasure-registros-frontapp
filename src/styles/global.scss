@@ -208,6 +208,53 @@ a {
   transition: transform 0.25s ease;
 }
 
+// Aparición suave de avisos y estados.
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// Bloques que se despliegan (novedad, motivo…).
+.reveal-enter-active,
+.reveal-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.reveal-enter-from,
+.reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+// Paso del asistente: entra desde el lado hacia el que se avanza.
+.step-next-enter-active,
+.step-next-leave-active,
+.step-prev-enter-active,
+.step-prev-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.step-next-enter-from,
+.step-prev-leave-to {
+  opacity: 0;
+  transform: translateX(24px);
+}
+
+.step-next-leave-to,
+.step-prev-enter-from {
+  opacity: 0;
+  transform: translateX(-24px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
