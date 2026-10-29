@@ -6,7 +6,7 @@ import { onBeforeUnmount, shallowRef, type CSSProperties, type Ref } from 'vue'
  * modal con overflow; se reubica con scroll/resize y se voltea hacia arriba
  * cuando no hay espacio abajo.
  */
-export function useAnchoredPanel(trigger: Ref<HTMLElement | null>, options?: { minWidth?: number }) {
+export function useAnchoredPanel(trigger: Ref<HTMLElement | null>, options?: { minWidth?: number; maxHeight?: number }) {
   const style = shallowRef<CSSProperties>({})
   const openUp = shallowRef(false)
 
@@ -14,7 +14,7 @@ export function useAnchoredPanel(trigger: Ref<HTMLElement | null>, options?: { m
     const el = trigger.value
     if (!el) return
     const rect = el.getBoundingClientRect()
-    const panelMax = 300
+    const panelMax = options?.maxHeight ?? 300
     const spaceBelow = window.innerHeight - rect.bottom
     const flip = spaceBelow < panelMax && rect.top > spaceBelow
     openUp.value = flip
