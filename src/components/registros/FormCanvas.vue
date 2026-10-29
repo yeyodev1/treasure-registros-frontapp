@@ -13,6 +13,8 @@ const props = defineProps<{
   editable: boolean
   zoom: number
   canSign: (field: IsmField) => boolean
+  /** Imágenes de las firmas (URL local), cargadas aparte del registro. */
+  images: Map<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -74,6 +76,11 @@ function toggle(f: IsmField) {
   emit('change', f.name, props.values[f.name] !== true)
 }
 
+/** Dato conocido (caducidad del R-28): se ve como referencia, no se escribe como respuesta. */
+function placeholderOf(f: IsmField): string | undefined {
+  return f.reference ? `Ref.: ${f.reference}` : undefined
+}
+
 function photoUrl(f: IsmField): string {
   const v = props.values[f.name]
   return typeof v === 'string' ? v : ''
@@ -106,6 +113,8 @@ function photoUrl(f: IsmField): string {
             :value="textValue(f)"
             :readonly="!editable"
             :maxlength="f.maxLength"
+            :placeholder="placeholderOf(f)"
+            :title="f.reference ? `Dato conocido: ${f.reference}. Confírmalo con la revisión física.` : undefined"
             :aria-label="f.name"
             @input="onInput(f, $event)"
           />
@@ -117,6 +126,8 @@ function photoUrl(f: IsmField): string {
             :value="textValue(f)"
             :readonly="!editable"
             :maxlength="f.maxLength"
+            :placeholder="placeholderOf(f)"
+            :title="f.reference ? `Dato conocido: ${f.reference}. Confírmalo con la revisión física.` : undefined"
             :aria-label="f.name"
             @input="onInput(f, $event)"
           />
@@ -141,19 +152,27 @@ function photoUrl(f: IsmField): string {
             type="button"
             class="fld fld-sign"
             :class="{
-              signed: signatureMap.has(f.name),
-              open: !signatureMap.has(f.name) && canSign(f),
+              signed: signatureMap.has(f.name) && signatureMap.get(f.name)!.valid !== false,
+              invalid: signatureMap.get(f.name)?.valid === false,
+              open: (!signatureMap.has(f.name) || signatureMap.get(f.name)!.valid === false) && canSign(f),
             }"
             :style="box(f)"
             :disabled="!canSign(f) && !signatureMap.has(f.name)"
             :title="f.label"
             @click="emit('sign', f)"
           >
-            <img
-              v-if="signatureMap.get(f.name)?.image"
-              :src="signatureMap.get(f.name)!.image"
-              :alt="`Firma de ${signatureMap.get(f.name)!.signerName}`"
-            />
+            <span v-if="signatureMap.get(f.name)?.valid === false" class="sign-cta sign-invalid">
+              <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Firma invalidada: volver a firmar
+            </span>
+            <Transition v-else-if="signatureMap.has(f.name)" name="fade" mode="out-in">
+              <img
+                v-if="images.get(f.name)"
+                :key="images.get(f.name)"
+                :src="images.get(f.name)"
+                :alt="`Firma de ${signatureMap.get(f.name)!.signerName}`"
+              />
+              <span v-else class="sign-cta sign-name">{{ signatureMap.get(f.name)!.signerName }}</span>
+            </Transition>
             <span v-else-if="canSign(f)" class="sign-cta">
               <i class="fa-solid fa-signature" aria-hidden="true" /> {{ f.label }}
             </span>
@@ -290,6 +309,25 @@ function photoUrl(f: IsmField): string {
 
 .fld-sign.signed {
   background: transparent;
+}
+
+.fld-sign.invalid {
+  background: rgba(180, 72, 59, 0.1);
+  box-shadow: inset 0 0 0 1.5px rgba(180, 72, 59, 0.55);
+}
+
+.sign-invalid {
+  color: var(--danger);
+}
+
+.sign-name {
+  color: var(--ink-600);
+  font-style: italic;
+}
+
+.fld-text::placeholder {
+  color: rgba(159, 107, 60, 0.75);
+  font-style: italic;
 }
 
 .sign-cta {
