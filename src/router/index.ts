@@ -12,13 +12,19 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: 'Home',
     component: () => import('@/views/HomeView.vue'),
-    meta: { title: 'Inicio' },
+    meta: { title: 'Mis tareas' },
   },
   {
     path: '/nuevo',
     name: 'New',
     component: () => import('@/views/NewRecordView.vue'),
     meta: { title: 'Nuevo registro' },
+  },
+  {
+    path: '/zarpe/nuevo',
+    name: 'ZarpeStart',
+    component: () => import('@/views/ZarpeStartView.vue'),
+    meta: { title: 'Preparar el zarpe' },
   },
   {
     path: '/por-firmar',
@@ -46,15 +52,30 @@ const router = createRouter({
   routes,
 })
 
+/**
+ * Destino de la navegación en curso. Si la sesión vence mientras se abre un
+ * registro, el login vuelve aquí (currentRoute todavía es la ruta anterior).
+ */
+let pendingTarget: string | null = null
+
+export function navigationTarget(): string {
+  return pendingTarget ?? router.currentRoute.value.fullPath
+}
+
 router.beforeEach(async (to) => {
+  pendingTarget = to.fullPath
   const userStore = useUserStore()
   if (to.meta.public) return true
   if (!userStore.isLogged) await userStore.restore()
-  if (!userStore.isLogged) return { name: 'Login', query: { next: to.fullPath } }
+  if (!userStore.isLogged) {
+    const expired = userStore.consumeExpiredNotice()
+    return { name: 'Login', query: { next: to.fullPath, ...(expired ? { caducada: '1' } : {}) } }
+  }
   return true
 })
 
 router.afterEach((to) => {
+  pendingTarget = null
   document.title = to.meta.title ? `${to.meta.title} · Registros ISM` : 'Registros ISM'
 })
 
