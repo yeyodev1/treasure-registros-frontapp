@@ -44,7 +44,11 @@ async function load() {
           ? { status: 'por_oficina' }
           : { status: 'borrador', ...(userStore.isAdmin ? {} : { mine: '1' as const }) }
     const [{ records: list }] = await Promise.all([apiRecords({ ...params, limit: 100 }), catalog.load()])
-    records.value = list
+    // En la bandeja de revisión, lo que trae novedades va primero.
+    records.value =
+      tab.value === 'borradores'
+        ? list
+        : [...list].sort((a, b) => Number(Boolean(b.flags?.novedades)) - Number(Boolean(a.flags?.novedades)))
   } catch (err) {
     toast.error(apiErrorMessage(err))
   } finally {
