@@ -30,10 +30,17 @@ export const FREQUENCY_LABELS: Record<string, string> = {
   mensual: 'Mensual',
 }
 
+/** Dueña o administración: pueden todo. */
+export function isManagerRole(role: UserRole | null): boolean {
+  return role === 'duena' || role === 'admin'
+}
+
 /** Misma regla que el servidor: quién puede editar en cada etapa. */
 export function canEditRecord(record: IsmRecord, role: UserRole | null, form: IsmForm): boolean {
   if (!role || record.status === 'archivado') return false
-  if (role === 'admin') return true
+  // Registros guiados: las respuestas solo cambian en borrador; para corregir se devuelve.
+  if (record.schemaVersion && record.status !== 'borrador') return false
+  if (isManagerRole(role)) return true
   if (record.status === 'borrador') return form.officeOnly ? role === 'designada' : true
   if (record.status === 'por_capitan') return role === 'capitan'
   return role === 'designada'
@@ -48,7 +55,7 @@ export function canSignSlot(
 ): boolean {
   if (!role) return false
   const roleOk =
-    role === 'admin' ||
+    isManagerRole(role) ||
     (stage === 'capitan' ? role === 'capitan' : stage === 'oficina' ? role === 'designada' : true)
   if (!roleOk) return false
   if (stage === 'tripulacion') return record.status === 'borrador'
@@ -79,6 +86,19 @@ export function formatStamp(iso: string): string {
     minute: '2-digit',
     timeZone: 'Pacific/Galapagos',
   })
+}
+
+/** Secciones para devolver un formato que se llena sobre la hoja. */
+export const GENERIC_RETURN_SECTIONS = [
+  'Encabezado y datos generales',
+  'Contenido del formato',
+  'Firmas',
+  'Fotos o anexos',
+]
+
+/** Hora actual en Galápagos como 'HH:MM'. */
+export function nowTimeGalapagos(): string {
+  return new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString().slice(11, 16)
 }
 
 export function authorName(record: IsmRecord): string {
