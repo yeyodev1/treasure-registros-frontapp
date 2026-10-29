@@ -16,7 +16,54 @@ const toast = useToastStore()
 
 const summary = shallowRef<IsmSummary | null>(null)
 const recent = shallowRef<IsmRecord[]>([])
+const drafts = shallowRef<IsmRecord[]>([])
 const loading = shallowRef(true)
+const loadError = shallowRef('')
+
+/** Acciones reconocibles; el código R queda como referencia secundaria. */
+const TASKS = [
+  {
+    key: 'zarpe',
+    title: 'Preparar el zarpe',
+    text: 'Ronda de seguridad y chequeos previos al zarpe, al arribo y fondeado.',
+    code: 'R-14',
+    icon: 'fa-anchor',
+    to: '/zarpe/nuevo',
+    guided: true,
+  },
+  {
+    key: 'equipo',
+    title: 'Revisar un equipo',
+    text: 'Mantenimiento preventivo de un equipo de cubierta o máquinas.',
+    code: 'R-16',
+    icon: 'fa-screwdriver-wrench',
+    to: '/nuevo?formato=R-16',
+    guided: false,
+  },
+  {
+    key: 'descanso',
+    title: 'Registrar descanso',
+    text: 'Horas de descanso del mes por cargo.',
+    code: 'R-23',
+    icon: 'fa-bed',
+    to: '/nuevo?formato=R-23',
+    guided: false,
+  },
+  {
+    key: 'problema',
+    title: 'Reportar un problema',
+    text: 'Accidente, cuasi accidente o condición peligrosa.',
+    code: 'R-09',
+    icon: 'fa-triangle-exclamation',
+    to: '/nuevo?formato=R-09',
+    guided: false,
+  },
+]
+
+/** Primero lo devuelto para corregir, luego lo más reciente. */
+const toContinue = computed(() =>
+  [...drafts.value].sort((a, b) => Number(Boolean(b.returnInfo)) - Number(Boolean(a.returnInfo))),
+)
 
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
@@ -35,17 +82,27 @@ const cards = computed(() => {
 
 const done = computed(() => summary.value?.checklist.filter((i) => i.done).length ?? 0)
 
-onMounted(async () => {
+async function load() {
+  loading.value = true
+  loadError.value = ''
   try {
-    const [s, r] = await Promise.all([apiSummary(), apiRecords({ limit: 8 })])
+    const [s, r, d] = await Promise.all([
+      apiSummary(),
+      apiRecords({ limit: 8 }),
+      apiRecords({ status: 'borrador', mine: '1', limit: 12 }),
+    ])
     summary.value = s
     recent.value = r.records
+    drafts.value = d.records
   } catch (err) {
-    toast.error(apiErrorMessage(err))
+    loadError.value = apiErrorMessage(err)
+    toast.error(loadError.value)
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 </script>
 
 <template>
@@ -53,13 +110,68 @@ onMounted(async () => {
     <div class="hero">
       <div>
         <p class="eyebrow">Hola, {{ userStore.user?.name?.split(' ')[0] }}</p>
-        <h1 class="page-title">Registros del SGS</h1>
-        <p class="lead">Llena, firma y archiva los registros ISM del barco sin papel.</p>
+        <h1 class="page-title">Mis tareas</h1>
+        <p class="lead">Elige lo que vas a hacer. La app te guía y llena el formato oficial por detrás.</p>
       </div>
-      <button type="button" class="btn btn-primary" @click="router.push('/nuevo')">
-        <i class="fa-solid fa-plus" aria-hidden="true" /> Nuevo registro
+      <button type="button" class="btn btn-ghost" @click="router.push('/nuevo')">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true" /> Todos los formatos
       </button>
     </div>
+
+    <TransitionGroup tag="section" name="list" appear class="tasks" aria-label="Acciones">
+      <RouterLink v-for="t in TASKS" :key="t.key" :to="t.to" class="task card" :class="{ 'task--guided': t.guided }">
+        <span class="task-icon"><i class="fa-solid" :class="t.icon" aria-hidden="true" /></span>
+        <span class="task-body">
+          <strong>{{ t.title }}</strong>
+          <span>{{ t.text }}</span>
+          <small>
+            {{ t.code }}
+            <template v-if="t.guided"> · Paso a paso</template>
+          </small>
+        </span>
+        <i class="fa-solid fa-chevron-right task-chev" aria-hidden="true" />
+      </RouterLink>
+    </TransitionGroup>
+
+    <div v-if="loadError && !loading" class="card load-error">
+      <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true" />
+      <span>{{ loadError }}</span>
+      <button type="button" class="btn btn-primary" @click="load">
+        <i class="fa-solid fa-rotate-right" aria-hidden="true" /> Reintentar
+      </button>
+    </div>
+
+    <section v-if="toContinue.length" class="card continue">
+      <header>
+        <h2><i class="fa-solid fa-pen-to-square" aria-hidden="true" /> Para continuar</h2>
+        <RouterLink to="/por-firmar?tab=borradores" class="more">Ver todos</RouterLink>
+      </header>
+      <TransitionGroup tag="ul" name="list" appear>
+        <li v-for="r in toContinue" :key="r._id">
+          <RouterLink :to="`/registro/${r._id}`" class="rrow" :class="{ 'rrow--returned': r.returnInfo }">
+            <span class="status-dot" :class="r.returnInfo ? 's-devuelto' : `s-${r.status}`">
+              <i class="fa-solid" :class="r.returnInfo ? 'fa-rotate-left' : STATUS_ICONS[r.status]" aria-hidden="true" />
+            </span>
+            <span class="rbody">
+              <strong>{{ r.schemaVersion ? 'Preparar el zarpe' : r.title }} · {{ r.code.replace('_', ' · ') }}</strong>
+              <small v-if="r.returnInfo" class="returned-hint">
+                Devuelto · {{ r.returnInfo.section }}: {{ r.returnInfo.reason }}
+              </small>
+              <small v-else>
+                {{ formatRecordDate(r.recordDate) }}
+                <template v-if="r.context?.place"> · {{ r.context.place }}</template>
+                <template v-if="r.equipment"> · {{ r.equipment.name }}</template>
+              </small>
+              <span v-if="r.flags" class="bar bar--small">
+                <span :style="{ width: `${(r.flags.answered / Math.max(1, r.flags.total)) * 100}%` }" />
+              </span>
+            </span>
+            <span v-if="r.flags" class="rcount">{{ r.flags.answered }}/{{ r.flags.total }}</span>
+            <i class="fa-solid fa-chevron-right chev" aria-hidden="true" />
+          </RouterLink>
+        </li>
+      </TransitionGroup>
+    </section>
 
     <section class="counts">
       <template v-if="loading">
@@ -160,6 +272,134 @@ onMounted(async () => {
 .lead {
   margin: 0.2rem 0 0;
   color: var(--ink-600);
+}
+
+.hero .btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tasks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.task {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  text-decoration: none;
+  color: inherit;
+  border: 1.5px solid transparent;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--gold-400);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  &--guided {
+    border-color: rgba(159, 107, 60, 0.45);
+  }
+}
+
+.task-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--navy-800);
+  color: var(--gold-400);
+  font-size: 1.25rem;
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+
+  strong {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-size: 1.2rem;
+  }
+
+  span {
+    font-size: 0.86rem;
+    color: var(--ink-600);
+  }
+
+  small {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--ink-400);
+  }
+}
+
+.task-chev {
+  color: var(--ink-400);
+}
+
+.load-error {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+
+  > i {
+    color: var(--warning);
+    font-size: 1.2rem;
+  }
+
+  span {
+    flex: 1;
+  }
+}
+
+.continue {
+  margin-bottom: 1rem;
+}
+
+.rrow--returned {
+  background: rgba(180, 72, 59, 0.06);
+}
+
+.returned-hint {
+  color: var(--danger) !important;
+  font-weight: 600;
+}
+
+.rcount {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-600);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar--small {
+  display: block;
+  height: 4px;
+  max-width: 220px;
+  margin-top: 0.3rem;
 }
 
 .counts {
@@ -345,6 +585,11 @@ ul {
   &.s-archivado {
     background: rgba(63, 122, 87, 0.14);
     color: var(--success);
+  }
+
+  &.s-devuelto {
+    background: rgba(180, 72, 59, 0.12);
+    color: var(--danger);
   }
 }
 
