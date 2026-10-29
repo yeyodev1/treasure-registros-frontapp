@@ -19,7 +19,7 @@ const toSign = shallowRef(0)
 /** El sistema del bar es para quien trabaja en él (no para Capitán o tripulación). */
 const BAR_URL = 'https://teseturis.app'
 const showBarLink = computed(() =>
-  ['admin', 'direccion', 'bartender', 'bodega'].includes(userStore.role ?? ''),
+  ['duena', 'admin', 'direccion', 'bartender', 'bodega'].includes(userStore.role ?? ''),
 )
 
 const pageTitle = computed(() => (route.meta.title as string) ?? '')
@@ -120,7 +120,7 @@ async function logout() {
             <p class="section-label">Registros</p>
             <RouterLink to="/" class="nav-item">
               <span class="nav-indicator" aria-hidden="true" />
-              <i class="fa-solid fa-house nav-icon" aria-hidden="true" /> Inicio
+              <i class="fa-solid fa-house nav-icon" aria-hidden="true" /> Mis tareas
             </RouterLink>
             <RouterLink to="/nuevo" class="nav-item">
               <span class="nav-indicator" aria-hidden="true" />
