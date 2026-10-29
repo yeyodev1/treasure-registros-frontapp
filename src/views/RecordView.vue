@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, useTemplateRef } from 'vue'
+import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCatalogStore } from '@/stores/catalog'
@@ -7,17 +8,21 @@ import { useConfirmStore } from '@/stores/confirm'
 import { useToastStore } from '@/stores/toast'
 import { useSound } from '@/composables/useSound'
 import { useAutosave } from '@/composables/useAutosave'
+import { useSignatureImages } from '@/composables/useSignatureImages'
 import {
   apiDiscard,
   apiPdfUrl,
   apiRecord,
   apiRecordAction,
   apiRemoveSignature,
+  apiReturnRecord,
   apiSign,
   apiUploadPhoto,
+  type SaveResult,
 } from '@/services/api'
-import { apiErrorMessage } from '@/services/httpBase'
+import { apiErrorMessage, isNetworkError } from '@/services/httpBase'
 import {
+  GENERIC_RETURN_SECTIONS,
   STAGE_LABELS,
   STATUS_ICONS,
   STATUS_LABELS,
@@ -30,7 +35,10 @@ import {
 import FormCanvas from '@/components/registros/FormCanvas.vue'
 import SignaturePad from '@/components/registros/SignaturePad.vue'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
-import type { IsmField, IsmForm, IsmRecord, SignatureStage } from '@/types'
+import GuidedWizard from '@/components/guided/GuidedWizard.vue'
+import GuidedSummary from '@/components/guided/GuidedSummary.vue'
+import type { ContextDraft } from '@/components/guided/GuidedContextForm.vue'
+import type { IsmAnswer, IsmField, IsmForm, IsmMissing, IsmRecord, IsmSchema, IsmSignature, SignatureStage } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,17 +48,48 @@ const confirmStore = useConfirmStore()
 const toast = useToastStore()
 const { play } = useSound()
 
+const recordId = () => String(route.params.id)
+
 const record = shallowRef<IsmRecord | null>(null)
 const form = shallowRef<IsmForm | null>(null)
+const schema = shallowRef<IsmSchema | null>(null)
 const values = ref<Record<string, string | boolean>>({})
+const answers = ref<Record<string, IsmAnswer>>({})
+const ctxDraft = ref<ContextDraft>({ activityDate: '', activityTime: '', place: '', name: '', position: '' })
+const serverMissing = shallowRef<IsmMissing[]>([])
 const loading = shallowRef(true)
+const loadError = shallowRef<{ message: string; fatal: boolean } | null>(null)
 const busy = shallowRef(false)
 const zoom = shallowRef(1)
 const signing = shallowRef<IsmField | null>(null)
 const photoTarget = shallowRef<IsmField | null>(null)
 const photoInput = useTemplateRef<HTMLInputElement>('photoInput')
+/** Registros guiados en revisión: resumen o la hoja oficial. */
+const view = shallowRef<'resumen' | 'hoja'>('resumen')
 
-const autosave = useAutosave(() => String(route.params.id))
+function onSaved(result: SaveResult) {
+  if (!record.value) return
+  record.value = {
+    ...record.value,
+    signatures: result.record.signatures,
+    flags: result.record.flags ?? record.value.flags,
+    fileName: result.record.fileName,
+    recordDate: result.record.recordDate,
+    context: result.record.context ?? record.value.context,
+    updatedAt: result.record.updatedAt,
+  }
+  if (result.invalidated.length) {
+    const labels = result.record.signatures.filter((s) => result.invalidated.includes(s.field)).map((s) => s.label)
+    toast.push(`Cambiaste datos ya firmados: ${labels.join(', ')} debe volver a firmar.`, 'info')
+  }
+}
+
+const autosave = useAutosave(recordId, { onSaved })
+
+const signatureList = computed<IsmSignature[]>(() => record.value?.signatures ?? [])
+const { images } = useSignatureImages(recordId, signatureList)
+
+const guided = computed(() => Boolean(record.value?.schemaVersion && schema.value))
 
 const editable = computed(
   () => Boolean(record.value && form.value && canEditRecord(record.value, userStore.role, form.value)),
@@ -81,12 +120,22 @@ const canDiscard = computed(
 const saveLabel = computed(() => {
   const s = autosave.state.value
   if (s === 'saving') return 'Guardando…'
-  if (s === 'offline') return 'Sin conexión: guardado en la tablet'
-  if (s === 'error') return 'No se pudo guardar'
+  if (s === 'pending') return 'Pendiente de sincronizar'
+  if (s === 'offline') return 'Sin conexión: guardado en la tableta, se enviará solo'
+  if (s === 'error') return `Guardado en la tableta, no se pudo sincronizar: ${autosave.lastError.value}`
   if (s === 'saved' && autosave.savedAt.value) {
     return `Guardado ${autosave.savedAt.value.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}`
   }
   return ''
+})
+
+const saveIcon = computed(() => {
+  const s = autosave.state.value
+  if (s === 'offline') return 'fa-wifi'
+  if (s === 'saving') return 'fa-rotate fa-spin'
+  if (s === 'pending') return 'fa-cloud-arrow-up'
+  if (s === 'error') return 'fa-triangle-exclamation'
+  return 'fa-check'
 })
 
 function canSign(f: IsmField): boolean {
@@ -94,15 +143,49 @@ function canSign(f: IsmField): boolean {
   return canSignSlot(record.value, userStore.role, f.stage, form.value)
 }
 
+function positionLabel(value: string) {
+  return catalogStore.positionLabel.get(value) ?? value
+}
+
+function contextDraftOf(rec: IsmRecord): ContextDraft {
+  const c = rec.context
+  return {
+    activityDate: c?.activityDate ?? '',
+    activityTime: c?.activityTime ?? '',
+    place: c?.place ?? '',
+    name: c?.filledBy?.name ?? '',
+    position: c?.filledBy?.position ?? '',
+  }
+}
+
 async function load() {
+  loading.value = true
+  loadError.value = null
   try {
-    const rec = await apiRecord(String(route.params.id))
-    form.value = await catalogStore.definition(rec.code)
+    const rec = await apiRecord(recordId())
+    const [def] = await Promise.all([catalogStore.definition(rec.code), catalogStore.load()])
+    form.value = def
+    schema.value = rec.schemaVersion ? await catalogStore.schema(rec.code, rec.schemaVersion) : null
+    // Lo que quedó en la tableta sin sincronizar gana sobre lo del servidor.
+    const local = autosave.adoptLocal()
+    values.value = { ...(rec.data ?? {}), ...local.data }
+    answers.value = { ...(rec.answers ?? {}), ...local.answers }
+    const draft = contextDraftOf(rec)
+    ctxDraft.value = {
+      ...draft,
+      ...Object.fromEntries(Object.entries(local.context).filter(([k]) => k in draft)),
+    } as ContextDraft
     record.value = rec
-    values.value = { ...(rec.data ?? {}), ...autosave.localPending() }
+    view.value = 'resumen'
+    if (autosave.hasPending()) autosave.flush().catch(() => undefined)
   } catch (err) {
-    toast.error(apiErrorMessage(err))
-    router.replace('/')
+    const status = axios.isAxiosError(err) ? err.response?.status : undefined
+    loadError.value = {
+      message: isNetworkError(err)
+        ? 'Sin conexión con el servidor. Lo que llenaste sigue guardado en esta tableta.'
+        : apiErrorMessage(err),
+      fatal: status === 403 || status === 404,
+    }
   } finally {
     loading.value = false
   }
@@ -115,9 +198,23 @@ function onChange(name: string, value: string | boolean) {
   autosave.queue(name, value)
 }
 
+function onAnswer(id: string, answer: IsmAnswer) {
+  answers.value = { ...answers.value, [id]: answer }
+  serverMissing.value = []
+  autosave.queueAnswer(id, answer)
+}
+
+function onContext(next: ContextDraft) {
+  const changed = Object.fromEntries(
+    Object.entries(next).filter(([k, v]) => ctxDraft.value[k as keyof ContextDraft] !== v),
+  )
+  ctxDraft.value = next
+  if (Object.keys(changed).length) autosave.queueContext(changed)
+}
+
 function openSign(f: IsmField) {
   const existing = signedMap.value.get(f.name)
-  if (existing) {
+  if (existing && existing.valid !== false) {
     if (!canSign(f)) return
     confirmStore
       .ask({
@@ -150,6 +247,7 @@ async function onSigned(image: string, signerName: string) {
   signing.value = null
   busy.value = true
   try {
+    // Se firma sobre lo guardado: primero se sincroniza lo pendiente.
     await autosave.flush()
     record.value = await apiSign(record.value._id, f.name, image, signerName)
     play('success')
@@ -192,6 +290,10 @@ async function run(action: () => Promise<void>) {
     play('success')
   } catch (err) {
     play('error')
+    if (axios.isAxiosError(err) && err.response?.status === 422) {
+      const data = err.response.data as { message?: string; missing?: IsmMissing[] }
+      serverMissing.value = data.missing ?? []
+    }
     toast.error(apiErrorMessage(err))
   } finally {
     busy.value = false
@@ -199,28 +301,33 @@ async function run(action: () => Promise<void>) {
 }
 
 async function submit() {
+  const novedades = record.value?.flags?.novedades ?? 0
   const ok = await confirmStore.ask({
     title: `¿Enviar ${record.value?.code}?`,
-    message:
-      form.value?.stages.capitan
+    message: guided.value
+      ? `Pasa al Capitán para su revisión y firma${novedades ? ` con ${novedades} ${novedades === 1 ? 'novedad' : 'novedades'} destacadas` : ''}. Enviar no autoriza el zarpe: lo decide el Capitán. Ya no podrás editarlo salvo que te lo devuelvan.`
+      : form.value?.stages.capitan
         ? 'Pasa al Capitán para su revisión y firma. Ya no podrás editarlo salvo que te lo devuelvan.'
         : 'Pasa a la oficina para que la Persona Designada lo reciba y archive.',
-    confirmLabel: 'Listo para enviar',
+    confirmLabel: guided.value ? 'Enviar al Capitán' : 'Listo para enviar',
     icon: 'fa-paper-plane',
   })
   if (!ok) return
   await run(async () => {
     record.value = await apiRecordAction(record.value!._id, 'submit')
+    serverMissing.value = []
+    view.value = 'resumen'
     toast.success(STATUS_LABELS[record.value.status])
   })
 }
 
 async function approve() {
   const toOffice = record.value?.status === 'por_capitan'
+  const novedades = record.value?.flags?.novedades ?? 0
   const ok = await confirmStore.ask({
     title: toOffice ? '¿Aprobar y enviar a oficina?' : '¿Recibir y archivar el registro?',
     message: toOffice
-      ? 'Queda tu aprobación con tu usuario y la hora.'
+      ? `Queda tu aprobación con tu usuario y la hora${guided.value && novedades ? `. Revisaste ${novedades} ${novedades === 1 ? 'novedad' : 'novedades'}` : ''}.`
       : 'Queda archivado con todas sus firmas y ya no se puede modificar.',
     confirmLabel: toOffice ? 'Aprobar' : 'Archivar',
     icon: toOffice ? 'fa-anchor' : 'fa-box-archive',
@@ -232,21 +339,26 @@ async function approve() {
   })
 }
 
+const returnSections = computed(() =>
+  schema.value ? ['Contexto', ...schema.value.sections.map((s) => s.title), 'Firmas'] : GENERIC_RETURN_SECTIONS,
+)
+
 async function giveBack() {
-  const reason = await confirmStore.askReason({
+  const result = await confirmStore.askReasonChoice({
     title: `¿Devolver ${record.value?.code}?`,
     message: 'Vuelve a borrador para que lo corrijan. Las firmas de revisión se retiran.',
     confirmLabel: 'Devolver',
     icon: 'fa-rotate-left',
+    choice: { label: 'Sección afectada (obligatoria)', options: returnSections.value },
     reason: {
       label: 'Motivo (obligatorio)',
-      suggestions: ['Falta información', 'Dato incorrecto', 'Falta una firma'],
+      suggestions: ['Falta información', 'Dato incorrecto', 'Falta una firma', 'Novedad sin acción clara'],
     },
   })
-  if (!reason) return
+  if (!result) return
   await run(async () => {
-    record.value = await apiRecordAction(record.value!._id, 'return', reason)
-    toast.success('Devuelto con motivo')
+    record.value = await apiReturnRecord(record.value!._id, result.reason, result.choice)
+    toast.success('Devuelto con motivo y sección')
   })
 }
 
@@ -269,7 +381,7 @@ async function discard() {
 async function openPdf() {
   busy.value = true
   try {
-    await autosave.flush()
+    await autosave.flush().catch(() => undefined)
     const url = await apiPdfUrl(record.value!._id)
     window.open(url, '_blank')
   } catch (err) {
@@ -278,11 +390,29 @@ async function openPdf() {
     busy.value = false
   }
 }
+
+const lastEvent = computed(() => record.value?.history?.[record.value.history.length - 1])
 </script>
 
 <template>
   <div class="page rec">
     <SkeletonList v-if="loading" variant="row" :rows="8" />
+
+    <div v-else-if="loadError" class="card state-error" role="alert">
+      <i class="fa-solid" :class="loadError.fatal ? 'fa-lock' : 'fa-cloud-arrow-down'" aria-hidden="true" />
+      <div>
+        <h2>{{ loadError.fatal ? 'No se puede abrir este registro' : 'No se pudo cargar el registro' }}</h2>
+        <p>{{ loadError.message }}</p>
+        <div class="state-actions">
+          <button v-if="!loadError.fatal" type="button" class="btn btn-primary" @click="load">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true" /> Reintentar
+          </button>
+          <button type="button" class="btn btn-ghost" @click="router.push('/')">
+            <i class="fa-solid fa-house" aria-hidden="true" /> Volver a Mis tareas
+          </button>
+        </div>
+      </div>
+    </div>
 
     <template v-else-if="record && form">
       <header class="rec-head">
@@ -291,12 +421,13 @@ async function openPdf() {
         </button>
         <div class="rec-title">
           <p class="rec-code">{{ record.code.replace('_', ' · ') }} · {{ form.group }}</p>
-          <h1>{{ record.title }}</h1>
+          <h1>{{ guided ? schema!.title : record.title }}</h1>
           <p class="rec-meta">
             <span><i class="fa-regular fa-calendar" aria-hidden="true" /> {{ formatRecordDate(record.recordDate) }}</span>
+            <span v-if="record.context?.place"><i class="fa-solid fa-location-dot" aria-hidden="true" /> {{ record.context.place }}</span>
             <span v-if="record.equipment"><i class="fa-solid fa-gears" aria-hidden="true" /> {{ record.equipment.name }}</span>
-            <span v-if="record.position"><i class="fa-solid fa-id-badge" aria-hidden="true" /> {{ catalogStore.positionLabel.get(record.position) ?? record.position }}</span>
-            <span><i class="fa-regular fa-user" aria-hidden="true" /> {{ authorName(record) }}</span>
+            <span v-if="record.position"><i class="fa-solid fa-id-badge" aria-hidden="true" /> {{ positionLabel(record.position) }}</span>
+            <span><i class="fa-regular fa-user" aria-hidden="true" /> {{ record.context?.filledBy?.name || authorName(record) }}</span>
             <span class="file"><i class="fa-regular fa-file-pdf" aria-hidden="true" /> {{ record.fileName }}</span>
           </p>
         </div>
@@ -306,14 +437,14 @@ async function openPdf() {
         </span>
       </header>
 
-      <p v-if="record.history?.length && record.history[record.history.length - 1]!.action === 'devuelto'" class="returned">
+      <p v-if="!guided && record.status === 'borrador' && lastEvent?.action === 'devuelto'" class="returned">
         <i class="fa-solid fa-rotate-left" aria-hidden="true" />
-        Devuelto por {{ record.history[record.history.length - 1]!.byName }}:
-        <strong>{{ record.history[record.history.length - 1]!.reason }}</strong>
+        Devuelto por {{ lastEvent.byName }}<template v-if="lastEvent.section"> · sección <strong>{{ lastEvent.section }}</strong></template>:
+        <strong>{{ lastEvent.reason }}</strong>
       </p>
 
-      <div class="toolbar">
-        <div class="zoom">
+      <div v-if="!(guided && editable)" class="toolbar">
+        <div v-if="!guided || view === 'hoja'" class="zoom">
           <button type="button" aria-label="Alejar" :disabled="zoom <= 1" @click="zoom = Math.max(1, zoom - 0.5)">
             <i class="fa-solid fa-magnifying-glass-minus" aria-hidden="true" />
           </button>
@@ -322,33 +453,76 @@ async function openPdf() {
             <i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true" />
           </button>
         </div>
-        <span v-if="saveLabel" class="save" :class="`save--${autosave.state.value}`">
-          <i class="fa-solid" :class="autosave.state.value === 'offline' ? 'fa-wifi' : autosave.state.value === 'saving' ? 'fa-rotate' : 'fa-check'" aria-hidden="true" />
-          {{ saveLabel }}
-        </span>
-        <span v-else-if="!editable && record.status !== 'archivado'" class="save">
-          <i class="fa-solid fa-lock" aria-hidden="true" /> Solo lectura en esta etapa
-        </span>
+        <div v-if="guided" class="views" role="tablist">
+          <button type="button" role="tab" :aria-selected="view === 'resumen'" :class="{ on: view === 'resumen' }" @click="view = 'resumen'">
+            <i class="fa-solid fa-list-check" aria-hidden="true" /> Resumen
+          </button>
+          <button type="button" role="tab" :aria-selected="view === 'hoja'" :class="{ on: view === 'hoja' }" @click="view = 'hoja'">
+            <i class="fa-regular fa-file-lines" aria-hidden="true" /> Hoja oficial
+          </button>
+        </div>
+        <Transition name="fade" mode="out-in">
+          <span v-if="saveLabel" :key="autosave.state.value" class="save" :class="`save--${autosave.state.value}`">
+            <i class="fa-solid" :class="saveIcon" aria-hidden="true" />
+            {{ saveLabel }}
+          </span>
+          <span v-else-if="!editable && record.status !== 'archivado'" class="save">
+            <i class="fa-solid fa-lock" aria-hidden="true" /> Solo lectura en esta etapa
+          </span>
+        </Transition>
       </div>
 
-      <div class="layout">
+      <div class="layout" :class="{ 'layout--guided': guided && editable }">
         <section class="sheet-col">
-          <FormCanvas
-            :form="form"
-            :values="values"
-            :signatures="record.signatures"
+          <GuidedWizard
+            v-if="guided && editable"
+            :schema="schema!"
+            :answers="answers"
+            :context="ctxDraft"
+            :full-context="record.context ?? null"
+            :account-name="record.context?.filledBy?.accountName ?? userStore.user?.name ?? ''"
+            :positions="catalogStore.positions"
             :editable="editable"
-            :zoom="zoom"
-            :can-sign="canSign"
-            @change="onChange"
-            @sign="openSign"
-            @photo="openPhoto"
+            :submitting="busy"
+            :return-info="record.returnInfo"
+            :server-missing="serverMissing"
+            :sync-label="saveLabel"
+            @answer="onAnswer"
+            @context="onContext"
+            @submit="submit"
           />
+          <Transition v-else name="fade" mode="out-in">
+            <div v-if="guided && view === 'resumen'" key="sum" class="review">
+              <p class="review-notice">
+                <i class="fa-solid fa-anchor" aria-hidden="true" /> {{ schema!.notice }}
+              </p>
+              <GuidedSummary
+                :schema="schema!"
+                :answers="answers"
+                :context="record.context ?? null"
+                :position-label="positionLabel"
+              />
+            </div>
+            <FormCanvas
+              v-else
+              key="sheet"
+              :form="form"
+              :values="values"
+              :signatures="record.signatures"
+              :editable="editable && !guided"
+              :zoom="zoom"
+              :can-sign="canSign"
+              :images="images"
+              @change="onChange"
+              @sign="openSign"
+              @photo="openPhoto"
+            />
+          </Transition>
         </section>
 
         <aside class="side">
           <div class="card actions">
-            <button v-if="canSubmit" type="button" class="btn btn-primary" :disabled="busy" @click="submit">
+            <button v-if="canSubmit && !guided" type="button" class="btn btn-primary" :disabled="busy" @click="submit">
               <i class="fa-solid fa-paper-plane" aria-hidden="true" /> Listo para enviar
             </button>
             <button v-if="canApprove" type="button" class="btn btn-primary" :disabled="busy" @click="approve">
@@ -380,19 +554,41 @@ async function openPdf() {
                   :key="s.name"
                   type="button"
                   class="sig"
-                  :class="{ done: signedMap.has(s.name), can: canSign(s) }"
+                  :class="{
+                    done: signedMap.has(s.name) && signedMap.get(s.name)!.valid !== false,
+                    invalid: signedMap.get(s.name)?.valid === false,
+                    can: canSign(s),
+                  }"
                   :disabled="!canSign(s) && !signedMap.has(s.name)"
                   @click="openSign(s)"
                 >
-                  <i class="fa-solid" :class="signedMap.has(s.name) ? 'fa-circle-check' : canSign(s) ? 'fa-pen' : 'fa-circle'" aria-hidden="true" />
+                  <i
+                    class="fa-solid"
+                    :class="
+                      signedMap.get(s.name)?.valid === false
+                        ? 'fa-triangle-exclamation'
+                        : signedMap.has(s.name)
+                          ? 'fa-circle-check'
+                          : canSign(s)
+                            ? 'fa-pen'
+                            : 'fa-circle'
+                    "
+                    aria-hidden="true"
+                  />
                   <span class="sig-label">{{ s.label }}</span>
-                  <span v-if="signedMap.has(s.name)" class="sig-who">
+                  <span v-if="signedMap.get(s.name)?.valid === false" class="sig-who sig-who--invalid">
+                    Invalidada: los datos cambiaron después de firmar. Vuelve a firmar.
+                  </span>
+                  <span v-else-if="signedMap.has(s.name)" class="sig-who">
                     {{ signedMap.get(s.name)!.signerName }} · {{ formatStamp(signedMap.get(s.name)!.signedAt) }}
                   </span>
                 </button>
               </div>
             </template>
             <p v-if="!slots.length" class="muted">Este formato no lleva firmas.</p>
+            <p v-if="guided" class="muted sig-note">
+              Quien llena no firma en este formato: su identidad, cargo y hora de envío quedan en la página anexa del PDF.
+            </p>
           </div>
 
           <details v-if="record.history?.length" class="card history">
@@ -401,6 +597,7 @@ async function openPdf() {
               <li v-for="(h, i) in [...record.history].reverse()" :key="i">
                 <strong>{{ h.action }}</strong>
                 <span>{{ h.byName }} · {{ formatStamp(h.at) }}</span>
+                <em v-if="h.section">Sección: {{ h.section }}</em>
                 <em v-if="h.reason">{{ h.reason }}</em>
               </li>
             </ol>
@@ -745,5 +942,103 @@ async function openPdf() {
       color: var(--ink-600);
     }
   }
+}
+
+.state-error {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  max-width: 640px;
+
+  > i {
+    font-size: 1.5rem;
+    color: var(--warning);
+    margin-top: 0.25rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.3rem;
+  }
+
+  p {
+    margin: 0 0 0.9rem;
+    color: var(--ink-600);
+  }
+}
+
+.state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.views {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--cream-200);
+
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: var(--ink-600);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.18s ease, color 0.18s ease;
+
+    &.on {
+      background: var(--navy-800);
+      color: #fff;
+    }
+  }
+}
+
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.review-notice {
+  margin: 0;
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--navy-800);
+  color: var(--cream-100);
+  font-weight: 600;
+
+  i {
+    margin-top: 0.2rem;
+    color: var(--gold-400);
+  }
+}
+
+.save--pending {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.sig.invalid {
+  color: var(--danger);
+  background: rgba(180, 72, 59, 0.08);
+}
+
+.sig-who--invalid {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.sig-note {
+  margin-top: 0.7rem;
+  font-size: 0.78rem;
 }
 </style>
