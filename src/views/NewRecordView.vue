@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog'
 import { useUserStore } from '@/stores/user'
 import { useToastStore } from '@/stores/toast'
@@ -8,6 +8,7 @@ import { useSound } from '@/composables/useSound'
 import { apiCreateRecord } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
 import { FREQUENCY_LABELS, todayGalapagos } from '@/utils/ism'
+import { newKey } from '@/utils/format'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseDatePicker from '@/components/ui/BaseDatePicker.vue'
@@ -15,6 +16,7 @@ import SkeletonList from '@/components/ui/SkeletonList.vue'
 import type { IsmCatalogItem } from '@/types'
 
 const router = useRouter()
+const route = useRoute()
 const catalog = useCatalogStore()
 const userStore = useUserStore()
 const toast = useToastStore()
@@ -27,10 +29,16 @@ const recordDate = shallowRef(todayGalapagos())
 const equipmentFolder = shallowRef('')
 const position = shallowRef('')
 const creating = shallowRef(false)
+/** Una clave por intento de creación: reintentar no duplica el registro. */
+let creationKey = newKey()
 
 onMounted(async () => {
   try {
     await catalog.load()
+    // Acceso directo desde "Mis tareas" (?formato=R-16).
+    const code = route.query.formato
+    const target = typeof code === 'string' ? catalog.byCode.get(code) : undefined
+    if (target) choose(target)
   } catch (err) {
     toast.error(apiErrorMessage(err))
   } finally {
@@ -66,7 +74,13 @@ function choose(f: IsmCatalogItem) {
     toast.push('Este registro lo llena la oficina (Persona Designada).', 'info')
     return
   }
+  // Los formatos con llenado guiado (R-14) se abren en su asistente.
+  if (f.guidedVersion) {
+    router.push('/zarpe/nuevo')
+    return
+  }
   chosen.value = f
+  creationKey = newKey()
   recordDate.value = todayGalapagos()
   equipmentFolder.value = ''
   position.value = f.frequency.startsWith('por_cargo') ? userStore.user?.position ?? '' : ''
@@ -88,7 +102,9 @@ async function create() {
       recordDate: recordDate.value,
       equipmentFolder: needsEquipment.value ? equipmentFolder.value : undefined,
       position: needsPosition.value ? position.value : undefined,
+      idempotencyKey: creationKey,
     })
+    creationKey = newKey()
     play('success')
     router.push(`/registro/${rec._id}`)
   } catch (err) {
@@ -127,6 +143,7 @@ async function create() {
         >
           <span class="fcode">{{ f.code.replace('_', ' · ') }}</span>
           <span class="ftitle">{{ f.title }}</span>
+          <span v-if="f.guidedVersion" class="fguided"><i class="fa-solid fa-list-check" aria-hidden="true" /> Llenado guiado</span>
           <span class="fmeta">
             <span><i class="fa-regular fa-clock" aria-hidden="true" /> {{ FREQUENCY_LABELS[f.frequency] ?? f.frequency }}</span>
             <span v-if="f.stages.capitan"><i class="fa-solid fa-anchor" aria-hidden="true" /> Capitán</span>
@@ -263,6 +280,16 @@ async function create() {
 .ftitle {
   font-weight: 600;
   line-height: 1.3;
+}
+
+.fguided {
+  align-self: flex-start;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(63, 122, 87, 0.14);
+  color: var(--success);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .fmeta {
