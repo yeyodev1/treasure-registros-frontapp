@@ -1,4 +1,5 @@
 export type UserRole =
+  | 'duena'
   | 'admin'
   | 'direccion'
   | 'bartender'
@@ -29,6 +30,8 @@ export interface IsmField {
   multiline?: boolean
   fontSize?: number
   default?: string | boolean
+  /** Dato conocido (p. ej. caducidad del R-28): se muestra como referencia, no es respuesta. */
+  reference?: string
   maxLength?: number
   stage?: SignatureStage
   label?: string
@@ -54,6 +57,8 @@ export interface IsmCatalogItem {
   pages: number
   fieldCount: number
   stages: Record<SignatureStage, number>
+  /** Versión del llenado guiado (R-14), o null si se llena sobre la hoja. */
+  guidedVersion?: number | null
 }
 
 export interface IsmEquipment {
@@ -74,8 +79,84 @@ export interface IsmSignature {
   user: string
   userName: string
   userRole: string
-  image?: string
   signedAt: string
+  /** false si los datos cambiaron después de firmar: hay que volver a firmar. */
+  valid?: boolean
+}
+
+export type AnswerValue = 'si' | 'no' | 'na'
+
+export interface IsmAnswer {
+  value: AnswerValue | null
+  problem: boolean
+  descripcion: string
+  accion: string
+  motivo: string
+  evidencia: string[]
+  at?: string | null
+}
+
+export interface IsmContext {
+  vessel: string
+  activityDate: string
+  activityTime: string
+  place: string
+  filledBy: { user: string; accountName: string; name: string; role: string; position: string }
+  confirmedAt: string | null
+}
+
+export interface IsmFlags {
+  answered: number
+  total: number
+  novedades: number
+  noAplica: number
+}
+
+export interface IsmReturnInfo {
+  reason: string
+  section: string
+  byName: string
+  at: string
+}
+
+export interface IsmSchemaItem {
+  id: string
+  n: string
+  official: string
+  prompt: string
+  si: string
+  no: string
+  allowNa: boolean
+}
+
+export interface IsmSchemaSection {
+  id: string
+  title: string
+  officialTitle: string
+  hint?: string
+  items: IsmSchemaItem[]
+}
+
+export interface IsmSchema {
+  code: string
+  version: number
+  title: string
+  officialTitle: string
+  templateEdition: string
+  vessel: string
+  notice: string
+  context: Record<
+    'activityDate' | 'activityTime' | 'place',
+    { label: string; pdfField: string; required: boolean; suggestions?: string[] }
+  >
+  sections: IsmSchemaSection[]
+}
+
+export interface IsmMissing {
+  section: string
+  item: string
+  field: string
+  message: string
 }
 
 export interface IsmRecord {
@@ -93,7 +174,12 @@ export interface IsmRecord {
   submittedAt: string | null
   archivedAt: string | null
   contentHash: string
-  history?: Array<{ action: string; byName: string; at: string; reason: string }>
+  history?: Array<{ action: string; byName: string; at: string; reason: string; section?: string }>
+  schemaVersion?: number | null
+  context?: IsmContext | null
+  answers?: Record<string, IsmAnswer>
+  flags?: IsmFlags | null
+  returnInfo?: IsmReturnInfo | null
   createdAt: string
   updatedAt: string
 }
@@ -108,6 +194,6 @@ export interface IsmChecklistItem {
 
 export interface IsmSummary {
   month: { y: number; m: number }
-  counts: Record<IsmStatus | 'misBorradores', number>
+  counts: Record<IsmStatus | 'misBorradores' | 'misDevueltos', number>
   checklist: IsmChecklistItem[]
 }
