@@ -8,7 +8,11 @@ const { play } = useSound()
 const reasonInput = useTemplateRef<HTMLTextAreaElement>('reasonInput')
 
 const needsReason = computed(() => Boolean(confirmStore.current?.reason))
-const canConfirm = computed(() => !needsReason.value || confirmStore.reasonText.trim().length > 0)
+const canConfirm = computed(
+  () =>
+    (!needsReason.value || confirmStore.reasonText.trim().length > 0) &&
+    (!confirmStore.current?.choice || Boolean(confirmStore.choiceValue)),
+)
 
 watch(
   () => confirmStore.visible,
@@ -46,6 +50,24 @@ function pick(suggestion: string) {
           </span>
           <h3 class="dialog-title">{{ confirmStore.current.title }}</h3>
           <p class="dialog-message">{{ confirmStore.current.message }}</p>
+
+          <div v-if="confirmStore.current.choice" class="dialog-reason">
+            <span class="dialog-label">{{ confirmStore.current.choice.label }}</span>
+            <div class="dialog-chips" role="radiogroup" :aria-label="confirmStore.current.choice.label">
+              <button
+                v-for="o in confirmStore.current.choice.options"
+                :key="o"
+                type="button"
+                role="radio"
+                class="dialog-chip"
+                :class="{ 'dialog-chip--on': confirmStore.choiceValue === o }"
+                :aria-checked="confirmStore.choiceValue === o"
+                @click="confirmStore.choiceValue = o"
+              >
+                {{ o }}
+              </button>
+            </div>
+          </div>
 
           <div v-if="confirmStore.current.reason" class="dialog-reason">
             <label for="confirm-reason">{{ confirmStore.current.reason.label }}</label>
@@ -160,7 +182,8 @@ function pick(suggestion: string) {
   gap: 0.45rem;
   margin-top: 0.3rem;
 
-  label {
+  label,
+  .dialog-label {
     font-size: 0.8rem;
     font-weight: 600;
     color: var(--ink-600);
@@ -189,7 +212,8 @@ function pick(suggestion: string) {
 }
 
 .dialog-chip {
-  padding: 0.35rem 0.7rem;
+  min-height: 40px;
+  padding: 0.35rem 0.8rem;
   border-radius: 999px;
   border: 1.5px solid var(--cream-200);
   font-size: 0.8rem;
