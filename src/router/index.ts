@@ -44,6 +44,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/RecordView.vue'),
     meta: { title: 'Registro' },
   },
+  {
+    path: '/tripulantes',
+    name: 'Crew',
+    component: () => import('@/views/CrewView.vue'),
+    meta: { title: 'Tripulantes', roles: ['designada', 'duena'] },
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 
@@ -71,6 +77,8 @@ router.beforeEach(async (to) => {
     const expired = userStore.consumeExpiredNotice()
     return { name: 'Login', query: { next: to.fullPath, ...(expired ? { caducada: '1' } : {}) } }
   }
+  const roles = to.meta.roles as string[] | undefined
+  if (roles && !roles.includes(userStore.role ?? '')) return { name: 'Home' }
   return true
 })
 
