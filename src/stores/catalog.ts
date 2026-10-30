@@ -8,6 +8,8 @@ export const useCatalogStore = defineStore('catalog', () => {
   const forms = ref<IsmCatalogItem[]>([])
   const equipment = ref<IsmEquipment[]>([])
   const positions = ref<Array<{ value: string; label: string }>>([])
+  /** Embarcación de los datos maestros del servidor. */
+  const vessel = shallowRef('')
   const loaded = shallowRef(false)
   const definitions = new Map<string, IsmForm>()
   const schemas = new Map<string, IsmSchema>()
@@ -21,6 +23,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     forms.value = data.forms
     equipment.value = data.equipment
     positions.value = data.positions
+    vessel.value = data.vessel?.name ?? ''
     loaded.value = true
   }
 
@@ -36,5 +39,5 @@ export const useCatalogStore = defineStore('catalog', () => {
     return schemas.get(key)!
   }
 
-  return { forms, equipment, positions, loaded, byCode, positionLabel, load, definition, schema }
+  return { forms, equipment, positions, vessel, loaded, byCode, positionLabel, load, definition, schema }
 })
