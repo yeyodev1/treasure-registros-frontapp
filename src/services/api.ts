@@ -40,6 +40,7 @@ export async function apiCatalog() {
     forms: IsmCatalogItem[]
     equipment: IsmEquipment[]
     positions: Array<{ value: string; label: string }>
+    vessel?: { id: string; name: string } | null
   }>('/ism/catalog')
   return data
 }
