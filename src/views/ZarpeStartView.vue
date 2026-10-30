@@ -50,8 +50,9 @@ const ctx = ref<ContextDraft>({
   activityDate: todayGalapagos(),
   activityTime: nowTimeGalapagos(),
   place: '',
-  name: userStore.user?.name ?? '',
-  position: userStore.user?.position ?? '',
+  name: '',
+  position: '',
+  crewId: '',
 })
 
 /** La misma clave mientras no se cree: un reintento (doble toque, sin señal) no duplica. */
@@ -72,7 +73,7 @@ const missing = computed(() => {
   if (!ctx.value.activityDate) m.add('activityDate')
   if (!ctx.value.activityTime) m.add('activityTime')
   if (!ctx.value.place.trim()) m.add('place')
-  if (!ctx.value.name.trim()) m.add('name')
+  if (!ctx.value.crewId) m.add('name')
   if (!ctx.value.position) m.add('position')
   return m
 })
