@@ -31,6 +31,7 @@ import {
   canEditRecord,
   canSignSlot,
   formatRecordDate,
+  formatHour,
   formatStamp,
   statusLabel,
 } from '@/utils/ism'
@@ -184,7 +185,7 @@ const saveLabel = computed(() => {
   if (s === 'offline') return 'Sin conexión: guardado en la tableta, se enviará solo'
   if (s === 'error') return `Guardado en la tableta, no se pudo sincronizar: ${autosave.lastError.value}`
   if (s === 'saved' && autosave.savedAt.value) {
-    return `Guardado ${autosave.savedAt.value.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })}`
+    return `Guardado ${formatHour(autosave.savedAt.value.toISOString())}`
   }
   return ''
 })
