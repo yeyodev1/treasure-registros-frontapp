@@ -83,6 +83,12 @@ export function isNetworkError(error: unknown): boolean {
   return [502, 503, 504].includes(error.response.status)
 }
 
+/** Código de máquina del error (p. ej. "clave_temporal", "clave_bloqueada"). */
+export function apiErrorCode(error: unknown): string {
+  if (!axios.isAxiosError(error)) return ''
+  return String((error.response?.data as { code?: string } | undefined)?.code ?? '')
+}
+
 export function apiErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     if (error.code === 'ECONNABORTED') return 'La conexión tardó demasiado. Revisa la señal e inténtalo otra vez.'
