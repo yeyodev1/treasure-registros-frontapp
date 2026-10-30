@@ -4,6 +4,11 @@
 // caramelo #9E754D (Our Drinks) y oliva #58522C (Our Cocktails).
 // La escala "navy" es ahora el azul profundo del mismo tono que la portada;
 // los nombres de variables se conservan para no tocar cada componente.
+//
+// Rediseño 30-oct (pantallas de trabajo): el color va en los datos, no en
+// el marco. Fondo azul gris de libro de registro, tarjetas blancas con un
+// borde suave (sin sombra en reposo), azul profundo solo en la acción
+// principal y caramelo solo en «te toca» (el paso de firma pendiente).
 :root {
   --navy-900: #1b3142;
   --navy-800: #27445a;
@@ -11,6 +16,7 @@
   --navy-600: #4a6a80;
   --gold-500: #9e754d;
   --gold-400: #b38a60;
+  --gold-100: #f4ece3;
   --teal-400: #8fb0c6;
   --powder-100: #e6eef4;
   --powder-200: #d3e2ec;
@@ -18,20 +24,32 @@
   --olive-700: #58522c;
   --menu-cream: #eee9e9;
   --cream-100: #f3f7fa;
-  --cream-200: #d9e4ec;
+  --cream-200: #dfe7ee;
   --ink-900: #1b2b25;
-  --ink-600: #4a5862;
-  --ink-400: #7d8b95;
-  --danger: #b4483b;
-  --success: #3f7a57;
-  --warning: #b9802f;
+  --ink-600: #47555f;
+  // Gris de apoyo legible a 16 px (4.8:1 sobre blanco).
+  --ink-400: #66737d;
+  --danger: #a8402f;
+  --danger-100: #f8ebe8;
+  --success: #3a7351;
+  --success-100: #e8f1eb;
+  --warning: #9a6a20;
+  --warning-100: #fbf3e4;
+  --warning-line: #e6cfa4;
 
   --bg: var(--cream-100);
   --surface: #ffffff;
-  --radius: 14px;
-  --radius-sm: 9px;
-  --shadow: 0 2px 12px rgba(27, 49, 66, 0.07);
-  --shadow-lg: 0 10px 34px rgba(27, 49, 66, 0.18);
+  // Bordes: el de tarjetas apenas se ve; el de controles un paso más fuerte.
+  --line: #dde5ec;
+  --line-strong: #b9c7d3;
+  --hover: #eef3f7;
+  --active: #e3ebf2;
+  --radius: 10px;
+  --radius-sm: 8px;
+  --shadow: none;
+  // Solo lo que flota (menús, avisos, modales) lleva sombra.
+  --shadow-lg: 0 12px 32px rgba(27, 49, 66, 0.16);
+  --ease: cubic-bezier(0.32, 0.72, 0.25, 1);
 
   --font-serif: 'Cardo', 'Times New Roman', serif;
   --font-sans: 'Geist', 'Segoe UI', system-ui, -apple-system, sans-serif;
