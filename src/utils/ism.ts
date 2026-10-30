@@ -41,11 +41,22 @@ export function isManagerRole(role: UserRole | null): boolean {
   return role === 'duena' || role === 'admin'
 }
 
+/** Id de quien creó el registro (poblado o no). */
+export function creatorId(record: Pick<IsmRecord, 'createdBy'>): string {
+  return typeof record.createdBy === 'object' ? record.createdBy._id : record.createdBy
+}
+
 /** Misma regla que el servidor: quién puede editar en cada etapa. */
-export function canEditRecord(record: IsmRecord, role: UserRole | null, form: IsmForm): boolean {
+export function canEditRecord(
+  record: IsmRecord,
+  role: UserRole | null,
+  form: IsmForm,
+  userId: string | null | undefined,
+): boolean {
   if (!role || record.status === 'archivado') return false
-  // Registros guiados: las respuestas solo cambian en borrador; para corregir se devuelve.
-  if (record.schemaVersion && record.status !== 'borrador') return false
+  // Registros guiados: solo quien lo creó (la sesión del barco o el tripulante) y solo en
+  // borrador, también cuando vuelve devuelto. Los demás revisan y devuelven con motivo.
+  if (record.schemaVersion) return record.status === 'borrador' && Boolean(userId) && creatorId(record) === userId
   if (isManagerRole(role)) return true
   if (record.status === 'borrador') return form.officeOnly ? role === 'designada' : true
   if (record.status === 'por_capitan') return role === 'capitan'

@@ -104,7 +104,7 @@ const { images } = useSignatureImages(recordId, signatureList)
 const guided = computed(() => Boolean(record.value?.schemaVersion && schema.value))
 
 const editable = computed(
-  () => Boolean(record.value && form.value && canEditRecord(record.value, userStore.role, form.value)),
+  () => Boolean(record.value && form.value && canEditRecord(record.value, userStore.role, form.value, userStore.user?.id)),
 )
 
 const slots = computed(() => (form.value?.fields ?? []).filter((f) => f.type === 'signature'))
@@ -556,7 +556,8 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             {{ saveLabel }}
           </span>
           <span v-else-if="!editable && record.status !== 'archivado'" class="save">
-            <i class="fa-solid fa-lock" aria-hidden="true" /> Solo lectura en esta etapa
+            <i class="fa-solid fa-lock" aria-hidden="true" />
+            {{ guided && record.status === 'borrador' ? 'Solo lectura: lo corrige quien hizo el registro' : 'Solo lectura en esta etapa' }}
           </span>
         </Transition>
       </div>
