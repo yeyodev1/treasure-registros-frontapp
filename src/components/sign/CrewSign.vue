@@ -26,13 +26,14 @@ const when = computed(() => formatActivity(props.context.activityDate))
 
 <template>
   <section class="cs">
-    <header class="cs-bar">
-      <span><strong>{{ schema.title }}</strong> · {{ record.code }}</span>
-      <span>Firma 1 de 3</span>
-    </header>
-    <SignSteps :record="record" :signers="schema.signers ?? []" me-step="tripulacion" />
+    <div class="cs-steps card">
+      <SignSteps :record="record" :signers="schema.signers ?? []" me-step="tripulacion" />
+    </div>
 
-    <h2 class="cs-title">Firma tú</h2>
+    <div class="cs-head">
+      <h2 class="cs-title">Firma tú</h2>
+      <span class="cs-count">Firma 1 de 3</span>
+    </div>
     <div class="cs-who card">
       <div>
         <span class="cs-eyebrow">Firmas como</span>
@@ -64,26 +65,34 @@ const when = computed(() => formatActivity(props.context.activityDate))
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/mixins' as *;
+
+// Pantalla 2: quién firma, qué declara, la firma y la clave. Nada más.
 .cs {
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1.25rem;
   max-width: 760px;
 }
 
-.cs-bar {
+.cs-steps {
+  padding: 1.1rem 0.75rem;
+}
+
+.cs-head {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.8rem 1rem;
-  border-radius: var(--radius-sm);
-  background: var(--navy-800);
-  color: #fff;
-  font-size: 1rem;
 }
 
 .cs-title {
-  font-size: 1.8rem;
+  font-size: 2rem;
+}
+
+.cs-count {
+  color: var(--ink-600);
+  font-variant-numeric: tabular-nums;
 }
 
 .cs-who {
@@ -94,30 +103,31 @@ const when = computed(() => formatActivity(props.context.activityDate))
 
   strong {
     display: block;
-    font-size: 1.2rem;
+    margin-top: 0.15rem;
+    font-size: 1.3rem;
+    font-weight: 600;
   }
 }
 
 .cs-eyebrow {
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-400);
+  color: var(--ink-600);
 }
 
 .cs-notme {
-  min-height: 44px;
-  padding: 0 0.6rem;
-  font-weight: 700;
+  min-height: 48px;
+  padding: 0 0.75rem;
+  font-weight: 600;
   font-size: 1rem;
   text-decoration: underline;
+  text-underline-offset: 3px;
   color: var(--navy-800);
+  flex-shrink: 0;
 }
 
 .cs-declare {
   margin: 0;
-  font-size: 1.08rem;
-  line-height: 1.5;
+  font-size: 1.12rem;
+  line-height: 1.55;
 }
 </style>
