@@ -88,6 +88,8 @@ export interface ContextInput {
   place?: string
   name?: string
   position?: string
+  /** Hora de una o más secciones ('HH:MM'); '' la borra. */
+  sectionTimes?: Record<string, string>
   confirmed?: boolean
 }
 
