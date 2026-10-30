@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCatalogStore } from '@/stores/catalog'
-import { STATUS_ICONS, STATUS_LABELS, authorName, formatRecordDate, formatStamp } from '@/utils/ism'
+import { STATUS_ICONS, authorName, formatRecordDate, formatStamp, statusLabel } from '@/utils/ism'
 import type { IsmRecord } from '@/types'
 
 defineProps<{ record: IsmRecord }>()
@@ -17,11 +17,18 @@ const catalog = useCatalogStore()
       <span class="body">
         <strong>{{ record.code.replace('_', ' · ') }} · {{ record.title }}</strong>
         <small>
-          {{ formatRecordDate(record.recordDate) }} · {{ STATUS_LABELS[record.status] }}
+          {{ formatRecordDate(record.recordDate) }} · {{ statusLabel(record) }}
           <template v-if="record.equipment"> · {{ record.equipment.name }}</template>
           <template v-if="record.position"> · {{ catalog.positionLabel.get(record.position) ?? record.position }}</template>
         </small>
-        <span v-if="record.flags?.novedades || record.flags?.noAplica || record.returnInfo" class="tags">
+        <span v-if="record.flags || record.returnInfo || record.test" class="tags">
+          <span v-if="record.test" class="tag tag--test"><i class="fa-solid fa-flask" aria-hidden="true" /> Prueba</span>
+          <span
+            v-if="record.status === 'borrador' && !record.returnInfo && record.flags && record.flags.answered === record.flags.total"
+            class="tag tag--ready"
+          >
+            <i class="fa-solid fa-signature" aria-hidden="true" /> Falta firmar y enviar
+          </span>
           <span v-if="record.flags?.novedades" class="tag tag--nov">
             <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" />
             {{ record.flags.novedades }} {{ record.flags.novedades === 1 ? 'novedad' : 'novedades' }}
@@ -55,6 +62,16 @@ const catalog = useCatalogStore()
   &:hover {
     box-shadow: var(--shadow-lg);
   }
+}
+
+.tag--test {
+  background: rgba(39, 68, 90, 0.12) !important;
+  color: var(--navy-700) !important;
+}
+
+.tag--ready {
+  background: var(--navy-800) !important;
+  color: #fff !important;
 }
 
 .row--nov {
