@@ -68,7 +68,9 @@ const steps = computed(() => {
   gap: 0.25rem;
 
   strong {
-    font-size: 1rem;
+    margin-top: 0.15rem;
+    font-size: 1.05rem;
+    font-weight: 600;
   }
 
   small {
@@ -79,10 +81,10 @@ const steps = computed(() => {
 
 .ss-line {
   position: absolute;
-  top: 22px;
+  top: 21px;
   right: calc(50% + 30px);
   width: calc(100% - 60px);
-  border-top: 2px solid var(--cream-200);
+  border-top: 2px solid var(--line-strong);
 
   &.on {
     border-color: var(--success);
@@ -97,9 +99,10 @@ const steps = computed(() => {
   place-items: center;
   font-weight: 700;
   font-size: 1.05rem;
-  border: 2px solid var(--ink-400);
+  border: 2px solid var(--line-strong);
   color: var(--ink-600);
   background: #fff;
+  font-variant-numeric: tabular-nums;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 
   .ss-step--done & {
