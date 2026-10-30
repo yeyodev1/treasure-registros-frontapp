@@ -82,6 +82,52 @@ export interface IsmSignature {
   signedAt: string
   /** false si los datos cambiaron después de firmar: hay que volver a firmar. */
   valid?: boolean
+  /** Cargo en el momento de firmar. */
+  position?: string
+  /** Sesión de la tablet con que se capturó (si no es quien firma). */
+  capturedByName?: string
+  method?: string
+}
+
+export interface IsmAnnulledSignature extends IsmSignature {
+  annulledAt: string
+  annulReason: string
+}
+
+export interface CrewMember {
+  id: string
+  name: string
+  role: UserRole
+  position: string
+  positionLabel: string
+  active: boolean
+  hasAccount: boolean
+  onboard: boolean
+  hasPin: boolean
+  pinTemporary: boolean
+  lockedUntil: string | null
+}
+
+export interface IsmNotice {
+  _id: string
+  kind: string
+  title: string
+  body: string
+  record: string | null
+  link: string
+  readAt: string | null
+  createdAt: string
+}
+
+export interface IsmSigner {
+  step: SignatureStage
+  who: 'lista' | 'capitan' | 'designada'
+  label: string
+  field: string
+  print: 'anexo' | 'casilla'
+  status: 'borrador' | 'por_capitan' | 'por_oficina'
+  next: 'por_capitan' | 'por_oficina' | 'archivado'
+  returnsTo: SignatureStage | null
 }
 
 export type AnswerValue = 'si' | 'no' | 'na'
@@ -105,7 +151,17 @@ export interface IsmContext {
   activityDate: string
   activityTime: string
   place: string
-  filledBy: { user: string; accountName: string; name: string; role: string; position: string }
+  filledBy: {
+    user: string
+    accountName: string
+    name: string
+    role: string
+    position: string
+    /** Elegido de la lista de tripulantes. */
+    fromList?: boolean
+    /** El cargo vino de su ficha. */
+    positionFixed?: boolean
+  }
   /** Hora de cada sección ('HH:MM'). */
   sectionTimes?: Record<string, string>
   confirmedAt: string | null
@@ -125,6 +181,8 @@ export interface IsmReturnInfo {
   section: string
   byName: string
   at: string
+  /** A qué paso se devolvió (tripulacion o capitan). */
+  toStage?: SignatureStage
 }
 
 export interface IsmSchemaItem {
@@ -158,6 +216,8 @@ export interface IsmSchema {
     { label: string; pdfField: string; required: boolean; suggestions?: string[] }
   >
   sections: IsmSchemaSection[]
+  archiveFolder?: string
+  signers?: IsmSigner[]
 }
 
 export interface IsmMissing {
@@ -176,6 +236,7 @@ export interface IsmRecord {
   fileName: string
   data?: Record<string, string | boolean>
   signatures: IsmSignature[]
+  annulledSignatures?: IsmAnnulledSignature[]
   position: string
   equipment: { folder: string; name: string; category: string } | null
   createdBy: { _id: string; name: string; role: UserRole } | string
