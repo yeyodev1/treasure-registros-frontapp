@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue'
 import { useCrewStore } from '@/stores/crew'
+import { useCatalogStore } from '@/stores/catalog'
 import { apiErrorMessage } from '@/services/httpBase'
 import BaseDatePicker from '@/components/ui/BaseDatePicker.vue'
 import BaseTimePicker from '@/components/ui/BaseTimePicker.vue'
@@ -28,6 +29,8 @@ const props = defineProps<{
   accountName: string
   positions: Array<{ value: string; label: string }>
   editable: boolean
+  /** Embarcación guardada en el registro (si ya existe). */
+  vesselName?: string
   /** Campos que faltan (activityDate, activityTime, place, name). */
   missing?: Set<string>
 }>()
@@ -60,6 +63,7 @@ const position = computed({
 const miss = (f: string) => props.missing?.has(f) ?? false
 
 const crew = useCrewStore()
+const catalog = useCatalogStore()
 const crewError = shallowRef('')
 onMounted(async () => {
   try {
@@ -88,7 +92,7 @@ const positionLabel = computed(
       <i class="fa-solid fa-ship" aria-hidden="true" />
       <div>
         <span class="ctx-label">Embarcación</span>
-        <strong>{{ schema.vessel }}</strong>
+        <strong>{{ vesselName || catalog.vessel || schema.vessel }}</strong>
       </div>
     </div>
 
