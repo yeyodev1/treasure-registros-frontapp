@@ -152,12 +152,14 @@ async function start() {
     <button type="button" class="back-link" @click="router.push('/')">
       <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Mis tareas
     </button>
-    <p class="eyebrow">{{ schema?.officialTitle ?? CODE }}</p>
-    <h1 class="page-title">{{ pageTitle }}</h1>
+    <header class="zarpe-head">
+      <h1 class="page-title">{{ pageTitle }}</h1>
+      <p class="page-lead">{{ schema?.officialTitle ?? CODE }}</p>
+    </header>
 
     <SkeletonList v-if="loading" variant="card" :rows="3" />
 
-    <div v-else-if="error" class="card state-error">
+    <div v-else-if="error" class="card state-error" role="alert">
       <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true" />
       <div>
         <p><strong>No se pudo abrir el formato.</strong> {{ error }}</p>
@@ -168,45 +170,65 @@ async function start() {
     </div>
 
     <Transition v-else-if="schema" name="fade" mode="out-in">
-    <section v-if="!showForm && ordered.length" key="continue" class="card resume">
-      <h2>{{ card?.resumeTitle ?? 'Tienes un registro sin enviar' }}</h2>
-      <RouterLink :to="`/registro/${ordered[0]!._id}`" class="btn btn-primary resume-main">
-        <i class="fa-solid fa-play" aria-hidden="true" /> {{ continueLabel(ordered[0]!) }}
-      </RouterLink>
-      <p class="resume-meta">
-        {{ formatActivity(ordered[0]!.context?.activityDate, ordered[0]!.context?.activityTime) }}
-        <template v-if="ordered[0]!.context?.place"> · {{ ordered[0]!.context!.place }}</template>
-        <template v-if="ordered[0]!.returnInfo"> · Devuelto: {{ ordered[0]!.returnInfo!.reason }}</template>
-      </p>
-      <TransitionGroup v-if="ordered.length > 1" tag="ul" name="list" appear class="resume-more">
-        <li v-for="d in ordered.slice(1)" :key="d._id">
-          <RouterLink :to="`/registro/${d._id}`" class="draft">
-            <span class="draft-body">
-              <strong>{{ continueLabel(d) }}</strong>
-              <small>
-                {{ formatActivity(d.context?.activityDate, d.context?.activityTime) }}
-                <template v-if="d.context?.place"> · {{ d.context.place }}</template>
-                · guardado {{ formatStamp(d.updatedAt) }}
-              </small>
+      <div v-if="!showForm && ordered.length" key="continue" class="resume">
+        <section class="card resume-main" :class="{ 'is-returned': ordered[0]!.returnInfo }" aria-labelledby="h-resume">
+          <h2 id="h-resume">{{ card?.resumeTitle ?? 'Tienes un registro sin enviar' }}</h2>
+          <p class="resume-meta">
+            {{ formatActivity(ordered[0]!.context?.activityDate, ordered[0]!.context?.activityTime) }}
+            <template v-if="ordered[0]!.context?.place"> · {{ ordered[0]!.context!.place }}</template>
+            <template v-if="ordered[0]!.context?.filledBy?.name"> · {{ ordered[0]!.context!.filledBy!.name }}</template>
+          </p>
+          <p v-if="ordered[0]!.returnInfo" class="resume-returned">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true" />
+            <span>
+              <strong>Te lo devolvieron.</strong>
+              {{ ordered[0]!.returnInfo!.reason }}
             </span>
-            <i class="fa-solid fa-chevron-right" aria-hidden="true" />
+          </p>
+          <div v-if="ordered[0]!.flags" class="resume-progress">
+            <span class="bar"><span :style="{ width: `${(ordered[0]!.flags!.answered / Math.max(1, ordered[0]!.flags!.total)) * 100}%` }" /></span>
+            <span class="num">{{ ordered[0]!.flags!.answered }} de {{ ordered[0]!.flags!.total }} puntos</span>
+          </div>
+          <RouterLink :to="`/registro/${ordered[0]!._id}`" class="btn btn-primary btn-lg resume-btn">
+            {{ continueLabel(ordered[0]!) }} <i class="fa-solid fa-arrow-right" aria-hidden="true" />
           </RouterLink>
-        </li>
-      </TransitionGroup>
-      <div class="resume-new">
-        <p>{{ otherQuestion }} Crea uno nuevo; el anterior queda guardado.</p>
-        <button type="button" class="btn btn-ghost" @click="showForm = true">
-          <i class="fa-solid fa-plus" aria-hidden="true" /> {{ newLabel }}
-        </button>
+        </section>
+
+        <section v-if="ordered.length > 1" class="card resume-more" aria-labelledby="h-more">
+          <h2 id="h-more">También sin enviar</h2>
+          <TransitionGroup tag="ul" name="list" appear>
+            <li v-for="d in ordered.slice(1)" :key="d._id">
+              <RouterLink :to="`/registro/${d._id}`" class="draft">
+                <span class="draft-body">
+                  <strong>{{ continueLabel(d) }}</strong>
+                  <small>
+                    {{ formatActivity(d.context?.activityDate, d.context?.activityTime) }}
+                    <template v-if="d.context?.place"> · {{ d.context.place }}</template>
+                    <template v-if="d.context?.filledBy?.name"> · {{ d.context.filledBy.name }}</template>
+                  </small>
+                  <small>Guardado {{ formatStamp(d.updatedAt) }}</small>
+                </span>
+                <span class="draft-go">Abrir <i class="fa-solid fa-chevron-right" aria-hidden="true" /></span>
+              </RouterLink>
+            </li>
+          </TransitionGroup>
+        </section>
+
+        <section class="resume-new" aria-labelledby="h-new">
+          <h2 id="h-new">{{ otherQuestion }}</h2>
+          <p>Crea uno nuevo. El anterior queda guardado.</p>
+          <button type="button" class="btn btn-ghost" @click="showForm = true">
+            <i class="fa-solid fa-plus" aria-hidden="true" /> {{ newLabel }}
+          </button>
+        </section>
       </div>
-    </section>
-    <div v-else key="form" class="cols">
-      <section class="card main">
+
+      <section v-else key="form" class="card main" aria-labelledby="h-start">
         <p class="notice">
           <i class="fa-solid fa-anchor" aria-hidden="true" />
-          {{ schema.notice }}
+          <span>{{ schema.notice }}</span>
         </p>
-        <h2>Antes de empezar, confirma</h2>
+        <h2 id="h-start">Antes de empezar, confirma</h2>
         <GuidedContextForm
           v-model="ctx"
           :schema="schema"
@@ -216,17 +238,19 @@ async function start() {
           editable
         />
         <div class="start">
-          <button type="button" class="btn btn-gold" :disabled="creating" @click="start">
+          <p v-if="showMissing && missing.size" class="start-miss" role="alert">
+            <i class="fa-solid fa-circle-exclamation" aria-hidden="true" /> Falta completar lo marcado en rojo.
+          </p>
+          <button type="button" class="btn btn-primary btn-lg" :disabled="creating" @click="start">
             <i class="fa-solid" :class="creating ? 'fa-spinner fa-spin' : 'fa-play'" aria-hidden="true" />
             {{ creating ? 'Abriendo…' : 'Empezar el chequeo' }}
           </button>
-          <p>
+          <p class="start-facts">
             {{ schema.sections.length }} secciones · {{ schema.sections.reduce((n, s) => n + s.items.length, 0) }} puntos.
-            Se guarda solo. Nada se envía hasta que firmes.
           </p>
+          <p class="start-facts">Se guarda solo. Nada se envía hasta que firmes.</p>
         </div>
       </section>
-    </div>
     </Transition>
   </div>
 </template>
@@ -238,57 +262,46 @@ async function start() {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  color: var(--ink-600);
+  gap: 0.5rem;
+  color: var(--navy-800);
   font-weight: 600;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
 }
 
-.eyebrow {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-500);
+.zarpe-head {
+  margin-bottom: 1.5rem;
 }
 
-.cols {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr);
-
-  @include desktop {
-    grid-template-columns: minmax(0, 1fr) 320px;
-    align-items: start;
-  }
+.main,
+.resume {
+  max-width: 780px;
 }
 
 .main {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-width: 760px;
+  gap: 1.5rem;
 
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 }
 
+// Aviso del formato: la decisión de zarpar es del Capitán.
 .notice {
   margin: 0;
   display: flex;
-  gap: 0.6rem;
-  padding: 0.8rem 0.95rem;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
   border-radius: var(--radius-sm);
-  background: var(--navy-800);
-  color: var(--cream-100);
-  font-weight: 600;
-  line-height: 1.4;
+  background: var(--powder-100);
+  color: var(--navy-900);
+  font-weight: 500;
+  line-height: 1.45;
 
   i {
-    margin-top: 0.2rem;
-    color: var(--gold-400);
+    margin-top: 0.25rem;
+    color: var(--navy-700);
   }
 }
 
@@ -297,43 +310,44 @@ async function start() {
   flex-direction: column;
   gap: 0.5rem;
   align-items: flex-start;
+  padding-top: 0.5rem;
 
   .btn {
-    min-height: 54px;
-    padding: 0 1.6rem;
-    font-size: 1.02rem;
+    min-width: 260px;
+    margin-bottom: 0.35rem;
   }
+}
 
-  p {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--ink-600);
-  }
+.start-facts {
+  margin: 0;
+  color: var(--ink-600);
+}
+
+.start-miss {
+  margin: 0 0 0.25rem;
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .resume {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75rem;
-  max-width: 760px;
-
-  h2 {
-    font-size: 1.25rem;
-  }
-
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    align-self: stretch;
-  }
+  gap: 1rem;
 }
 
 .resume-main {
-  min-height: 56px;
-  padding: 0 1.4rem;
-  font-size: 1.05rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  &.is-returned {
+    box-shadow: inset 4px 0 0 var(--danger);
+  }
 }
 
 .resume-meta {
@@ -341,37 +355,66 @@ async function start() {
   color: var(--ink-600);
 }
 
-.resume-new {
-  margin-top: 0.4rem;
-  padding-top: 0.9rem;
-  border-top: 1px dashed var(--cream-200);
-  align-self: stretch;
+.resume-returned {
+  margin: 0.2rem 0;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: var(--radius-sm);
+  background: var(--danger-100);
+  color: var(--ink-900);
+  align-self: stretch;
 
-  p {
-    margin: 0;
-    color: var(--ink-600);
+  i {
+    margin-top: 0.3rem;
+    color: var(--danger);
   }
 
-  .btn {
-    min-height: 48px;
+  strong {
+    color: var(--danger);
   }
 }
 
-.side {
-  h2 {
-    font-size: 1rem;
-    margin-bottom: 0.6rem;
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
+.resume-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--ink-600);
 
-    i {
-      color: var(--gold-500);
-    }
+  .bar {
+    width: 200px;
+  }
+}
+
+.bar {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--powder-100);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--navy-700);
+  }
+}
+
+.resume-btn {
+  margin-top: 0.5rem;
+  min-width: 300px;
+
+  @media (max-width: 480px) {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.resume-more {
+  h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.4rem;
   }
 
   ul {
@@ -379,24 +422,24 @@ async function start() {
     margin: 0;
     padding: 0;
   }
+
+  li + li {
+    border-top: 1px solid var(--line);
+  }
 }
 
 .draft {
-  min-height: 56px;
+  min-height: 64px;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.4rem;
+  gap: 0.75rem;
+  padding: 0.75rem 0.5rem;
+  margin: 0 -0.5rem;
   border-radius: var(--radius-sm);
   transition: background 0.15s ease;
 
   &:hover {
-    background: var(--powder-100);
-  }
-
-  i {
-    color: var(--ink-400);
-    font-size: 1rem;
+    background: var(--hover);
   }
 }
 
@@ -404,10 +447,44 @@ async function start() {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 0.1rem;
+
+  strong {
+    font-weight: 600;
+  }
 
   small {
-    color: var(--ink-400);
+    color: var(--ink-600);
     font-size: 1rem;
+  }
+}
+
+.draft-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  color: var(--navy-800);
+
+  i {
+    font-size: 0.8rem;
+  }
+}
+
+.resume-new {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  p {
+    margin: 0 0 0.4rem;
+    color: var(--ink-600);
   }
 }
 
