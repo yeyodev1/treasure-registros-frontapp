@@ -92,18 +92,22 @@ export const useUserStore = defineStore('user', () => {
     }
     const claims = tokenClaims(token)!
     const cached = readCachedUser()
-    user.value =
-      cached && cached.id === claims.sub
-        ? cached
-        : { id: claims.sub, name: claims.name, email: '', role: claims.role as UserRole }
-    try {
-      const fresh = await apiMe()
-      user.value = fresh
-      cacheUser(fresh)
-    } catch (err) {
-      if (isUnauthorized(err)) expire()
-      // Otro error: se conserva la sesión; se reintenta al volver la señal.
-    }
+    const known = Boolean(cached && cached.id === claims.sub)
+    user.value = known
+      ? cached
+      : { id: claims.sub, name: claims.name, email: '', role: claims.role as UserRole }
+    const check = apiMe()
+      .then((fresh) => {
+        user.value = fresh
+        cacheUser(fresh)
+      })
+      .catch((err) => {
+        if (isUnauthorized(err)) expire()
+        // Otro error: se conserva la sesión; se reintenta al volver la señal.
+      })
+    // Con el usuario ya guardado en la tableta, la pantalla no espera al
+    // servidor (falla 12: ~3 s en blanco mientras despertaba).
+    if (!known) await check
   }
 
   let refreshing: Promise<void> | null = null
