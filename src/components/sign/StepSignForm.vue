@@ -144,16 +144,14 @@ async function sign() {
 .ssf {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .ssf-label {
-  margin: 0 0 0.4rem;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-600);
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink-900);
 }
 
 .ssf-pin {
@@ -174,9 +172,10 @@ async function sign() {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.1rem;
   border-radius: var(--radius-sm);
   background: var(--powder-100);
+  border: 1px solid var(--powder-200);
 
   > p:first-child {
     margin: 0;
