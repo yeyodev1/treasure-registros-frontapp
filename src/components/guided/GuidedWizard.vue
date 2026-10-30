@@ -242,7 +242,8 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
       <p v-if="RETURN_HINT" class="wiz-returned">
         <i class="fa-solid fa-rotate-left" aria-hidden="true" />
         <span>
-          Devuelto por {{ RETURN_HINT.byName }} · sección <strong>{{ RETURN_HINT.section }}</strong>: {{ RETURN_HINT.reason }}
+          Te lo devolvió {{ RETURN_HINT.byName }}<template v-if="RETURN_HINT.section"> · sección <strong>{{ RETURN_HINT.section }}</strong></template>:
+          <strong>{{ RETURN_HINT.reason }}</strong>. Corrige, revisa y firma de nuevo.
         </span>
       </p>
     </Transition>
