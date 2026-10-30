@@ -145,7 +145,7 @@ function fmtDate(key?: string) {
   }
 
   dt {
-    font-size: 0.68rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -163,7 +163,7 @@ function fmtDate(key?: string) {
   margin: 0.8rem 0 0;
   padding: 0;
   color: var(--danger);
-  font-size: 0.86rem;
+  font-size: 1rem;
   font-weight: 600;
 
   li {
@@ -229,7 +229,7 @@ function fmtDate(key?: string) {
 }
 
 .nov-ref {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--ink-400);
 }
 
@@ -239,7 +239,7 @@ function fmtDate(key?: string) {
 }
 
 .nov-d {
-  font-size: 0.9rem;
+  font-size: 1rem;
 
   span {
     color: var(--ink-400);
@@ -263,11 +263,11 @@ function fmtDate(key?: string) {
 .na {
   display: flex;
   flex-direction: column;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .na-ref {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--ink-400);
 }
 
@@ -291,7 +291,7 @@ function fmtDate(key?: string) {
   align-items: center;
   padding: 0.5rem 0.2rem;
   border-bottom: 1px solid var(--cream-200);
-  font-size: 0.9rem;
+  font-size: 1rem;
 
   &:last-child {
     border-bottom: none;
@@ -321,14 +321,14 @@ function fmtDate(key?: string) {
 .row-miss {
   color: var(--danger);
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 1rem;
 }
 
 .row-a {
   justify-self: end;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-weight: 700;
   white-space: nowrap;
 
@@ -360,7 +360,7 @@ function fmtDate(key?: string) {
   border-radius: 999px;
   background: var(--navy-800);
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 </style>
