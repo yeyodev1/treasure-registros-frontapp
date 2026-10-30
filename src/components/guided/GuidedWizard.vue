@@ -47,7 +47,7 @@ const missing = computed(() =>
     activityDate: props.context.activityDate,
     activityTime: props.context.activityTime,
     place: props.context.place,
-    filledBy: { ...(props.fullContext?.filledBy ?? { user: '', accountName: '', role: '', position: '' }), name: props.context.name } as IsmContext['filledBy'],
+    filledBy: { ...(props.fullContext?.filledBy ?? { user: '', accountName: '', role: '', position: '' }), name: props.context.name, position: props.context.position } as IsmContext['filledBy'],
   }),
 )
 
