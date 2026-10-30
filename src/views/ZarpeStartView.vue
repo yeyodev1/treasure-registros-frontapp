@@ -56,6 +56,7 @@ const missing = computed(() => {
   if (!ctx.value.activityTime) m.add('activityTime')
   if (!ctx.value.place.trim()) m.add('place')
   if (!ctx.value.name.trim()) m.add('name')
+  if (!ctx.value.position) m.add('position')
   return m
 })
 
