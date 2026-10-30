@@ -107,8 +107,9 @@ const slotsByStage = computed(() => {
 const canSubmit = computed(() => record.value?.status === 'borrador' && editable.value)
 const canApprove = computed(
   () =>
-    (record.value?.status === 'por_capitan' && userStore.isCaptain) ||
-    (record.value?.status === 'por_oficina' && userStore.isOffice),
+    // Firma y devolución solo desde la cuenta del rol (no Gerencia por otro).
+    (record.value?.status === 'por_capitan' && userStore.role === 'capitan') ||
+    (record.value?.status === 'por_oficina' && userStore.role === 'designada'),
 )
 const canDiscard = computed(
   () =>
