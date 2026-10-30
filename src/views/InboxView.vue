@@ -4,7 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCatalogStore } from '@/stores/catalog'
 import { useToastStore } from '@/stores/toast'
-import { apiPdfUrl, apiRecords } from '@/services/api'
+import { apiRecords } from '@/services/api'
+import { usePdfViewerStore } from '@/stores/pdfViewer'
 import { apiErrorMessage } from '@/services/httpBase'
 import RecordRow from '@/components/registros/RecordRow.vue'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
@@ -17,11 +18,12 @@ const router = useRouter()
 const userStore = useUserStore()
 const catalog = useCatalogStore()
 const toast = useToastStore()
+const pdfViewer = usePdfViewerStore()
 
 const tabs = computed(() => {
   const list: Array<{ key: Tab; label: string; icon: string }> = []
   if (userStore.isCaptain) list.push({ key: 'capitan', label: 'Por firmar · Capitán', icon: 'fa-anchor' })
-  if (userStore.isOffice) list.push({ key: 'oficina', label: 'Por firmar · Oficina', icon: 'fa-building' })
+  if (userStore.isOffice) list.push({ key: 'oficina', label: 'Por firmar · Persona Designada', icon: 'fa-building' })
   list.push({ key: 'borradores', label: userStore.isAdmin ? 'Borradores' : 'Mis borradores', icon: 'fa-pen-to-square' })
   return list
 })
@@ -58,12 +60,9 @@ async function load() {
 
 watch(tab, load, { immediate: true })
 
-async function openPdf(r: IsmRecord) {
-  try {
-    window.open(await apiPdfUrl(r._id), '_blank')
-  } catch (err) {
-    toast.error(apiErrorMessage(err))
-  }
+/** El PDF se abre dentro de la app (visor con Descargar). */
+function openPdf(r: IsmRecord) {
+  pdfViewer.open(r._id, r.fileName)
 }
 
 const emptyText = computed(() =>
