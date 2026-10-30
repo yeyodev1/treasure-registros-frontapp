@@ -54,9 +54,8 @@ export function canSignSlot(
   form: IsmForm,
 ): boolean {
   if (!role) return false
-  const roleOk =
-    isManagerRole(role) ||
-    (stage === 'capitan' ? role === 'capitan' : stage === 'oficina' ? role === 'designada' : true)
+  // La firma va atada al rol: nadie firma por el Capitán ni por la Persona Designada.
+  const roleOk = stage === 'capitan' ? role === 'capitan' : stage === 'oficina' ? role === 'designada' : true
   if (!roleOk) return false
   if (stage === 'tripulacion') return record.status === 'borrador'
   if (stage === 'capitan') return record.status === 'borrador' || record.status === 'por_capitan'
