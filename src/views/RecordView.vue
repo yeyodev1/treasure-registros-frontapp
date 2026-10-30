@@ -27,12 +27,12 @@ import {
   STAGE_LABELS,
   STATUS_ICONS,
   STATUS_LABELS,
-  authorName,
   canEditRecord,
   canSignSlot,
-  formatRecordDate,
   formatHour,
   formatStamp,
+  recordWhen,
+  recordWho,
   statusLabel,
 } from '@/utils/ism'
 import FormCanvas from '@/components/registros/FormCanvas.vue'
@@ -481,6 +481,16 @@ async function openPdf() {
   pdfViewer.open(record.value!._id, record.value!.fileName)
 }
 
+/** Color del estado: devuelto en rojo, por firmar en caramelo, archivado en verde. */
+const statusPill = computed(() => {
+  const r = record.value
+  if (!r) return ''
+  if (r.returnInfo && r.status !== 'archivado') return 'pill--ret'
+  if (r.status === 'archivado') return 'pill--ok'
+  if (r.status === 'borrador') return ''
+  return 'pill--turn'
+})
+
 const lastEvent = computed(() => record.value?.history?.[record.value.history.length - 1])
 </script>
 
@@ -505,24 +515,26 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
     </div>
 
     <template v-else-if="record && form">
-      <header class="rec-head">
-        <button type="button" class="back" aria-label="Volver" @click="router.back()">
+      <header class="rec-head" :class="{ 'rec-head--compact': focused }">
+        <button type="button" class="back" aria-label="Volver" title="Volver" @click="router.back()">
           <i class="fa-solid fa-arrow-left" aria-hidden="true" />
         </button>
         <div class="rec-title">
-          <p class="rec-code">{{ record.code.replace('_', ' · ') }} · {{ form.group }}</p>
-          <h1>{{ guided ? schema!.title : record.title }}</h1>
+          <h1>
+            {{ guided ? schema!.title : record.title }}
+            <span class="rec-code">{{ record.code.replace('_', ' · ') }}</span>
+          </h1>
           <p class="rec-meta">
-            <span><i class="fa-regular fa-calendar" aria-hidden="true" /> {{ formatRecordDate(record.recordDate) }}</span>
-            <span v-if="record.context?.place"><i class="fa-solid fa-location-dot" aria-hidden="true" /> {{ record.context.place }}</span>
-            <span v-if="record.equipment"><i class="fa-solid fa-gears" aria-hidden="true" /> {{ record.equipment.name }}</span>
-            <span v-if="record.position"><i class="fa-solid fa-id-badge" aria-hidden="true" /> {{ positionLabel(record.position) }}</span>
-            <span><i class="fa-regular fa-user" aria-hidden="true" /> {{ record.context?.filledBy?.name || authorName(record) }}</span>
-            <span class="file"><i class="fa-regular fa-file-pdf" aria-hidden="true" /> {{ record.fileName }}</span>
+            <span>{{ recordWhen(record) }}</span>
+            <span v-if="record.context?.place">{{ record.context.place }}</span>
+            <span v-if="record.equipment">{{ record.equipment.name }}</span>
+            <span v-if="record.position">{{ positionLabel(record.position) }}</span>
+            <span v-if="recordWho(record)">{{ recordWho(record) }}</span>
+            <span v-if="!focused" class="file">{{ record.fileName }}</span>
           </p>
         </div>
-        <span class="status" :class="`status--${record.status}`">
-          <i class="fa-solid" :class="STATUS_ICONS[record.status]" aria-hidden="true" />
+        <span class="pill rec-status" :class="statusPill">
+          <i class="fa-solid" :class="record.returnInfo && record.status !== 'archivado' ? 'fa-rotate-left' : STATUS_ICONS[record.status]" aria-hidden="true" />
           {{ statusLabel(record) }}
         </span>
       </header>
@@ -563,7 +575,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
         </Transition>
       </div>
 
-      <div class="layout" :class="{ 'layout--guided': focused }">
+      <div class="layout" :class="{ 'layout--guided': focused && !reviewMode, 'layout--review': reviewMode }">
         <section class="sheet-col">
           <Transition name="fade" mode="out-in">
           <SentPanel v-if="guided && phase === 'sent'" key="sent" :record="record" :schema="schema!" @home="router.push('/')" />
@@ -655,7 +667,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
               <i class="fa-solid fa-rotate-left" aria-hidden="true" />
               {{ record.status === 'por_capitan' ? 'Devolver al tripulante' : 'Devolver' }}
             </button>
-            <button type="button" class="btn btn-ghost" :disabled="busy" @click="openPdf">
+            <button v-if="!(guided && editable)" type="button" class="btn btn-ghost" :disabled="busy" @click="openPdf">
               <i class="fa-regular fa-file-pdf" aria-hidden="true" /> Ver cómo queda el PDF
             </button>
             <button v-if="canMarkTest" type="button" class="btn btn-ghost" :disabled="busy" @click="toggleTest">
@@ -770,23 +782,35 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
 
+// Encabezado del registro: volver, nombre y código, cuándo y quién, y el estado.
 .rec-head {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.9rem;
+  margin-bottom: 1.5rem;
+
+  &--compact {
+    margin-bottom: 1rem;
+  }
 }
 
 .back {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
   background: var(--surface);
-  color: var(--ink-600);
+  color: var(--navy-800);
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: var(--hover);
+    border-color: var(--navy-600);
+  }
 }
 
 .rec-title {
@@ -794,76 +818,61 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   min-width: 0;
 
   h1 {
-    font-size: 1.3rem;
-    text-wrap: balance;
+    font-size: 1.6rem;
 
     @include tablet {
-      font-size: 1.5rem;
+      font-size: 1.85rem;
     }
   }
 }
 
 .rec-code {
-  margin: 0 0 0.1rem;
+  margin-left: 0.25rem;
+  font-family: var(--font-sans);
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gold-500);
+  font-weight: 500;
+  color: var(--ink-400);
+  white-space: nowrap;
 }
 
 .rec-meta {
-  margin: 0.35rem 0 0;
+  margin: 0.3rem 0 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem 0.9rem;
+  gap: 0.1rem 0;
   font-size: 1rem;
   color: var(--ink-600);
+  font-variant-numeric: tabular-nums;
 
-  i {
+  span + span::before {
+    content: '·';
+    margin: 0 0.45rem;
     color: var(--ink-400);
-    margin-right: 0.15rem;
   }
 }
 
 .file {
-  font-variant-numeric: tabular-nums;
   color: var(--ink-600);
 }
 
-.status {
+.rec-status {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
   min-height: 36px;
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  font-size: 1rem;
-  font-weight: 700;
-  background: var(--powder-100);
-  color: var(--navy-700);
-  white-space: nowrap;
-
-  &--por_capitan,
-  &--por_oficina {
-    background: rgba(185, 128, 47, 0.15);
-    color: #8a5d1d;
-  }
-
-  &--archivado {
-    background: rgba(63, 122, 87, 0.14);
-    color: var(--success);
-  }
+  margin-top: 0.4rem;
 }
 
 .returned {
-  margin: 0 0 0.8rem;
-  padding: 0.65rem 0.85rem;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
   border-radius: var(--radius-sm);
-  background: rgba(180, 72, 59, 0.08);
-  border: 1px solid rgba(180, 72, 59, 0.3);
+  background: var(--danger-100);
+  box-shadow: inset 4px 0 0 var(--danger);
   font-size: 1rem;
+
+  i {
+    color: var(--danger);
+    margin-right: 0.3rem;
+  }
 }
 
 .toolbar {
@@ -882,7 +891,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   padding: 0.2rem;
   border-radius: 999px;
   background: var(--surface);
-  border: 1px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
 
   button {
     width: 44px;
@@ -969,13 +978,56 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 }
 
 .btn-return {
-  background: #8c5a1d;
-  color: #fff;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--danger);
 }
 
 .danger {
   color: var(--danger);
-  border-color: rgba(180, 72, 59, 0.4);
+  border-color: #e3bdb6;
+}
+
+// Pantallas de un solo paso (asistente, firma, revisión): lo demás va abajo,
+// en una fila tranquila, a todo el ancho. En computadora, quien revisa lo
+// tiene a la derecha.
+@mixin below-row {
+  grid-template-columns: minmax(0, 1fr) !important;
+
+  .side {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    grid-template-columns: minmax(0, 1fr);
+    position: static;
+  }
+
+  .actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0;
+    background: transparent;
+    border: none;
+
+    .btn {
+      width: auto;
+    }
+  }
+
+  .history {
+    grid-column: auto;
+  }
+}
+
+.layout--guided {
+  @include below-row;
+}
+
+.layout--review {
+  @media (max-width: 1279px) {
+    @include below-row;
+  }
 }
 
 .test-note {
@@ -1000,14 +1052,15 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 }
 
 .sigs h3 {
-  margin: 0 0 0.6rem;
-  font-size: 1rem;
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
 
   i {
-    color: var(--gold-500);
+    font-size: 1rem;
+    color: var(--ink-400);
   }
 }
 
@@ -1018,10 +1071,8 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 .sig-stage {
   margin: 0 0 0.3rem;
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-400);
+  font-weight: 500;
+  color: var(--ink-600);
 }
 
 .sig {
@@ -1044,7 +1095,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   &.can {
     color: var(--gold-500);
     font-weight: 600;
-    background: rgba(159, 107, 60, 0.08);
+    background: var(--gold-100);
   }
 
   &.done {
@@ -1096,8 +1147,8 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   li {
     display: flex;
     flex-direction: column;
-    padding-left: 0.7rem;
-    border-left: 2px solid var(--cream-200);
+    padding-left: 0.8rem;
+    border-left: 2px solid var(--line-strong);
     font-size: 1rem;
 
     span {
@@ -1147,7 +1198,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   padding: 0.2rem;
   border-radius: 999px;
   background: var(--surface);
-  border: 1px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
 
   button {
     min-height: 44px;
@@ -1177,16 +1228,16 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 .review-notice {
   margin: 0;
   display: flex;
-  gap: 0.6rem;
-  padding: 0.75rem 0.9rem;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
   border-radius: var(--radius-sm);
-  background: var(--navy-800);
-  color: var(--cream-100);
-  font-weight: 600;
+  background: var(--powder-100);
+  color: var(--navy-900);
+  font-weight: 500;
 
   i {
-    margin-top: 0.2rem;
-    color: var(--gold-400);
+    margin-top: 0.25rem;
+    color: var(--navy-700);
   }
 }
 
@@ -1197,7 +1248,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
 .sig.invalid {
   color: var(--danger);
-  background: rgba(180, 72, 59, 0.08);
+  background: var(--danger-100);
 }
 
 .sig-who--invalid {
