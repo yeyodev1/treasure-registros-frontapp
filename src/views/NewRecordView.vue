@@ -76,7 +76,7 @@ function choose(f: IsmCatalogItem) {
   }
   // Los formatos con llenado guiado (R-14) se abren en su asistente.
   if (f.guidedVersion) {
-    router.push('/zarpe/nuevo')
+    router.push(`/formato/${f.code}/nuevo`)
     return
   }
   chosen.value = f

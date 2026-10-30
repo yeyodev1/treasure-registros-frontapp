@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, shallowRef, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useCatalogStore } from '@/stores/catalog'
 import { useToastStore } from '@/stores/toast'
@@ -13,10 +13,16 @@ import GuidedContextForm, { type ContextDraft } from '@/components/guided/Guided
 import SkeletonList from '@/components/ui/SkeletonList.vue'
 import type { IsmRecord, IsmSchema } from '@/types'
 
-const CODE = 'R-14'
-const KEY_STORAGE = 'ism.zarpe.key'
-
+/**
+ * Inicio genérico de un formato guiado (/formato/:code/nuevo; /zarpe/nuevo es
+ * el alias del R-14). Código, título, textos y la tarjeta salen del esquema
+ * (plantilla, criterio 5 del informe).
+ */
+const route = useRoute()
 const router = useRouter()
+const CODE = computed(() => String(route.params.code ?? 'R-14'))
+/** La clave de creación es por formato (un reintento no duplica). */
+const KEY_STORAGE = computed(() => (CODE.value === 'R-14' ? 'ism.zarpe.key' : `ism.start.${CODE.value}.key`))
 const userStore = useUserStore()
 const catalog = useCatalogStore()
 const toast = useToastStore()
@@ -30,6 +36,12 @@ const creating = shallowRef(false)
 const showMissing = shallowRef(false)
 /** Con un chequeo abierto, primero se ofrece continuarlo; "Nuevo zarpe" crea otro a propósito. */
 const showForm = shallowRef(false)
+
+const card = computed(() => schema.value?.card)
+const pageTitle = computed(() => card.value?.title ?? schema.value?.title ?? CODE.value)
+const newLabel = computed(() => card.value?.newLabel ?? 'Nuevo registro')
+/** "Nuevo zarpe" → "¿Es otro zarpe?" */
+const otherQuestion = computed(() => `¿Es otro ${newLabel.value.replace(/^nuevo\s+/i, '') || 'registro'}?`)
 
 /** Primero los del día y los devueltos. */
 const ordered = computed(() =>
@@ -58,10 +70,10 @@ const ctx = ref<ContextDraft>({
 /** La misma clave mientras no se cree: un reintento (doble toque, sin señal) no duplica. */
 function creationKey(): string {
   try {
-    const saved = sessionStorage.getItem(KEY_STORAGE)
+    const saved = sessionStorage.getItem(KEY_STORAGE.value)
     if (saved) return saved
     const key = newKey()
-    sessionStorage.setItem(KEY_STORAGE, key)
+    sessionStorage.setItem(KEY_STORAGE.value, key)
     return key
   } catch {
     return newKey()
@@ -83,10 +95,15 @@ async function load() {
   error.value = ''
   try {
     await catalog.load()
-    const version = catalog.byCode.get(CODE)?.guidedVersion ?? 1
+    const version = catalog.byCode.get(CODE.value)?.guidedVersion
+    if (!version) {
+      schema.value = null
+      error.value = `El formato ${CODE.value} no tiene llenado paso a paso. Ábrelo desde «Todos los formatos».`
+      return
+    }
     const [s, list] = await Promise.all([
-      catalog.schema(CODE, version),
-      apiRecords({ code: CODE, status: 'borrador', mine: '1', limit: 10 }),
+      catalog.schema(CODE.value, version),
+      apiRecords({ code: CODE.value, status: 'borrador', mine: '1', limit: 10 }),
     ])
     schema.value = s
     drafts.value = list.records
@@ -99,6 +116,7 @@ async function load() {
 }
 
 onMounted(load)
+watch(CODE, load)
 
 async function start() {
   if (missing.value.size) {
@@ -108,13 +126,13 @@ async function start() {
   creating.value = true
   try {
     const rec = await apiCreateRecord({
-      code: CODE,
+      code: CODE.value,
       recordDate: ctx.value.activityDate,
       idempotencyKey: creationKey(),
       context: { ...ctx.value, confirmed: true },
     })
     try {
-      sessionStorage.removeItem(KEY_STORAGE)
+      sessionStorage.removeItem(KEY_STORAGE.value)
     } catch {
       // nada
     }
@@ -134,15 +152,15 @@ async function start() {
     <button type="button" class="back-link" @click="router.push('/')">
       <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Mis tareas
     </button>
-    <p class="eyebrow">R-14 · Chequeo previo al zarpe y rondas de seguridad</p>
-    <h1 class="page-title">Preparar el zarpe</h1>
+    <p class="eyebrow">{{ schema?.officialTitle ?? CODE }}</p>
+    <h1 class="page-title">{{ pageTitle }}</h1>
 
     <SkeletonList v-if="loading" variant="card" :rows="3" />
 
     <div v-else-if="error" class="card state-error">
       <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true" />
       <div>
-        <p><strong>No se pudo cargar el chequeo.</strong> {{ error }}</p>
+        <p><strong>No se pudo abrir el formato.</strong> {{ error }}</p>
         <button type="button" class="btn btn-primary" @click="load">
           <i class="fa-solid fa-rotate-right" aria-hidden="true" /> Reintentar
         </button>
@@ -151,7 +169,7 @@ async function start() {
 
     <Transition v-else-if="schema" name="fade" mode="out-in">
     <section v-if="!showForm && ordered.length" key="continue" class="card resume">
-      <h2>Tienes un chequeo sin enviar</h2>
+      <h2>{{ card?.resumeTitle ?? 'Tienes un registro sin enviar' }}</h2>
       <RouterLink :to="`/registro/${ordered[0]!._id}`" class="btn btn-primary resume-main">
         <i class="fa-solid fa-play" aria-hidden="true" /> {{ continueLabel(ordered[0]!) }}
       </RouterLink>
@@ -176,9 +194,9 @@ async function start() {
         </li>
       </TransitionGroup>
       <div class="resume-new">
-        <p>¿Es otro zarpe? Crea uno nuevo; el anterior queda guardado.</p>
+        <p>{{ otherQuestion }} Crea uno nuevo; el anterior queda guardado.</p>
         <button type="button" class="btn btn-ghost" @click="showForm = true">
-          <i class="fa-solid fa-plus" aria-hidden="true" /> Nuevo zarpe
+          <i class="fa-solid fa-plus" aria-hidden="true" /> {{ newLabel }}
         </button>
       </div>
     </section>

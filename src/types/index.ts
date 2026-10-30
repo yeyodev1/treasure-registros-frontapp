@@ -59,6 +59,17 @@ export interface IsmCatalogItem {
   stages: Record<SignatureStage, number>
   /** Versión del llenado guiado (R-14), o null si se llena sobre la hoja. */
   guidedVersion?: number | null
+  /** Tarjeta de Mis tareas (sale del esquema guiado). */
+  card?: IsmCard
+}
+
+/** Tarjeta y textos de inicio de un formato guiado (plantilla). */
+export interface IsmCard {
+  title: string
+  text: string
+  icon: string
+  newLabel?: string
+  resumeTitle?: string
 }
 
 export interface IsmEquipment {
@@ -123,13 +134,18 @@ export interface IsmNotice {
 
 export interface IsmSigner {
   step: SignatureStage
-  who: 'lista' | 'capitan' | 'designada'
+  /** Rol libre de quien firma, o 'lista' (se elige de la lista de tripulantes). */
+  who: string
   label: string
   field: string
   print: 'anexo' | 'casilla'
   status: 'borrador' | 'por_capitan' | 'por_oficina'
   next: 'por_capitan' | 'por_oficina' | 'archivado'
   returnsTo: SignatureStage | null
+  /** Mismo orden = firmas en paralelo. */
+  order?: number
+  /** Número de firmantes del paso. */
+  signers?: number
 }
 
 export type AnswerValue = 'si' | 'no' | 'na'
@@ -146,6 +162,8 @@ export interface IsmAnswer {
   plazo?: string
   estado?: '' | 'abierta' | 'cerrada'
   at?: string | null
+  /** Hora de la tablet al responder (ISO). */
+  deviceAt?: string | null
 }
 
 export interface IsmContext {
@@ -220,6 +238,10 @@ export interface IsmSchema {
   sections: IsmSchemaSection[]
   archiveFolder?: string
   signers?: IsmSigner[]
+  card?: IsmCard
+  fileNamePattern?: string
+  uniqueness?: { by: 'fileName'; onConflict: 'suffix' | 'reject' }
+  answerTypes?: AnswerValue[]
 }
 
 export interface IsmMissing {
@@ -244,6 +266,8 @@ export interface IsmRecord {
   createdBy: { _id: string; name: string; role: UserRole } | string
   submittedAt: string | null
   archivedAt: string | null
+  /** Carpeta del archivo con el mes de la actividad (calculada en el servidor). */
+  archivePath?: string
   /** PDF congelado al archivar: siempre se sirve el mismo archivo (sha256). */
   archivedPdf?: { sha256: string; size: number; generatedAt: string } | null
   contentHash: string

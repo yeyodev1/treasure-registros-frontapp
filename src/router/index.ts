@@ -21,11 +21,14 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: 'Nuevo registro' },
   },
   {
-    path: '/zarpe/nuevo',
-    name: 'ZarpeStart',
-    component: () => import('@/views/ZarpeStartView.vue'),
-    meta: { title: 'Preparar el zarpe' },
+    // Inicio genérico de un formato guiado: código, título y tarjeta salen del esquema.
+    path: '/formato/:code/nuevo',
+    name: 'FormatStart',
+    component: () => import('@/views/FormatStartView.vue'),
+    meta: { title: 'Nuevo registro' },
   },
+  // Alias de siempre del R-14.
+  { path: '/zarpe/nuevo', redirect: '/formato/R-14/nuevo' },
   {
     path: '/por-firmar',
     name: 'Inbox',

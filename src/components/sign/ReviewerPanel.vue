@@ -47,6 +47,11 @@ const clean = computed(() => rows.value.length - novedades.value - noAplica.valu
 const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 /** Carpeta del archivo: el mes sale de la fecha de la actividad (meses en español). */
 const folder = computed(() => {
+  // La calcula el servidor; la de la tablet queda de respaldo.
+  if (props.record.archivePath) {
+    const parts = props.record.archivePath.split('/').filter(Boolean)
+    return (parts.length > 4 ? [parts[0]!, ...parts.slice(-3)] : parts).join(' › ')
+  }
   const [y, m] = (props.record.context?.activityDate ?? '').split('-').map(Number)
   const base = (props.schema.archiveFolder ?? `ISM/${props.record.code}`).split('/').filter(Boolean)
   if (!y || !m) return base.join(' › ')

@@ -63,6 +63,8 @@ async function sign() {
       pin: pin.value,
       ...(firstTime.value ? { newPin: newPin.value } : {}),
       ...(props.signer ? { signer: props.signer } : {}),
+      // Hora de la tablet al firmar (el servidor guarda también la suya).
+      deviceAt: new Date().toISOString(),
     })
     play('success')
     emit('signed', record)

@@ -263,7 +263,8 @@ function onChange(name: string, value: string | boolean) {
 function onAnswer(id: string, answer: IsmAnswer) {
   answers.value = { ...answers.value, [id]: answer }
   serverMissing.value = []
-  autosave.queueAnswer(id, answer)
+  // Hora de la tablet al responder (se guarda junto a la del servidor).
+  autosave.queueAnswer(id, { ...answer, deviceAt: new Date().toISOString() })
 }
 
 function onContext(next: ContextDraft) {

@@ -42,7 +42,7 @@ router.isReady().then(() => {
     'requestIdleCallback' in window ? window.requestIdleCallback(cb) : setTimeout(cb, 1200)
   idle(() => {
     void import('@/views/HomeView.vue')
-    void import('@/views/ZarpeStartView.vue')
+    void import('@/views/FormatStartView.vue')
     void import('@/views/RecordView.vue')
     void import('@/views/InboxView.vue')
     void import('@/views/NewRecordView.vue')

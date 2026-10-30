@@ -206,7 +206,7 @@ export async function apiUploadPhoto(file: File) {
 /** Firma el paso actual con el dedo y la clave de 4 números (y lo pasa al siguiente). */
 export async function apiSignStep(
   id: string,
-  payload: { image: string; pin: string; newPin?: string; signer?: string },
+  payload: { image: string; pin: string; newPin?: string; signer?: string; deviceAt?: string },
 ) {
   const { data } = await http.post<{ record: IsmRecord }>(`/ism/records/${id}/sign-step`, payload)
   return data.record

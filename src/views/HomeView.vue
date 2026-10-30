@@ -3,6 +3,7 @@ import { computed, onMounted, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useToastStore } from '@/stores/toast'
+import { useCatalogStore } from '@/stores/catalog'
 import { apiRecords, apiSummary } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
 import { STATUS_ICONS, authorName, formatRecordDate, statusLabel, todayGalapagos } from '@/utils/ism'
@@ -13,6 +14,7 @@ import type { IsmRecord, IsmSummary } from '@/types'
 const router = useRouter()
 const userStore = useUserStore()
 const toast = useToastStore()
+const catalog = useCatalogStore()
 
 const summary = shallowRef<IsmSummary | null>(null)
 const recent = shallowRef<IsmRecord[]>([])
@@ -28,8 +30,9 @@ const TASKS = [
     text: 'Ronda de seguridad y chequeos previos al zarpe, al arribo y fondeado.',
     code: 'R-14',
     icon: 'fa-anchor',
-    to: '/zarpe/nuevo',
+    to: '/formato/R-14/nuevo',
     guided: true,
+    newLabel: 'Nuevo zarpe',
   },
   {
     key: 'equipo',
@@ -60,24 +63,53 @@ const TASKS = [
   },
 ]
 
-/** Chequeo del zarpe abierto: la tarjeta lo continúa en vez de crear otro (falla 10). */
-const openZarpe = computed(() => {
-  const list = drafts.value.filter((d) => d.code === 'R-14' && d.schemaVersion)
+type Task = (typeof TASKS)[number] & { newLabel?: string }
+
+/**
+ * Formatos guiados: la tarjeta sale del esquema (plantilla, criterio 5). Si
+ * el catálogo aún no carga, queda la del R-14 de siempre.
+ */
+const guidedTasks = computed<Task[]>(() =>
+  catalog.forms
+    .filter((f) => f.guidedVersion && f.card)
+    .map((f) => ({
+      key: f.code === 'R-14' ? 'zarpe' : `guided-${f.code}`,
+      title: f.card!.title,
+      text: f.card!.text,
+      code: f.code,
+      icon: f.card!.icon,
+      to: `/formato/${f.code}/nuevo`,
+      guided: true,
+      newLabel: f.card!.newLabel,
+    })),
+)
+
+const baseTasks = computed<Task[]>(() => {
+  const guided = guidedTasks.value
+  if (!guided.length) return TASKS
+  return [...guided, ...TASKS.filter((t) => !t.guided && !guided.some((g) => g.code === t.code))]
+})
+
+/** Chequeo abierto del formato: la tarjeta lo continúa en vez de crear otro (falla 10). */
+function openDraft(code: string) {
+  const list = drafts.value.filter((d) => d.code === code && d.schemaVersion)
   return (
     list.find((d) => d.returnInfo) ??
     list.find((d) => d.context?.activityDate === todayGalapagos()) ??
     list[0] ??
     null
   )
-})
+}
 
 const tasks = computed(() =>
-  TASKS.map((t) => {
-    const d = t.key === 'zarpe' ? openZarpe.value : null
+  baseTasks.value.map((t) => {
+    const d = t.guided ? openDraft(t.code) : null
     if (!d) return { ...t, extra: '' }
     const progress = d.flags ? ` (${d.flags.answered} de ${d.flags.total})` : ''
     const today = d.context?.activityDate === todayGalapagos()
-    // La tarjeta lleva a /zarpe/nuevo: ahí se continúa el abierto o se toca «Nuevo zarpe» (falla 10).
+    // La tarjeta lleva al inicio del formato: ahí se continúa el abierto o se toca «Nuevo zarpe» (falla 10).
+    const newLabel = t.newLabel ?? 'Nuevo registro'
+    const noun = newLabel.replace(/^nuevo\s+/i, '') || 'registro'
     return {
       ...t,
       text: d.returnInfo
@@ -85,7 +117,7 @@ const tasks = computed(() =>
         : today
           ? `Continuar el chequeo de hoy${progress}`
           : `Continuar el chequeo${progress}`,
-      extra: 'Para otro zarpe, toca «Nuevo zarpe» dentro.',
+      extra: `Para otro ${noun}, toca «${newLabel}» dentro.`,
     }
   }),
 )
@@ -121,6 +153,7 @@ async function load() {
   loading.value = true
   loadError.value = ''
   try {
+    catalog.load().catch(() => undefined)
     const [s, r, d] = await Promise.all([
       apiSummary(),
       apiRecords({ limit: 8 }),
