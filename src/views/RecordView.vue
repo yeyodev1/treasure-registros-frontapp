@@ -671,6 +671,10 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
               <i class="fa-solid fa-shield-halved" aria-hidden="true" />
               Archivado {{ record.archivedAt ? formatStamp(record.archivedAt) : '' }} · Inalterable
             </p>
+            <p v-if="record.archivedPdf?.sha256" class="archived archived--hash" :title="record.archivedPdf.sha256">
+              <i class="fa-solid fa-fingerprint" aria-hidden="true" />
+              PDF congelado · sha256 {{ record.archivedPdf.sha256.slice(0, 12) }}…
+            </p>
           </div>
 
           <div v-if="stepSigned && !focused" class="card sigs">
@@ -984,6 +988,13 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   font-size: 0.82rem;
   color: var(--success);
   font-weight: 600;
+}
+
+.archived--hash {
+  color: var(--ink-600);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
 }
 
 .sigs h3 {

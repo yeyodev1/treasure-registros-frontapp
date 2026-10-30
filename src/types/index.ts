@@ -242,6 +242,8 @@ export interface IsmRecord {
   createdBy: { _id: string; name: string; role: UserRole } | string
   submittedAt: string | null
   archivedAt: string | null
+  /** PDF congelado al archivar: siempre se sirve el mismo archivo (sha256). */
+  archivedPdf?: { sha256: string; size: number; generatedAt: string } | null
   contentHash: string
   history?: Array<{ action: string; byName: string; at: string; reason: string; section?: string }>
   schemaVersion?: number | null
