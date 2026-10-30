@@ -126,7 +126,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 
     <p class="ctx-note">
       <i class="fa-solid fa-circle-info" aria-hidden="true" />
-      La fecha y hora de arriba son las de la actividad. El momento en que respondes cada punto y la fecha de cada firma se guardan por separado, solos.
+      Pon la fecha y hora en que hiciste el chequeo.
     </p>
   </div>
 </template>
@@ -160,7 +160,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 }
 
 .ctx-label {
-  font-size: 0.7rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -190,7 +190,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
   border: 1.5px solid var(--cream-200);
   background: #fff;
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 1rem;
   color: var(--ink-600);
   transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
 
@@ -211,13 +211,13 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 
 .ctx-hint {
   color: var(--ink-400);
-  font-size: 0.76rem;
+  font-size: 1rem;
 }
 
 .ctx-miss {
   color: var(--danger);
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .field--miss input,
@@ -229,7 +229,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 
 .ctx-note {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: 1rem;
   color: var(--ink-600);
   background: var(--powder-100);
   border-radius: var(--radius-sm);
