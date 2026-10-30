@@ -6,6 +6,7 @@ import { useConfirmStore } from '@/stores/confirm'
 import { useSound } from '@/composables/useSound'
 import { apiSummary } from '@/services/api'
 import BrandSeal from '@/components/ui/BrandSeal.vue'
+import NoticeBell from '@/components/ui/NoticeBell.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -94,6 +95,7 @@ async function logout() {
         </div>
       </div>
       <div class="session">
+        <NoticeBell />
         <button
           class="icon-btn"
           type="button"
@@ -134,6 +136,10 @@ async function logout() {
             <RouterLink to="/archivo" class="nav-item">
               <span class="nav-indicator" aria-hidden="true" />
               <i class="fa-solid fa-box-archive nav-icon" aria-hidden="true" /> Archivo
+            </RouterLink>
+            <RouterLink v-if="userStore.role === 'designada' || userStore.role === 'duena'" to="/tripulantes" class="nav-item">
+              <span class="nav-indicator" aria-hidden="true" />
+              <i class="fa-solid fa-users nav-icon" aria-hidden="true" /> Tripulantes
             </RouterLink>
           </div>
           <div v-if="showBarLink" class="section">
