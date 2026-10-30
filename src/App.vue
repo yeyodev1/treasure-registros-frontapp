@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/user'
 import AppShell from '@/layout/AppShell.vue'
 import ToastList from '@/components/ui/ToastList.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import PdfViewer from '@/components/ui/PdfViewer.vue'
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -23,4 +24,5 @@ const showShell = computed(() => !route.meta.public && userStore.isLogged)
   <RouterView v-else />
   <ToastList />
   <ConfirmDialog />
+  <PdfViewer />
 </template>
