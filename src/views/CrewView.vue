@@ -176,7 +176,9 @@ function pinState(m: CrewMember): { text: string; tone: string } {
       <li v-for="m in active" :key="m.id" class="card member">
         <div class="member-main">
           <strong>{{ m.name }}</strong>
-          <span>{{ m.positionLabel || 'Sin cargo' }} · {{ ROLE_TEXT[m.role] ?? m.role }}<template v-if="!m.hasAccount"> · sin cuenta propia</template></span>
+          <span>
+            {{ m.positionLabel || 'Sin cargo' }}<template v-if="m.role !== 'tripulante' && ROLE_TEXT[m.role] !== m.positionLabel"> · {{ ROLE_TEXT[m.role] }}</template><template v-if="!m.hasAccount"> · firma solo en la tablet</template>
+          </span>
           <span class="pin" :class="`pin--${pinState(m).tone}`">
             <i class="fa-solid" :class="m.lockedUntil ? 'fa-lock' : 'fa-key'" aria-hidden="true" /> {{ pinState(m).text }}
           </span>
@@ -273,6 +275,7 @@ function pinState(m: CrewMember): { text: string; tone: string } {
 
   .btn {
     min-height: 48px;
+    white-space: nowrap;
   }
 }
 
@@ -336,6 +339,7 @@ function pinState(m: CrewMember): { text: string; tone: string } {
 .member-actions {
   display: flex;
   flex-wrap: wrap;
+  flex-shrink: 0;
   gap: 0.4rem;
 
   .btn {
