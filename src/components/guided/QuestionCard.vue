@@ -306,30 +306,31 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
 
+// Un punto: la pregunta arriba, las tres respuestas grandes debajo. El
+// borde izquierdo dice el estado: novedad, no aplica o falta responder.
 .q {
   background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 1rem;
-  border-left: 4px solid transparent;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  scroll-margin-top: 140px;
+  padding: 1rem 1rem 1.1rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  scroll-margin-top: 180px;
 
   @include tablet {
-    padding: 1.1rem 1.25rem;
+    padding: 1.15rem 1.35rem 1.25rem;
   }
 
   &--novedad {
-    border-left-color: var(--warning);
+    box-shadow: inset 4px 0 0 var(--warning);
   }
 
   &--na {
-    border-left-color: var(--ink-400);
+    box-shadow: inset 4px 0 0 var(--ink-400);
   }
 
   &--missing {
-    border-left-color: var(--danger);
-    box-shadow: 0 0 0 1.5px rgba(180, 72, 59, 0.35), var(--shadow);
+    border-color: var(--danger);
+    box-shadow: inset 4px 0 0 var(--danger);
   }
 }
 
@@ -341,15 +342,11 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 
 .q-n {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--powder-100);
-  color: var(--navy-700);
-  font-weight: 700;
-  font-size: 1rem;
+  min-width: 2rem;
+  padding-top: 0.05rem;
+  color: var(--ink-400);
+  font-weight: 600;
+  font-size: 1.1rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -359,9 +356,9 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 
 .q-prompt {
   margin: 0;
-  font-size: 1.02rem;
+  font-size: 1.12rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .q-official {
@@ -374,12 +371,18 @@ const miss = (f: string) => props.missing?.has(f) ?? false
     display: inline-flex;
     align-items: center;
     cursor: pointer;
-    color: var(--ink-400);
-    font-weight: 600;
+    color: var(--ink-600);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--line-strong);
   }
 
   p {
     margin: 0 0 0.3rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
   }
 }
 
@@ -417,27 +420,42 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 }
 
 .q-options {
-  margin-top: 0.85rem;
+  margin-top: 0.75rem;
+  margin-left: 2.75rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
+
+  @media (max-width: 480px) {
+    margin-left: 0;
+
+    .opt {
+      flex: 1;
+      min-width: 0;
+    }
+  }
 }
 
 .opt {
-  min-height: 52px;
-  min-width: 96px;
-  padding: 0 1.1rem;
+  min-height: 56px;
+  min-width: 120px;
+  padding: 0 1.2rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   border-radius: var(--radius-sm);
-  border: 2px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
   background: #fff;
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--ink-600);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--ink-900);
   transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.12s ease;
+
+  &:hover:not(:disabled):not(.on) {
+    border-color: var(--navy-600);
+    background: var(--hover);
+  }
 
   &:active:not(:disabled) {
     transform: scale(0.97);
@@ -475,12 +493,12 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 }
 
 .q-more {
-  margin-top: 0.85rem;
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding-top: 0.85rem;
-  border-top: 1px dashed var(--cream-200);
+  gap: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
 
   textarea {
     resize: vertical;
@@ -489,7 +507,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 }
 
 .field--miss textarea {
-  border-color: rgba(180, 72, 59, 0.6);
+  border-color: var(--danger);
 }
 
 .q-chips {
@@ -499,13 +517,14 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 }
 
 .q-chip {
-  min-height: 44px;
-  padding: 0 0.95rem;
+  min-height: 48px;
+  padding: 0 1rem;
   border-radius: 999px;
-  border: 1.5px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
+  background: #fff;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--ink-600);
+  color: var(--ink-900);
   transition: background 0.14s ease, color 0.14s ease;
 
   &.on {
@@ -525,11 +544,11 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 .q-photo {
   position: relative;
   margin: 0;
-  width: 92px;
-  height: 72px;
+  width: 112px;
+  height: 84px;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
 
   img {
     width: 100%;
@@ -541,8 +560,8 @@ const miss = (f: string) => props.missing?.has(f) ?? false
     position: absolute;
     top: 2px;
     right: 2px;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: rgba(18, 30, 25, 0.7);
     color: #fff;
@@ -554,8 +573,9 @@ const miss = (f: string) => props.missing?.has(f) ?? false
   min-height: 48px;
   padding: 0 1rem;
   border-radius: var(--radius-sm);
-  border: 1.5px dashed var(--gold-400);
-  color: var(--gold-500);
+  border: 1px dashed var(--line-strong);
+  background: #fff;
+  color: var(--navy-800);
   font-weight: 600;
   font-size: 1rem;
   display: inline-flex;
