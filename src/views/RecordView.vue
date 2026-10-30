@@ -39,6 +39,10 @@ import SkeletonList from '@/components/ui/SkeletonList.vue'
 import GuidedWizard from '@/components/guided/GuidedWizard.vue'
 import GuidedSummary from '@/components/guided/GuidedSummary.vue'
 import type { ContextDraft } from '@/components/guided/GuidedContextForm.vue'
+import CrewSign from '@/components/sign/CrewSign.vue'
+import SentPanel from '@/components/sign/SentPanel.vue'
+import ReviewerPanel from '@/components/sign/ReviewerPanel.vue'
+import SignSteps from '@/components/sign/SignSteps.vue'
 import type { IsmAnswer, IsmField, IsmForm, IsmMissing, IsmRecord, IsmSchema, IsmSignature, SignatureStage } from '@/types'
 
 const route = useRoute()
@@ -57,7 +61,7 @@ const form = shallowRef<IsmForm | null>(null)
 const schema = shallowRef<IsmSchema | null>(null)
 const values = ref<Record<string, string | boolean>>({})
 const answers = ref<Record<string, IsmAnswer>>({})
-const ctxDraft = ref<ContextDraft>({ activityDate: '', activityTime: '', place: '', name: '', position: '' })
+const ctxDraft = ref<ContextDraft>({ activityDate: '', activityTime: '', place: '', name: '', position: '', crewId: '' })
 const serverMissing = shallowRef<IsmMissing[]>([])
 const loading = shallowRef(true)
 const loadError = shallowRef<{ message: string; fatal: boolean } | null>(null)
@@ -68,6 +72,10 @@ const photoTarget = shallowRef<IsmField | null>(null)
 const photoInput = useTemplateRef<HTMLInputElement>('photoInput')
 /** Registros guiados en revisión: resumen o la hoja oficial. */
 const view = shallowRef<'resumen' | 'hoja'>('resumen')
+/** Recorrido del tripulante: llenar → firmar (pantalla 2) → enviado (pantalla 3). */
+const phase = shallowRef<'fill' | 'sign' | 'sent'>('fill')
+/** Se vuelve a montar el asistente para abrir el paso de contexto ("No soy yo"). */
+const wizardKey = shallowRef(0)
 
 function onSaved(result: SaveResult) {
   if (!record.value) return
@@ -107,12 +115,60 @@ const slotsByStage = computed(() => {
 })
 
 const canSubmit = computed(() => record.value?.status === 'borrador' && editable.value)
+/** Registros guiados con firmas por pasos (R-14): se firman en sus pantallas. */
+const stepSigned = computed(() => Boolean(guided.value && schema.value?.signers?.length))
 const canApprove = computed(
   () =>
+    !stepSigned.value &&
     // Firma y devolución solo desde la cuenta del rol (no Gerencia por otro).
-    (record.value?.status === 'por_capitan' && userStore.role === 'capitan') ||
-    (record.value?.status === 'por_oficina' && userStore.role === 'designada'),
+    ((record.value?.status === 'por_capitan' && userStore.role === 'capitan') ||
+      (record.value?.status === 'por_oficina' && userStore.role === 'designada')),
 )
+
+/** Pantalla 4 (Capitán) o 5 (Persona Designada): solo la cuenta de ese rol la ve. */
+const reviewMode = computed<'capitan' | 'designada' | null>(() => {
+  if (!stepSigned.value || !record.value) return null
+  if (record.value.status === 'por_capitan' && userStore.role === 'capitan') return 'capitan'
+  if (record.value.status === 'por_oficina' && userStore.role === 'designada') return 'designada'
+  return null
+})
+
+/** Pantallas de un solo paso: el panel lateral de firmas no hace falta. */
+const focused = computed(() => Boolean(guided.value && (editable.value || reviewMode.value || phase.value === 'sent')))
+
+async function flushBeforeSign() {
+  await autosave.flush()
+}
+
+async function goSign() {
+  try {
+    await autosave.flush()
+  } catch {
+    // Si no hay señal, la firma lo vuelve a intentar.
+  }
+  phase.value = 'sign'
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+/** "No soy yo": vuelve al contexto para elegir quién hizo el chequeo. */
+function notMe() {
+  phase.value = 'fill'
+  wizardKey.value++
+  if (record.value?.context) record.value = { ...record.value, context: { ...record.value.context, confirmedAt: null } }
+  ctxDraft.value = { ...ctxDraft.value, crewId: '', name: '' }
+  autosave.queueContext({ crewId: '' })
+}
+
+function onCrewSigned(rec: IsmRecord) {
+  record.value = rec
+  phase.value = 'sent'
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function onReviewed(rec: IsmRecord) {
+  record.value = rec
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 const canDiscard = computed(
   () =>
     record.value?.status === 'borrador' &&
@@ -156,8 +212,9 @@ function contextDraftOf(rec: IsmRecord): ContextDraft {
     activityDate: c?.activityDate ?? '',
     activityTime: c?.activityTime ?? '',
     place: c?.place ?? '',
-    name: c?.filledBy?.name ?? '',
+    name: c?.filledBy?.fromList ? c.filledBy.name : '',
     position: c?.filledBy?.position ?? '',
+    crewId: c?.filledBy?.fromList ? c.filledBy.user : '',
   }
 }
 
@@ -449,7 +506,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
         <strong>{{ lastEvent.reason }}</strong>
       </p>
 
-      <div v-if="!(guided && editable)" class="toolbar">
+      <div v-if="!focused" class="toolbar">
         <div v-if="!guided || view === 'hoja'" class="zoom">
           <button type="button" aria-label="Alejar" :disabled="zoom <= 1" @click="zoom = Math.max(1, zoom - 0.5)">
             <i class="fa-solid fa-magnifying-glass-minus" aria-hidden="true" />
@@ -478,10 +535,36 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
         </Transition>
       </div>
 
-      <div class="layout" :class="{ 'layout--guided': guided && editable }">
+      <div class="layout" :class="{ 'layout--guided': focused }">
         <section class="sheet-col">
+          <Transition name="fade" mode="out-in">
+          <SentPanel v-if="guided && phase === 'sent'" key="sent" :record="record" :schema="schema!" @home="router.push('/')" />
+          <CrewSign
+            v-else-if="guided && editable && phase === 'sign'"
+            key="sign"
+            :record="record"
+            :schema="schema!"
+            :context="ctxDraft"
+            :position-label="positionLabel"
+            :before-sign="flushBeforeSign"
+            @back="phase = 'fill'"
+            @not-me="notMe"
+            @signed="onCrewSigned"
+          />
+          <ReviewerPanel
+            v-else-if="reviewMode"
+            key="review"
+            :record="record"
+            :schema="schema!"
+            :answers="answers"
+            :mode="reviewMode"
+            :position-label="positionLabel"
+            @updated="onReviewed"
+            @pdf="openPdf"
+          />
           <GuidedWizard
-            v-if="guided && editable"
+            v-else-if="guided && editable"
+            :key="`wiz-${wizardKey}`"
             :schema="schema!"
             :answers="answers"
             :context="ctxDraft"
@@ -496,9 +579,11 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             @answer="onAnswer"
             @context="onContext"
             @section-time="onSectionTime"
-            @submit="submit"
+            @sign="goSign"
+            @pdf="openPdf"
           />
-          <Transition v-else name="fade" mode="out-in">
+          <div v-else key="read">
+          <Transition name="fade" mode="out-in">
             <div v-if="guided && view === 'resumen'" key="sum" class="review">
               <p class="review-notice">
                 <i class="fa-solid fa-anchor" aria-hidden="true" /> {{ schema!.notice }}
@@ -524,6 +609,8 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
               @sign="openSign"
               @photo="openPhoto"
             />
+          </Transition>
+          </div>
           </Transition>
         </section>
 
@@ -552,7 +639,24 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             </p>
           </div>
 
-          <div class="card sigs">
+          <div v-if="stepSigned && !focused" class="card sigs">
+            <h3><i class="fa-solid fa-signature" aria-hidden="true" /> Firmas</h3>
+            <SignSteps :record="record" :signers="schema!.signers!" />
+            <ul class="sig-legend">
+              <li><strong>Capitán</strong> — solo el Capitán, desde su cuenta.</li>
+              <li><strong>Persona Designada</strong> — firma en oficina. A bordo no hay que hacer nada.</li>
+            </ul>
+            <details v-if="record.annulledSignatures?.length" class="sig-annulled">
+              <summary>Firmas anuladas ({{ record.annulledSignatures.length }})</summary>
+              <ul>
+                <li v-for="(a, i) in record.annulledSignatures" :key="i">
+                  {{ a.label }}: {{ a.signerName }} · {{ formatStamp(a.signedAt) }}<br />
+                  <small>Anulada {{ formatStamp(a.annulledAt) }} · {{ a.annulReason }}</small>
+                </li>
+              </ul>
+            </details>
+          </div>
+          <div v-else-if="!stepSigned" class="card sigs">
             <h3><i class="fa-solid fa-signature" aria-hidden="true" /> Firmas</h3>
             <template v-for="stage in (['tripulacion', 'capitan', 'oficina'] as SignatureStage[])" :key="stage">
               <div v-if="slotsByStage[stage].length" class="sig-group">
@@ -594,9 +698,6 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
               </div>
             </template>
             <p v-if="!slots.length" class="muted">Este formato no lleva firmas.</p>
-            <p v-if="guided" class="muted sig-note">
-              Quien llena no firma en este formato: su identidad, cargo y hora de envío quedan en la página anexa del PDF.
-            </p>
           </div>
 
           <details v-if="record.history?.length" class="card history">
@@ -1043,6 +1144,33 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 .sig-who--invalid {
   color: var(--danger);
   font-weight: 600;
+}
+
+.sig-legend {
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--ink-600);
+}
+
+.sig-annulled {
+  margin-top: 0.7rem;
+  font-size: 0.86rem;
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--danger);
+  }
+
+  ul {
+    margin: 0.4rem 0 0;
+    padding-left: 1rem;
+  }
 }
 
 .sig-note {
