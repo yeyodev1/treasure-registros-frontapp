@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, shallowRef } from 'vue'
+import { useCrewStore } from '@/stores/crew'
+import { apiErrorMessage } from '@/services/httpBase'
 import BaseDatePicker from '@/components/ui/BaseDatePicker.vue'
 import BaseTimePicker from '@/components/ui/BaseTimePicker.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
@@ -11,11 +13,14 @@ export interface ContextDraft {
   place: string
   name: string
   position: string
+  /** Quien hace el chequeo, elegido de la lista de tripulantes. */
+  crewId: string
 }
 
 /**
  * Confirmación del contexto: embarcación, fecha y hora de la actividad,
- * lugar y quién llena (identidad y cargo precargados de la sesión).
+ * lugar y quién hace el chequeo, elegido de la lista de tripulantes (falla 3);
+ * el cargo sale de su ficha (falla 2) y solo se elige si la ficha no lo tiene.
  */
 const props = defineProps<{
   schema: IsmSchema
@@ -53,6 +58,28 @@ const position = computed({
 })
 
 const miss = (f: string) => props.missing?.has(f) ?? false
+
+const crew = useCrewStore()
+const crewError = shallowRef('')
+onMounted(async () => {
+  try {
+    await crew.load()
+  } catch (err) {
+    crewError.value = apiErrorMessage(err)
+  }
+})
+
+const chosen = computed(() => crew.byId.get(props.modelValue.crewId) ?? null)
+
+function pick(id: string) {
+  const m = crew.byId.get(id)
+  if (!m || !props.editable) return
+  emit('update:modelValue', { ...props.modelValue, crewId: m.id, name: m.name, position: m.position || '' })
+}
+
+const positionLabel = computed(
+  () => props.positions.find((p) => p.value === props.modelValue.position)?.label ?? props.modelValue.position,
+)
 </script>
 
 <template>
@@ -104,25 +131,42 @@ const miss = (f: string) => props.missing?.has(f) ?? false
       <small v-if="miss('place')" class="ctx-miss">Falta el lugar</small>
     </div>
 
-    <div class="ctx-grid">
-      <div class="field" :class="{ 'field--miss': miss('name') }">
-        <label for="ctx-name">Quién hace el chequeo</label>
-        <input
-          id="ctx-name"
-          :value="modelValue.name"
-          :readonly="!editable"
-          autocomplete="name"
-          @input="set('name', ($event.target as HTMLInputElement).value)"
-        />
-        <small class="ctx-hint">Sesión iniciada como {{ accountName }}. Si la cuenta es compartida, escribe tu nombre.</small>
-      </div>
-      <div class="field" :class="{ 'field--miss': miss('position') }">
+    <div class="field" :class="{ 'field--miss': miss('name') }">
+      <label>¿Quién hace el chequeo?</label>
+      <template v-if="editable">
+        <p v-if="crewError" class="ctx-miss">No se pudo cargar la lista de tripulantes. {{ crewError }}</p>
+        <p v-else-if="crew.loaded && !crew.members.length" class="ctx-hint">
+          La lista de tripulantes está vacía. Pide a la Persona Designada que te agregue.
+        </p>
+        <div v-else class="crew" role="radiogroup" aria-label="Quién hace el chequeo">
+          <button
+            v-for="m in crew.members"
+            :key="m.id"
+            type="button"
+            role="radio"
+            class="crew-item"
+            :class="{ on: modelValue.crewId === m.id }"
+            :aria-checked="modelValue.crewId === m.id"
+            @click="pick(m.id)"
+          >
+            <span class="crew-name">{{ m.name }}</span>
+            <span class="crew-pos">{{ m.positionLabel || 'Sin cargo en su ficha' }}</span>
+          </button>
+        </div>
+      </template>
+      <p v-else class="ctx-ro">{{ modelValue.name || '—' }}<template v-if="positionLabel"> · {{ positionLabel }}</template></p>
+      <small v-if="miss('name')" class="ctx-miss">Elige quién hace el chequeo</small>
+    </div>
+
+    <Transition name="reveal">
+      <div v-if="editable && modelValue.crewId && !chosen?.position" class="field" :class="{ 'field--miss': miss('position') }">
         <label>Cargo</label>
-        <BaseSelect v-if="editable" v-model="position" :options="orderedPositions" placeholder="Elige el cargo" />
-        <p v-else class="ctx-ro">{{ positions.find((p) => p.value === modelValue.position)?.label ?? '—' }}</p>
+        <BaseSelect v-model="position" :options="orderedPositions" placeholder="Elige el cargo" />
+        <small class="ctx-hint">Su ficha no tiene cargo. La Persona Designada puede agregarlo en Tripulantes.</small>
         <small v-if="miss('position')" class="ctx-miss">Falta el cargo</small>
       </div>
-    </div>
+    </Transition>
+    <small v-if="miss('position') && !(editable && modelValue.crewId && !chosen?.position)" class="ctx-miss">Falta el cargo</small>
 
     <p class="ctx-note">
       <i class="fa-solid fa-circle-info" aria-hidden="true" />
@@ -133,6 +177,10 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
+
+.ctx label {
+  font-size: 1rem;
+}
 
 .ctx {
   display: flex;
@@ -175,6 +223,46 @@ const miss = (f: string) => props.missing?.has(f) ?? false
   @include tablet {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.crew {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.crew-item {
+  min-height: 60px;
+  padding: 0.5rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--cream-200);
+  background: #fff;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  &.on {
+    background: var(--navy-800);
+    border-color: var(--navy-800);
+    color: #fff;
+
+    .crew-pos {
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+.crew-name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.crew-pos {
+  font-size: 1rem;
+  color: var(--ink-600);
 }
 
 .ctx-chips {
