@@ -11,6 +11,8 @@ import type {
   IsmSignature,
   IsmSummary,
   SessionUser,
+  CrewMember,
+  IsmNotice,
 } from '@/types'
 
 export async function apiLogin(email: string, password: string, remember: boolean) {
@@ -42,8 +44,14 @@ export async function apiCatalog() {
   return data
 }
 
+/** Revisión del esquema que espera esta versión de la app. */
+const SCHEMA_REV = '2026-10-30-firmas'
+
 export async function apiSchema(code: string, version: number) {
-  const { data } = await http.get<{ schema: IsmSchema }>(`/ism/schemas/${code}/${version}`)
+  // `rev` cambia cuando el esquema gana datos (firmantes por pasos): evita la copia en caché del navegador.
+  const { data } = await http.get<{ schema: IsmSchema }>(`/ism/schemas/${code}/${version}`, {
+    params: { rev: SCHEMA_REV },
+  })
   return data.schema
 }
 
@@ -88,6 +96,8 @@ export interface ContextInput {
   place?: string
   name?: string
   position?: string
+  /** Quien hace el chequeo, elegido de la lista de tripulantes. */
+  crewId?: string
   /** Hora de una o más secciones ('HH:MM'); '' la borra. */
   sectionTimes?: Record<string, string>
   confirmed?: boolean
@@ -190,4 +200,66 @@ export async function apiUploadPhoto(file: File) {
   body.append('folder', 'ism')
   const { data } = await http.post<{ url: string }>('/uploads', body, { timeout: 90000 })
   return data.url
+}
+
+/** Firma el paso actual con el dedo y la clave de 4 números (y lo pasa al siguiente). */
+export async function apiSignStep(
+  id: string,
+  payload: { image: string; pin: string; newPin?: string; signer?: string },
+) {
+  const { data } = await http.post<{ record: IsmRecord }>(`/ism/records/${id}/sign-step`, payload)
+  return data.record
+}
+
+export async function apiSetTest(id: string, test: boolean, reason = '') {
+  const { data } = await http.post<{ record: { _id: string; test: boolean } }>(`/ism/records/${id}/test`, {
+    test,
+    reason,
+  })
+  return data.record
+}
+
+/** Lista de tripulantes (onboard: solo los que están a bordo; all: también inactivos). */
+export async function apiCrew(params: { onboard?: '1'; all?: '1' } = {}) {
+  const { data } = await http.get<{ crew: CrewMember[] }>('/ism/crew', { params })
+  return data.crew
+}
+
+export async function apiCreateCrew(payload: { name: string; position: string; onboard: boolean }) {
+  const { data } = await http.post<{ member: CrewMember }>('/ism/crew', payload)
+  return data.member
+}
+
+export async function apiUpdateCrew(
+  id: string,
+  payload: Partial<{ name: string; position: string; onboard: boolean; active: boolean }>,
+) {
+  const { data } = await http.patch<{ member: CrewMember }>(`/ism/crew/${id}`, payload)
+  return data.member
+}
+
+/** Clave temporal de un solo uso: se muestra una sola vez. */
+export async function apiTemporaryPin(id: string) {
+  const { data } = await http.post<{ pin: string; name: string }>(`/ism/crew/${id}/temporary-pin`)
+  return data
+}
+
+export async function apiMyPin() {
+  const { data } = await http.get<{ hasPin: boolean; pinTemporary: boolean; lockedUntil: string | null }>(
+    '/ism/crew/me/pin',
+  )
+  return data
+}
+
+export async function apiChangeMyPin(current: string, next: string) {
+  await http.post('/ism/crew/me/pin', { current, next })
+}
+
+export async function apiNotices() {
+  const { data } = await http.get<{ notices: IsmNotice[]; unread: number }>('/ism/notices')
+  return data
+}
+
+export async function apiReadNotices(ids?: string[]) {
+  await http.post('/ism/notices/read', { ids })
 }
