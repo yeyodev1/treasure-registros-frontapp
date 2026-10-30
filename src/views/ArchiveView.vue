@@ -3,7 +3,8 @@ import { computed, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 import { useCatalogStore } from '@/stores/catalog'
 import { useToastStore } from '@/stores/toast'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
-import { apiPdfUrl, apiRecords } from '@/services/api'
+import { apiRecords } from '@/services/api'
+import { usePdfViewerStore } from '@/stores/pdfViewer'
 import { apiErrorMessage } from '@/services/httpBase'
 import { STATUS_LABELS } from '@/utils/ism'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
@@ -15,6 +16,7 @@ import type { IsmRecord, IsmStatus } from '@/types'
 
 const catalog = useCatalogStore()
 const toast = useToastStore()
+const pdfViewer = usePdfViewerStore()
 
 const code = shallowRef('')
 const status = shallowRef('archivado')
@@ -118,12 +120,9 @@ function reset() {
   q.value = ''
 }
 
-async function openPdf(r: IsmRecord) {
-  try {
-    window.open(await apiPdfUrl(r._id), '_blank')
-  } catch (err) {
-    toast.error(apiErrorMessage(err))
-  }
+/** El PDF se abre dentro de la app (visor con Descargar). */
+function openPdf(r: IsmRecord) {
+  pdfViewer.open(r._id, r.fileName)
 }
 </script>
 
