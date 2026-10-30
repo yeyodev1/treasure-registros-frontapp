@@ -5,7 +5,7 @@ import { useUserStore } from '@/stores/user'
 import { useToastStore } from '@/stores/toast'
 import { apiRecords, apiSummary } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
-import { STATUS_ICONS, STATUS_LABELS, authorName, formatRecordDate } from '@/utils/ism'
+import { STATUS_ICONS, authorName, formatRecordDate, statusLabel, todayGalapagos } from '@/utils/ism'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
 import SkeletonBlock from '@/components/ui/SkeletonBlock.vue'
 import type { IsmRecord, IsmSummary } from '@/types'
@@ -60,6 +60,41 @@ const TASKS = [
   },
 ]
 
+/** Chequeo del zarpe abierto: la tarjeta lo continúa en vez de crear otro (falla 10). */
+const openZarpe = computed(() => {
+  const list = drafts.value.filter((d) => d.code === 'R-14' && d.schemaVersion)
+  return (
+    list.find((d) => d.returnInfo) ??
+    list.find((d) => d.context?.activityDate === todayGalapagos()) ??
+    list[0] ??
+    null
+  )
+})
+
+const tasks = computed(() =>
+  TASKS.map((t) => {
+    const d = t.key === 'zarpe' ? openZarpe.value : null
+    if (!d) return { ...t, extra: '' }
+    const progress = d.flags ? ` (${d.flags.answered} de ${d.flags.total})` : ''
+    const today = d.context?.activityDate === todayGalapagos()
+    return {
+      ...t,
+      to: `/registro/${d._id}`,
+      text: d.returnInfo
+        ? `Corregir el chequeo devuelto${progress}`
+        : today
+          ? `Continuar el chequeo de hoy${progress}`
+          : `Continuar el chequeo${progress}`,
+      extra: 'Para otro zarpe, toca «Nuevo zarpe» dentro.',
+    }
+  }),
+)
+
+/** 30 de 30 respondidos y sin enviar: no es lo mismo que uno a medias (falla 11). */
+function complete(r: IsmRecord): boolean {
+  return Boolean(r.flags && r.flags.total > 0 && r.flags.answered === r.flags.total)
+}
+
 /** Primero lo devuelto para corregir, luego lo más reciente. */
 const toContinue = computed(() =>
   [...drafts.value].sort((a, b) => Number(Boolean(b.returnInfo)) - Number(Boolean(a.returnInfo))),
@@ -74,8 +109,8 @@ const cards = computed(() => {
   if (!c) return []
   return [
     { key: 'misBorradores', label: 'Mis borradores', icon: 'fa-pen-to-square', value: c.misBorradores, to: '/por-firmar?tab=borradores' },
-    { key: 'por_capitan', label: 'Por firmar Capitán', icon: 'fa-anchor', value: c.por_capitan, to: '/por-firmar?tab=capitan' },
-    { key: 'por_oficina', label: 'Por firmar oficina', icon: 'fa-building', value: c.por_oficina, to: '/por-firmar?tab=oficina' },
+    { key: 'por_capitan', label: 'Por firmar · Capitán', icon: 'fa-anchor', value: c.por_capitan, to: '/por-firmar?tab=capitan' },
+    { key: 'por_oficina', label: 'Por firmar · Persona Designada', icon: 'fa-building', value: c.por_oficina, to: '/por-firmar?tab=oficina' },
     { key: 'archivado', label: 'Archivados', icon: 'fa-box-archive', value: c.archivado, to: '/archivo' },
   ]
 })
@@ -119,11 +154,12 @@ onMounted(load)
     </div>
 
     <TransitionGroup tag="section" name="list" appear class="tasks" aria-label="Acciones">
-      <RouterLink v-for="t in TASKS" :key="t.key" :to="t.to" class="task card" :class="{ 'task--guided': t.guided }">
+      <RouterLink v-for="t in tasks" :key="t.key" :to="t.to" class="task card" :class="{ 'task--guided': t.guided }">
         <span class="task-icon"><i class="fa-solid" :class="t.icon" aria-hidden="true" /></span>
         <span class="task-body">
           <strong>{{ t.title }}</strong>
           <span>{{ t.text }}</span>
+          <small v-if="t.extra" class="task-extra">{{ t.extra }}</small>
           <small>
             {{ t.code }}
             <template v-if="t.guided"> · Paso a paso</template>
@@ -156,6 +192,9 @@ onMounted(load)
               <strong>{{ r.schemaVersion ? 'Preparar el zarpe' : r.title }} · {{ r.code.replace('_', ' · ') }}</strong>
               <small v-if="r.returnInfo" class="returned-hint">
                 Devuelto · {{ r.returnInfo.section }}: {{ r.returnInfo.reason }}
+              </small>
+              <small v-else-if="complete(r)" class="ready-hint">
+                <i class="fa-solid fa-signature" aria-hidden="true" /> Falta firmar y enviar
               </small>
               <small v-else>
                 {{ formatRecordDate(r.recordDate) }}
@@ -230,7 +269,7 @@ onMounted(load)
               <span class="rbody">
                 <strong>{{ r.code.replace('_', ' · ') }} · {{ r.title }}</strong>
                 <small>
-                  {{ formatRecordDate(r.recordDate) }} · {{ STATUS_LABELS[r.status] }}
+                  {{ formatRecordDate(r.recordDate) }} · {{ statusLabel(r) }}
                   <template v-if="authorName(r)"> · {{ authorName(r) }}</template>
                   <template v-if="r.equipment"> · {{ r.equipment.name }}</template>
                 </small>
@@ -381,6 +420,11 @@ onMounted(load)
 
 .rrow--returned {
   background: rgba(180, 72, 59, 0.06);
+}
+
+.ready-hint {
+  color: var(--navy-700) !important;
+  font-weight: 700;
 }
 
 .returned-hint {
