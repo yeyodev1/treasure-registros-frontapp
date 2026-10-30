@@ -25,6 +25,7 @@ export function validateGuided(
   if (!context?.activityTime) need('activityTime', 'Falta la hora de la actividad')
   if (!context?.place?.trim()) need('place', 'Falta el lugar')
   if (!context?.filledBy?.name?.trim()) need('name', 'Falta quién hace el chequeo')
+  if (!context?.filledBy?.position) need('position', 'Falta el cargo')
 
   for (const { section, item } of schemaItems(schema)) {
     const a = answers[item.id]
