@@ -140,3 +140,15 @@ export function nowTimeGalapagos(): string {
 export function authorName(record: IsmRecord): string {
   return typeof record.createdBy === 'object' ? record.createdBy.name : ''
 }
+
+/** Cuándo se hizo: la fecha y hora de la actividad si la hay ("30 oct 2026 · 16:19"). */
+export function recordWhen(record: IsmRecord): string {
+  const c = record.context
+  if (c?.activityDate) return formatActivity(c.activityDate, c.activityTime)
+  return formatRecordDate(record.recordDate)
+}
+
+/** Quién lo hizo: la persona elegida de la lista; si no, la cuenta que lo creó. */
+export function recordWho(record: IsmRecord): string {
+  return record.context?.filledBy?.name || authorName(record)
+}
