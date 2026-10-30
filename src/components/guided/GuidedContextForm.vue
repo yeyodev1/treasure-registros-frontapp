@@ -96,7 +96,12 @@ const positionLabel = computed(
       </div>
     </div>
 
-    <div class="ctx-grid">
+    <div class="ctx-when">
+      <p class="ctx-note">
+        <i class="fa-regular fa-clock" aria-hidden="true" />
+        Pon la fecha y hora en que hiciste el chequeo.
+      </p>
+      <div class="ctx-grid">
       <div class="field" :class="{ 'field--miss': miss('activityDate') }">
         <label>{{ schema.context.activityDate.label }}</label>
         <BaseDatePicker v-if="editable" v-model="date" />
@@ -108,6 +113,7 @@ const positionLabel = computed(
         <BaseTimePicker v-if="editable" v-model="time" />
         <p v-else class="ctx-ro">{{ modelValue.activityTime || '—' }}</p>
         <small v-if="miss('activityTime')" class="ctx-miss">Falta la hora</small>
+      </div>
       </div>
     </div>
 
@@ -153,8 +159,11 @@ const positionLabel = computed(
             :aria-checked="modelValue.crewId === m.id"
             @click="pick(m.id)"
           >
-            <span class="crew-name">{{ m.name }}</span>
-            <span class="crew-pos">{{ m.positionLabel || 'Sin cargo en su ficha' }}</span>
+            <span class="crew-text">
+              <span class="crew-name">{{ m.name }}</span>
+              <span class="crew-pos">{{ m.positionLabel || 'Sin cargo en su ficha' }}</span>
+            </span>
+            <span class="crew-check" aria-hidden="true"><i class="fa-solid fa-check" /></span>
           </button>
         </div>
       </template>
@@ -172,33 +181,26 @@ const positionLabel = computed(
     </Transition>
     <small v-if="miss('position') && !(editable && modelValue.crewId && !chosen?.position)" class="ctx-miss">Falta el cargo</small>
 
-    <p class="ctx-note">
-      <i class="fa-solid fa-circle-info" aria-hidden="true" />
-      Pon la fecha y hora en que hiciste el chequeo.
-    </p>
   </div>
 </template>
 
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
 
-.ctx label {
-  font-size: 1rem;
-}
-
 .ctx {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+}
+
+.ctx label {
+  font-size: 1.05rem;
 }
 
 .ctx-vessel {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: var(--radius-sm);
-  background: var(--powder-100);
 
   i {
     color: var(--navy-700);
@@ -208,15 +210,24 @@ const positionLabel = computed(
   div {
     display: flex;
     flex-direction: column;
+    line-height: 1.3;
+  }
+
+  strong {
+    font-size: 1.1rem;
+    font-weight: 600;
   }
 }
 
 .ctx-label {
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-400);
+  color: var(--ink-600);
+}
+
+.ctx-when {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .ctx-grid {
@@ -229,39 +240,47 @@ const positionLabel = computed(
   }
 }
 
+// Lista de tripulantes: cada persona es un botón grande que se marca con un visto.
 .crew {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.6rem;
 }
 
 .crew-item {
-  min-height: 60px;
-  padding: 0.5rem 0.9rem;
+  min-height: 64px;
+  padding: 0.6rem 0.75rem 0.6rem 1rem;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
   text-align: left;
   border-radius: var(--radius-sm);
-  border: 2px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
   background: #fff;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(.on) {
+    border-color: var(--navy-600);
+  }
 
   &.on {
-    background: var(--navy-800);
+    background: var(--active);
     border-color: var(--navy-800);
-    color: #fff;
-
-    .crew-pos {
-      color: rgba(255, 255, 255, 0.8);
-    }
+    box-shadow: inset 0 0 0 1px var(--navy-800);
   }
 }
 
+.crew-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
 .crew-name {
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 600;
+  font-size: 1.05rem;
 }
 
 .crew-pos {
@@ -269,22 +288,46 @@ const positionLabel = computed(
   color: var(--ink-600);
 }
 
+.crew-check {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--line-strong);
+  color: transparent;
+  font-size: 0.8rem;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  .on & {
+    background: var(--navy-800);
+    border-color: var(--navy-800);
+    color: #fff;
+  }
+}
+
 .ctx-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .ctx-chip {
-  min-height: 44px;
-  padding: 0 0.95rem;
+  min-height: 48px;
+  padding: 0 1.1rem;
   border-radius: 999px;
-  border: 1.5px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
   background: #fff;
   font-weight: 600;
   font-size: 1rem;
-  color: var(--ink-600);
+  color: var(--ink-900);
   transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+
+  &:hover:not(.on) {
+    border-color: var(--navy-600);
+  }
 
   &.on {
     background: var(--navy-800);
@@ -302,7 +345,7 @@ const positionLabel = computed(
 }
 
 .ctx-hint {
-  color: var(--ink-400);
+  color: var(--ink-600);
   font-size: 1rem;
 }
 
@@ -316,15 +359,19 @@ const positionLabel = computed(
 .field--miss :deep(.picker-trigger),
 .field--miss :deep(.tpick-trigger),
 .field--miss :deep(.select-trigger) {
-  border-color: rgba(180, 72, 59, 0.6);
+  border-color: var(--danger);
 }
 
 .ctx-note {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1rem;
   color: var(--ink-600);
-  background: var(--powder-100);
-  border-radius: var(--radius-sm);
-  padding: 0.6rem 0.75rem;
+
+  i {
+    color: var(--ink-400);
+  }
 }
 </style>
