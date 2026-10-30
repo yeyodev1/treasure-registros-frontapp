@@ -93,6 +93,10 @@ export interface IsmAnswer {
   accion: string
   motivo: string
   evidencia: string[]
+  /** Seguimiento de la novedad: quién la resuelve, para cuándo y si quedó cerrada. */
+  responsable?: string
+  plazo?: string
+  estado?: '' | 'abierta' | 'cerrada'
   at?: string | null
 }
 
@@ -102,6 +106,8 @@ export interface IsmContext {
   activityTime: string
   place: string
   filledBy: { user: string; accountName: string; name: string; role: string; position: string }
+  /** Hora de cada sección ('HH:MM'). */
+  sectionTimes?: Record<string, string>
   confirmedAt: string | null
 }
 
@@ -110,6 +116,8 @@ export interface IsmFlags {
   total: number
   novedades: number
   noAplica: number
+  /** Marca de novedad: al menos un "No". */
+  hasNovedad?: boolean
 }
 
 export interface IsmReturnInfo {
@@ -180,6 +188,10 @@ export interface IsmRecord {
   answers?: Record<string, IsmAnswer>
   flags?: IsmFlags | null
   returnInfo?: IsmReturnInfo | null
+  /** Edición del formato oficial con que se llenó. */
+  formEdition?: string
+  /** Registro de prueba: fuera de indicadores y avisos. */
+  test?: boolean
   createdAt: string
   updatedAt: string
 }
