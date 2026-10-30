@@ -5,12 +5,14 @@ import { emptyAnswer, sectionProgress, validateGuided } from '@/utils/guided'
 import QuestionCard from './QuestionCard.vue'
 import GuidedContextForm, { type ContextDraft } from './GuidedContextForm.vue'
 import GuidedSummary from './GuidedSummary.vue'
+import BaseTimePicker from '@/components/ui/BaseTimePicker.vue'
 import type { IsmAnswer, IsmContext, IsmMissing, IsmReturnInfo, IsmSchema } from '@/types'
 
 /**
  * Asistente por secciones del formato: contexto → Ronda → Previo al zarpe →
- * Previo al arribo → Fondeado → Revisar y enviar. Se puede ir y volver sin
- * perder nada: cada respuesta se guarda al tocarla.
+ * Previo al arribo → Fondeado → Revisa y firma. Se puede ir y volver sin
+ * perder nada: cada respuesta se guarda al tocarla. "Siguiente" avisa en el
+ * momento si quedan puntos sin responder (informe 29-oct, falla 5).
  */
 const props = defineProps<{
   schema: IsmSchema
@@ -30,6 +32,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   answer: [id: string, answer: IsmAnswer]
   context: [value: ContextDraft]
+  sectionTime: [sectionId: string, time: string]
   submit: []
 }>()
 
@@ -38,7 +41,7 @@ const confirmStore = useConfirmStore()
 const steps = computed(() => [
   { id: 'contexto', title: 'Contexto', icon: 'fa-ship' },
   ...props.schema.sections.map((s) => ({ id: s.id, title: s.title, icon: 'fa-list-check' })),
-  { id: 'revisar', title: 'Revisar y enviar', icon: 'fa-paper-plane' },
+  { id: 'revisar', title: 'Revisa y firma', icon: 'fa-signature' },
 ])
 
 const missing = computed(() =>
@@ -114,6 +117,35 @@ async function go(i: number, itemId?: string) {
   }
 }
 
+/** Siguiente: si faltan puntos en la sección, se avisa ahora y no al final. */
+async function next() {
+  const s = currentSection.value
+  if (s && props.editable) {
+    const left = s.items.filter((i) => !props.answers[i.id]?.value)
+    if (left.length) {
+      const ok = await confirmStore.ask({
+        title: left.length === 1 ? 'Te falta 1 punto. ¿Seguir igual?' : `Te faltan ${left.length} puntos. ¿Seguir igual?`,
+        message: 'Puedes volver a esta sección después. Para firmar, los 30 puntos deben tener respuesta.',
+        confirmLabel: 'Seguir igual',
+        cancelLabel: 'Responder',
+        icon: 'fa-circle-exclamation',
+      })
+      if (!ok) {
+        go(step.value, left[0]!.id)
+        return
+      }
+    }
+  }
+  go(step.value + 1)
+}
+
+const sectionTime = computed({
+  get: () => (currentSection.value ? props.fullContext?.sectionTimes?.[currentSection.value.id] ?? '' : ''),
+  set: (v: string) => {
+    if (currentSection.value) emit('sectionTime', currentSection.value.id, v)
+  },
+})
+
 function gotoMissing(sectionId: string, itemId: string) {
   const i = steps.value.findIndex((s) => s.id === sectionId)
   go(i >= 0 ? i : 0, itemId || undefined)
@@ -130,12 +162,12 @@ async function sectionNotApplicable() {
   const s = currentSection.value
   if (!s) return
   const reason = await confirmStore.askReason({
-    title: `¿«${s.title}» no aplica?`,
-    message: 'Se marcan como «No aplica» los puntos de esta sección que aún no respondiste, con el mismo motivo. Puedes cambiar cualquiera después.',
+    title: 'Esta sección no aplica hoy',
+    message: `Los puntos de «${s.title}» que aún no respondiste quedan como «No aplica», con el mismo motivo. Puedes cambiar cualquiera después.`,
     confirmLabel: 'Marcar como no aplica',
     icon: 'fa-minus',
     reason: {
-      label: 'Motivo (obligatorio)',
+      label: '¿Por qué?',
       suggestions: ['No corresponde a esta maniobra', 'El barco está en puerto', 'El barco no está fondeado'],
     },
   })
@@ -214,9 +246,14 @@ const RETURN_HINT = computed(() => props.returnInfo)
             <p v-if="currentSection.hint" class="wiz-hint">{{ currentSection.hint }}</p>
           </div>
           <button v-if="editable && sectionAllowsNa" type="button" class="btn btn-ghost wiz-na" @click="sectionNotApplicable">
-            <i class="fa-solid fa-minus" aria-hidden="true" /> Esta sección no aplica
+            <i class="fa-solid fa-minus" aria-hidden="true" /> Esta sección no aplica hoy
           </button>
         </header>
+        <div class="wiz-time field">
+          <label>¿A qué hora hiciste esta sección?</label>
+          <BaseTimePicker v-if="editable" v-model="sectionTime" placeholder="Se pone sola al responder" />
+          <p v-else>{{ sectionTime || '—' }}</p>
+        </div>
         <div class="wiz-questions">
           <QuestionCard
             v-for="item in currentSection.items"
@@ -231,18 +268,14 @@ const RETURN_HINT = computed(() => props.returnInfo)
       </section>
 
       <section v-else key="review" class="wiz-body">
-        <h2 class="wiz-title">Revisar y enviar</h2>
-        <p class="wiz-notice">
-          <i class="fa-solid fa-anchor" aria-hidden="true" />
-          {{ schema.notice }}
-        </p>
+        <h2 class="wiz-title">Revisa y firma</h2>
         <Transition name="fade" mode="out-in">
           <p v-if="missing.length" key="m" class="wiz-missing">
             <i class="fa-solid fa-circle-exclamation" aria-hidden="true" />
             {{ missing.length === 1 ? 'Falta 1 dato' : `Faltan ${missing.length} datos` }}. Toca «Ir a la pregunta» para completarlos.
           </p>
           <p v-else key="ok" class="wiz-ready">
-            <i class="fa-solid fa-circle-check" aria-hidden="true" /> Todo respondido. Revisa el resumen y envía al Capitán.
+            Así va a quedar tu chequeo. Mira la novedad y, si está bien, firma abajo.
           </p>
         </Transition>
         <GuidedSummary
@@ -261,8 +294,8 @@ const RETURN_HINT = computed(() => props.returnInfo)
       <button type="button" class="btn btn-ghost" :disabled="step === 0" @click="go(step - 1)">
         <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Anterior
       </button>
-      <button v-if="step < steps.length - 1" type="button" class="btn btn-primary" @click="go(step + 1)">
-        {{ step === steps.length - 2 ? 'Revisar y enviar' : 'Siguiente' }} <i class="fa-solid fa-arrow-right" aria-hidden="true" />
+      <button v-if="step < steps.length - 1" type="button" class="btn btn-primary" @click="next">
+        {{ step === steps.length - 2 ? 'Revisa y firma' : 'Siguiente' }} <i class="fa-solid fa-arrow-right" aria-hidden="true" />
       </button>
       <button
         v-else-if="editable"
@@ -313,7 +346,7 @@ const RETURN_HINT = computed(() => props.returnInfo)
 
 .wiz-count {
   margin: 0.35rem 0 0.5rem;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: var(--ink-600);
   font-variant-numeric: tabular-nums;
 }
@@ -340,7 +373,7 @@ const RETURN_HINT = computed(() => props.returnInfo)
   border-radius: 999px;
   border: 1.5px solid var(--cream-200);
   background: var(--surface);
-  font-size: 0.84rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--ink-600);
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
@@ -360,7 +393,7 @@ const RETURN_HINT = computed(() => props.returnInfo)
   border-radius: 50%;
   background: var(--powder-100);
   color: var(--navy-700);
-  font-size: 0.75rem;
+  font-size: 1rem;
 
   .st-done & {
     background: var(--success);
@@ -386,7 +419,7 @@ const RETURN_HINT = computed(() => props.returnInfo)
   border-radius: var(--radius-sm);
   background: rgba(180, 72, 59, 0.08);
   border: 1px solid rgba(180, 72, 59, 0.3);
-  font-size: 0.9rem;
+  font-size: 1rem;
 
   i {
     margin-top: 0.2rem;
@@ -414,7 +447,7 @@ const RETURN_HINT = computed(() => props.returnInfo)
 
 .wiz-eyebrow {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -432,13 +465,22 @@ const RETURN_HINT = computed(() => props.returnInfo)
 .wiz-hint {
   margin: 0.25rem 0 0;
   color: var(--ink-600);
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 
 .wiz-na {
   flex-shrink: 0;
   border-color: var(--cream-200);
   color: var(--ink-600);
+}
+
+.wiz-time {
+  max-width: 320px;
+
+  p {
+    margin: 0;
+    font-weight: 600;
+  }
 }
 
 .wiz-questions {
@@ -468,7 +510,7 @@ const RETURN_HINT = computed(() => props.returnInfo)
 .wiz-ready {
   margin: 0;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 
 .wiz-missing {
