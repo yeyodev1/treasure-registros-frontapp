@@ -10,6 +10,7 @@ import { formatActivity, formatStamp } from '@/utils/ism'
 import GuidedSummary from '@/components/guided/GuidedSummary.vue'
 import ReviewCard from './ReviewCard.vue'
 import SignSteps from './SignSteps.vue'
+import PdfThumb from '@/components/ui/PdfThumb.vue'
 import StepSignForm from './StepSignForm.vue'
 import type { IsmAnswer, IsmRecord, IsmSchema } from '@/types'
 
@@ -103,14 +104,13 @@ function onSigned(rec: IsmRecord) {
 
 <template>
   <section class="rv">
-    <header class="rv-bar">
-      <span><strong>Por firmar · {{ mode === 'capitan' ? 'Capitán' : 'Persona Designada' }}</strong></span>
-      <span>Firma {{ mode === 'capitan' ? 2 : 3 }} de 3</span>
-    </header>
-    <p class="rv-eyebrow">
-      {{ record.code }} · {{ schema.officialTitle.replace(/^R-\d+\s*/, '') }}<template v-if="mode === 'designada'"> · Persona Designada</template>
-    </p>
-    <h2 class="rv-title">{{ mode === 'capitan' ? 'Revisa el chequeo y firma' : 'Recibir y archivar' }}</h2>
+    <div class="rv-head">
+      <div>
+        <h2 class="rv-title">{{ mode === 'capitan' ? 'Revisa el chequeo y firma' : 'Recibir y archivar' }}</h2>
+        <p class="rv-sub-title">{{ record.code }} · {{ schema.officialTitle.replace(/^R-\d+\s*/, '') }}</p>
+      </div>
+      <span class="rv-count">Firma {{ mode === 'capitan' ? 2 : 3 }} de 3</span>
+    </div>
 
     <p v-if="record.returnInfo" class="rv-returned">
       <i class="fa-solid fa-rotate-left" aria-hidden="true" />
@@ -138,7 +138,7 @@ function onSigned(rec: IsmRecord) {
       <details class="card rv-all">
         <summary>
           <span>{{ clean }} puntos sin novedad<template v-if="noAplica"> · {{ noAplica }} no aplican</template></span>
-          <span class="rv-link">Ver todo</span>
+          <span class="rv-link">Ver todo <i class="fa-solid fa-chevron-down" aria-hidden="true" /></span>
         </summary>
         <GuidedSummary :schema="schema" :answers="answers" :context="record.context ?? null" :position-label="positionLabel" />
       </details>
@@ -155,14 +155,11 @@ function onSigned(rec: IsmRecord) {
     </template>
 
     <template v-else>
-      <div class="card">
+      <div class="card rv-steps">
         <SignSteps :record="record" :signers="schema.signers ?? []" me-step="oficina" />
       </div>
       <div class="card rv-pdf">
-        <div class="rv-sheet" aria-hidden="true">
-          <strong>Manual de gestión de seguridad</strong>
-          <span v-for="i in 5" :key="i" class="rv-line" />
-        </div>
+        <PdfThumb :record-id="record._id" class="rv-thumb" @open="emit('pdf')" />
         <dl>
           <div><dt>PDF oficial</dt><dd><code>{{ record.fileName }}</code></dd></div>
           <div><dt>Firmas</dt><dd>{{ record.signatures.filter((s) => s.valid !== false).length + 1 }} con la tuya</dd></div>
@@ -215,49 +212,49 @@ function onSigned(rec: IsmRecord) {
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
 
+// Pantallas 4 y 5: quién lo hizo, la novedad arriba, la decisión y la firma.
 .rv {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.1rem;
   max-width: 820px;
 }
 
-.rv-bar {
+.rv-head {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  padding: 0.8rem 1rem;
-  border-radius: var(--radius-sm);
-  background: var(--navy-800);
-  color: #fff;
-  font-size: 1rem;
-}
-
-.rv-eyebrow {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-400);
+  gap: 1rem;
 }
 
 .rv-title {
-  font-size: 1.8rem;
+  font-size: 2rem;
+}
+
+.rv-sub-title {
+  margin: 0.3rem 0 0;
+  color: var(--ink-600);
+}
+
+.rv-count {
+  flex-shrink: 0;
+  color: var(--ink-600);
+  font-variant-numeric: tabular-nums;
 }
 
 .rv-sub {
-  margin: 0.4rem 0 0;
-  font-size: 1.25rem;
+  margin: 0.75rem 0 0;
+  font-size: 1.4rem;
 }
 
 .rv-returned {
   margin: 0;
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 0.9rem;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
   border-radius: var(--radius-sm);
-  background: rgba(180, 72, 59, 0.08);
-  border: 1px solid rgba(180, 72, 59, 0.3);
+  background: var(--danger-100);
+  box-shadow: inset 4px 0 0 var(--danger);
   font-size: 1rem;
 
   i {
@@ -269,11 +266,15 @@ function onSigned(rec: IsmRecord) {
 .rv-by {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.9rem;
 
   p {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1.08rem;
+  }
+
+  strong {
+    font-weight: 600;
   }
 
   small {
@@ -294,7 +295,7 @@ function onSigned(rec: IsmRecord) {
 }
 
 .rv-all summary {
-  min-height: 44px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -302,44 +303,76 @@ function onSigned(rec: IsmRecord) {
   cursor: pointer;
   font-size: 1.05rem;
   list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.rv-all[open] summary {
+  margin-bottom: 0.75rem;
+
+  .rv-link i {
+    transform: rotate(180deg);
+  }
 }
 
 .rv-link {
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--navy-800);
   text-decoration: underline;
+  text-underline-offset: 3px;
+
+  i {
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+  }
 }
 
 .rv-choices {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .rv-choice {
-  min-height: 56px;
+  min-height: 60px;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0 1rem;
+  gap: 0.85rem;
+  padding: 0.6rem 1.1rem;
   border-radius: var(--radius-sm);
-  border: 2px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
   background: #fff;
   font-size: 1.05rem;
   text-align: left;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(.on) {
+    border-color: var(--navy-600);
+  }
 
   &.on {
     border-color: var(--navy-800);
-    background: var(--powder-100);
+    box-shadow: inset 0 0 0 1px var(--navy-800);
+    background: var(--active);
+  }
+
+  strong {
+    font-weight: 600;
   }
 }
 
 .rv-radio {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   border-radius: 50%;
-  border: 2px solid var(--ink-400);
+  border: 2px solid var(--line-strong);
+  background: #fff;
   position: relative;
 
   .on & {
@@ -348,7 +381,7 @@ function onSigned(rec: IsmRecord) {
     &::after {
       content: '';
       position: absolute;
-      inset: 3px;
+      inset: 4px;
       border-radius: 50%;
       background: var(--navy-800);
     }
@@ -364,7 +397,8 @@ function onSigned(rec: IsmRecord) {
 .rv-sign {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
+  margin-top: 0.25rem;
 
   textarea {
     font-size: 1rem;
@@ -373,26 +407,36 @@ function onSigned(rec: IsmRecord) {
   > .btn {
     min-height: 56px;
     justify-content: center;
-    font-size: 1.05rem;
+    font-size: 1.08rem;
   }
 }
 
 .btn-return {
-  background: #8c5a1d;
+  background: var(--danger);
   color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #8f3527;
+  }
 }
 
+.rv-steps {
+  padding: 1.1rem 0.75rem;
+}
+
+// Pantalla 5: la hoja real en pequeño, el nombre del archivo y la carpeta.
 .rv-pdf {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
+  gap: 1rem 1.5rem;
 
   @include tablet {
-    grid-template-columns: 160px minmax(0, 1fr);
+    grid-template-columns: 162px minmax(0, 1fr);
     align-items: start;
 
     > .btn {
       grid-column: 2;
+      justify-self: start;
     }
   }
 
@@ -400,51 +444,39 @@ function onSigned(rec: IsmRecord) {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   dt {
     font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-400);
+    font-weight: 500;
+    color: var(--ink-600);
   }
 
   dd {
-    margin: 0;
-    font-size: 1rem;
+    margin: 0.1rem 0 0;
+    font-size: 1.05rem;
+    font-weight: 500;
+
+    code {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
   }
 
   > .btn {
     min-height: 48px;
-    justify-content: center;
+    min-width: 220px;
   }
 }
 
-.rv-sheet {
+.rv-thumb {
   display: none;
 
   @include tablet {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.9rem;
-    border: 1px solid var(--cream-200);
-    border-radius: var(--radius-sm);
-    min-height: 200px;
-
-    strong {
-      font-size: 0.75rem;
-      text-align: center;
-      text-transform: uppercase;
-    }
+    display: block;
+    grid-row: span 2;
   }
-}
-
-.rv-line {
-  height: 6px;
-  border-radius: 3px;
-  background: var(--cream-200);
 }
 </style>
