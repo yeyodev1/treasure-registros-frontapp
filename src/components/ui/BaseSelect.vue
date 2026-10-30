@@ -20,6 +20,11 @@ const model = defineModel<string>({ default: '' })
 
 const open = shallowRef(false)
 const highlighted = shallowRef(-1)
+// Informe ISM falla 2: en tablet el toque que abre la lista caía sobre otra
+// opción mientras el menú se acomodaba. Solo se elige la opción donde empezó
+// y terminó el mismo toque, y nunca en los primeros instantes tras abrir.
+let openedAt = 0
+let pressedIndex = -1
 const query = shallowRef('')
 const trigger = useTemplateRef<HTMLElement>('trigger')
 const list = useTemplateRef<HTMLElement>('list')
@@ -47,6 +52,8 @@ function toggle() {
     return
   }
   query.value = ''
+  openedAt = performance.now()
+  pressedIndex = -1
   open.value = true
   bind()
   highlighted.value = visibleOptions.value.findIndex((o) => o.value === model.value)
@@ -61,6 +68,18 @@ function close() {
 function choose(option: SelectOption) {
   model.value = option.value
   close()
+}
+
+function onOptionPress(index: number) {
+  pressedIndex = index
+}
+
+function onOptionClick(option: SelectOption, index: number) {
+  const settled = performance.now() - openedAt > 250
+  const sameTarget = pressedIndex === index
+  pressedIndex = -1
+  if (!settled || !sameTarget) return
+  choose(option)
 }
 
 function onKeydown(e: KeyboardEvent) {
@@ -148,7 +167,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
               'select-option--highlighted': index === highlighted,
             }"
             @pointerenter="highlighted = index"
-            @click="choose(option)"
+            @pointerdown="onOptionPress(index)"
+            @click="onOptionClick(option, index)"
           >
             <span class="select-option-label">{{ option.label }}</span>
             <span v-if="option.hint" class="select-option-hint">{{ option.hint }}</span>
