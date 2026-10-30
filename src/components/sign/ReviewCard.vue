@@ -75,41 +75,43 @@ const who = computed(() => {
 .rc {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.9rem;
 }
 
+// Datos del chequeo: etiqueta en gris, dato en tinta.
 .rc-sum {
   margin: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem 1.2rem;
+  gap: 1rem 1.5rem;
 
   dt {
     font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-400);
+    font-weight: 500;
+    color: var(--ink-600);
   }
 
   dd {
-    margin: 0.1rem 0 0;
-    font-size: 1.05rem;
+    margin: 0.15rem 0 0;
+    font-size: 1.08rem;
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 }
 
 .rc-novs {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
+// La novedad va arriba y se distingue: fondo ámbar claro y borde a la izquierda.
 .rc-nov {
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.1rem 1.05rem 1.25rem;
   border-radius: var(--radius);
-  background: rgba(185, 128, 47, 0.12);
-  border: 1.5px solid rgba(185, 128, 47, 0.45);
+  background: var(--warning-100);
+  border: 1px solid var(--warning-line);
+  box-shadow: inset 4px 0 0 var(--warning);
 
   header {
     display: flex;
@@ -119,32 +121,34 @@ const who = computed(() => {
   }
 
   p {
-    margin: 0.3rem 0 0;
+    margin: 0.35rem 0 0;
     font-size: 1rem;
   }
 }
 
 .rc-eyebrow {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #7a4f12;
 }
 
 .rc-change {
   min-height: 44px;
   padding: 0 0.6rem;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1rem;
   text-decoration: underline;
+  text-underline-offset: 3px;
   color: var(--navy-800);
 }
 
 .rc-found {
-  font-weight: 700;
-  font-size: 1.08rem !important;
+  font-weight: 600;
+  font-size: 1.12rem !important;
+  line-height: 1.4;
 }
 
 .rc-did {
-  color: var(--ink-600);
+  color: var(--ink-900);
 }
 </style>
