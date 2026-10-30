@@ -86,7 +86,7 @@ async function logout() {
           <i class="fa-solid" :class="drawerOpen ? 'fa-xmark' : 'fa-bars'" aria-hidden="true" />
         </button>
         <div class="brand">
-          <BrandSeal :size="40" variant="cream" />
+          <BrandSeal :size="44" />
           <span class="brand-text">
             <span class="brand-eyebrow">Registros ISM · Treasure</span>
             <span class="brand-page">{{ pageTitle }}</span>
@@ -179,12 +179,26 @@ async function logout() {
   box-sizing: border-box;
   height: calc(var(--header-h) + env(safe-area-inset-top));
   padding: env(safe-area-inset-top) 0.75rem 0;
-  background: var(--navy-800);
-  border-bottom: 3px solid var(--gold-500);
-  color: #fff;
+  // Portada del menú: azul empolvado con las algas a línea.
+  background: var(--powder-300);
+  border-bottom: 1px solid rgba(27, 43, 37, 0.22);
+  color: var(--ink-900);
   position: sticky;
   top: 0;
   z-index: 30;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('/brand/algas.png') center 40% / 320px auto repeat;
+    opacity: 0.3;
+    // Despeja el sello y el título: las algas aparecen hacia la derecha.
+    mask-image: linear-gradient(to right, transparent 120px, #000 340px);
+    pointer-events: none;
+    z-index: -1;
+  }
 }
 
 .topbar-left {
@@ -200,7 +214,7 @@ async function logout() {
   place-items: center;
   border-radius: var(--radius-sm);
   font-size: 1.1rem;
-  color: #fff;
+  color: var(--ink-900);
 
   @include desktop {
     display: none;
@@ -226,7 +240,7 @@ async function logout() {
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--powder-300);
+  color: var(--navy-700);
   white-space: nowrap;
 }
 
@@ -250,10 +264,10 @@ async function logout() {
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  color: var(--powder-300);
+  color: var(--ink-900);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(27, 43, 37, 0.08);
   }
 }
 
@@ -264,13 +278,13 @@ async function logout() {
   min-height: 40px;
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
+  border: 1px solid rgba(27, 43, 37, 0.35);
+  color: var(--ink-900);
   font-weight: 600;
   font-size: 0.85rem;
 
   &:hover {
-    border-color: var(--gold-500);
+    border-color: var(--navy-700);
   }
 }
 
