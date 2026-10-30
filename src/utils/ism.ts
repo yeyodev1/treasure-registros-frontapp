@@ -3,8 +3,14 @@ import type { IsmForm, IsmRecord, IsmStatus, SignatureStage, UserRole } from '@/
 export const STATUS_LABELS: Record<IsmStatus, string> = {
   borrador: 'Borrador',
   por_capitan: 'Por firmar · Capitán',
-  por_oficina: 'Por firmar · Oficina',
+  por_oficina: 'Por firmar · Persona Designada',
   archivado: 'Archivado',
+}
+
+/** Estado visible: un borrador o un "por firmar" con devolución vigente es "Devuelto". */
+export function statusLabel(record: Pick<IsmRecord, 'status' | 'returnInfo'>): string {
+  if (record.returnInfo && record.status !== 'archivado') return 'Devuelto'
+  return STATUS_LABELS[record.status]
 }
 
 export const STATUS_ICONS: Record<IsmStatus, string> = {
@@ -17,7 +23,7 @@ export const STATUS_ICONS: Record<IsmStatus, string> = {
 export const STAGE_LABELS: Record<SignatureStage, string> = {
   tripulacion: 'Quien llena',
   capitan: 'Capitán',
-  oficina: 'Oficina',
+  oficina: 'Persona Designada',
 }
 
 export const FREQUENCY_LABELS: Record<string, string> = {
@@ -68,23 +74,43 @@ export function todayGalapagos(): string {
   return d.toISOString().slice(0, 10)
 }
 
-export function formatRecordDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('es-EC', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'Pacific/Galapagos',
-  })
+const MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+/** Partes de una fecha en hora de Galápagos (UTC−6, sin horario de verano). */
+function galapagos(iso: string | Date) {
+  const d = new Date(new Date(iso).getTime() - 6 * 60 * 60 * 1000)
+  return {
+    y: d.getUTCFullYear(),
+    m: d.getUTCMonth(),
+    d: d.getUTCDate(),
+    hh: String(d.getUTCHours()).padStart(2, '0'),
+    mm: String(d.getUTCMinutes()).padStart(2, '0'),
+  }
 }
 
+/** "29 oct 2026" (hora Galápagos). */
+export function formatRecordDate(iso: string): string {
+  const t = galapagos(iso)
+  return `${t.d} ${MONTHS_SHORT[t.m]} ${t.y}`
+}
+
+/** "29 oct 2026 · 21:28" (hora Galápagos): así se escriben fechas y horas en pantalla. */
 export function formatStamp(iso: string): string {
-  return new Date(iso).toLocaleString('es-EC', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Pacific/Galapagos',
-  })
+  const t = galapagos(iso)
+  return `${t.d} ${MONTHS_SHORT[t.m]} ${t.y} · ${t.hh}:${t.mm}`
+}
+
+/** "21:28" (hora Galápagos). */
+export function formatHour(iso: string): string {
+  const t = galapagos(iso)
+  return `${t.hh}:${t.mm}`
+}
+
+/** 'YYYY-MM-DD' (+ 'HH:MM') → "29 oct 2026 · 21:26". */
+export function formatActivity(dateKey?: string, time?: string): string {
+  const [y, m, d] = (dateKey ?? '').split('-').map(Number)
+  if (!y || !m || !d) return '—'
+  return `${d} ${MONTHS_SHORT[m - 1]} ${y}${time ? ` · ${time}` : ''}`
 }
 
 /** Secciones para devolver un formato que se llena sobre la hoja. */
