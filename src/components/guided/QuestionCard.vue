@@ -349,7 +349,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
   background: var(--powder-100);
   color: var(--navy-700);
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -470,7 +470,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 .q-miss {
   margin: 0.5rem 0 0;
   color: var(--danger);
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -546,7 +546,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
     border-radius: 50%;
     background: rgba(18, 30, 25, 0.7);
     color: #fff;
-    font-size: 0.75rem;
+    font-size: 1rem;
   }
 }
 
@@ -557,7 +557,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
   border: 1.5px dashed var(--gold-400);
   color: var(--gold-500);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 1rem;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
