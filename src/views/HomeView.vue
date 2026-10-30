@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, shallowRef } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useToastStore } from '@/stores/toast'
 import { useCatalogStore } from '@/stores/catalog'
 import { apiRecords, apiSummary } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
-import { STATUS_ICONS, authorName, formatRecordDate, statusLabel, todayGalapagos } from '@/utils/ism'
+import { recordWhen, recordWho, statusLabel, todayGalapagos } from '@/utils/ism'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
 import SkeletonBlock from '@/components/ui/SkeletonBlock.vue'
+import SignTrail from '@/components/sign/SignTrail.vue'
 import type { IsmRecord, IsmSummary } from '@/types'
 
-const router = useRouter()
 const userStore = useUserStore()
 const toast = useToastStore()
 const catalog = useCatalogStore()
@@ -19,6 +18,8 @@ const catalog = useCatalogStore()
 const summary = shallowRef<IsmSummary | null>(null)
 const recent = shallowRef<IsmRecord[]>([])
 const drafts = shallowRef<IsmRecord[]>([])
+/** Registros que esperan la firma de esta cuenta (Capitán o Persona Designada). */
+const awaiting = shallowRef<IsmRecord[]>([])
 const loading = shallowRef(true)
 const loadError = shallowRef('')
 
@@ -140,12 +141,30 @@ const cards = computed(() => {
   const c = summary.value?.counts
   if (!c) return []
   return [
-    { key: 'misBorradores', label: 'Mis borradores', icon: 'fa-pen-to-square', value: c.misBorradores, to: '/por-firmar?tab=borradores' },
-    { key: 'por_capitan', label: 'Por firmar · Capitán', icon: 'fa-anchor', value: c.por_capitan, to: '/por-firmar?tab=capitan' },
-    { key: 'por_oficina', label: 'Por firmar · Persona Designada', icon: 'fa-building', value: c.por_oficina, to: '/por-firmar?tab=oficina' },
-    { key: 'archivado', label: 'Archivados', icon: 'fa-box-archive', value: c.archivado, to: '/archivo' },
+    { key: 'misBorradores', label: 'Mis borradores', value: c.misBorradores, to: '/por-firmar?tab=borradores' },
+    { key: 'por_capitan', label: 'Por firmar · Capitán', value: c.por_capitan, to: '/por-firmar?tab=capitan' },
+    { key: 'por_oficina', label: 'Por firmar · Persona Designada', value: c.por_oficina, to: '/por-firmar?tab=oficina' },
+    { key: 'archivado', label: 'Archivados', value: c.archivado, to: '/archivo' },
   ]
 })
+
+/** Estado a la que firma esta cuenta: solo el rol firma su paso. */
+const myStatus = computed(() =>
+  userStore.role === 'capitan' ? 'por_capitan' : userStore.role === 'designada' ? 'por_oficina' : null,
+)
+
+/** Nombre reconocible de un registro: la tarjeta del guiado o el título oficial. */
+function recordTitle(r: IsmRecord): string {
+  const card = catalog.byCode.get(r.code)?.card
+  return r.schemaVersion && card ? card.title : r.title
+}
+
+/** Qué hace el botón de cada borrador. */
+function draftAction(r: IsmRecord): string {
+  if (r.returnInfo) return 'Corregir'
+  if (complete(r)) return 'Firmar'
+  return 'Continuar'
+}
 
 const done = computed(() => summary.value?.checklist.filter((i) => i.done).length ?? 0)
 
@@ -154,14 +173,16 @@ async function load() {
   loadError.value = ''
   try {
     catalog.load().catch(() => undefined)
-    const [s, r, d] = await Promise.all([
+    const [s, r, d, w] = await Promise.all([
       apiSummary(),
-      apiRecords({ limit: 8 }),
+      apiRecords({ limit: 6 }),
       apiRecords({ status: 'borrador', mine: '1', limit: 12 }),
+      myStatus.value ? apiRecords({ status: myStatus.value, limit: 4 }) : Promise.resolve({ records: [] as IsmRecord[] }),
     ])
     summary.value = s
     recent.value = r.records
     drafts.value = d.records
+    awaiting.value = w.records
   } catch (err) {
     loadError.value = apiErrorMessage(err)
     toast.error(loadError.value)
@@ -175,34 +196,17 @@ onMounted(load)
 
 <template>
   <div class="page home">
-    <div class="hero">
+    <header class="page-head">
       <div>
-        <p class="eyebrow">Hola, {{ userStore.user?.name?.split(' ')[0] }}</p>
         <h1 class="page-title">Mis tareas</h1>
-        <p class="lead">Elige lo que vas a hacer. La app te guía y llena el formato oficial por detrás.</p>
+        <p class="page-lead">Elige lo que vas a hacer. La app te guía y llena el formato oficial.</p>
       </div>
-      <button type="button" class="btn btn-ghost" @click="router.push('/nuevo')">
+      <RouterLink to="/nuevo" class="btn btn-ghost">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true" /> Todos los formatos
-      </button>
-    </div>
-
-    <TransitionGroup tag="section" name="list" appear class="tasks" aria-label="Acciones">
-      <RouterLink v-for="t in tasks" :key="t.key" :to="t.to" class="task card" :class="{ 'task--guided': t.guided }">
-        <span class="task-icon"><i class="fa-solid" :class="t.icon" aria-hidden="true" /></span>
-        <span class="task-body">
-          <strong>{{ t.title }}</strong>
-          <span>{{ t.text }}</span>
-          <small v-if="t.extra" class="task-extra">{{ t.extra }}</small>
-          <small>
-            {{ t.code }}
-            <template v-if="t.guided"> · Paso a paso</template>
-          </small>
-        </span>
-        <i class="fa-solid fa-chevron-right task-chev" aria-hidden="true" />
       </RouterLink>
-    </TransitionGroup>
+    </header>
 
-    <div v-if="loadError && !loading" class="card load-error">
+    <div v-if="loadError && !loading" class="card load-error" role="alert">
       <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true" />
       <span>{{ loadError }}</span>
       <button type="button" class="btn btn-primary" @click="load">
@@ -210,102 +214,148 @@ onMounted(load)
       </button>
     </div>
 
-    <section v-if="toContinue.length" class="card continue">
-      <header>
-        <h2><i class="fa-solid fa-pen-to-square" aria-hidden="true" /> Para continuar</h2>
-        <RouterLink to="/por-firmar?tab=borradores" class="more">Ver todos</RouterLink>
-      </header>
-      <TransitionGroup tag="ul" name="list" appear>
-        <li v-for="r in toContinue" :key="r._id">
-          <RouterLink :to="`/registro/${r._id}`" class="rrow" :class="{ 'rrow--returned': r.returnInfo }">
-            <span class="status-dot" :class="r.returnInfo ? 's-devuelto' : `s-${r.status}`">
-              <i class="fa-solid" :class="r.returnInfo ? 'fa-rotate-left' : STATUS_ICONS[r.status]" aria-hidden="true" />
-            </span>
-            <span class="rbody">
-              <strong>{{ r.schemaVersion ? 'Preparar el zarpe' : r.title }} · {{ r.code.replace('_', ' · ') }}</strong>
-              <small v-if="r.returnInfo" class="returned-hint">
-                Devuelto<template v-if="r.returnInfo.section"> · {{ r.returnInfo.section }}</template>: {{ r.returnInfo.reason }}
-              </small>
-              <small v-else-if="complete(r)" class="ready-hint">
-                <i class="fa-solid fa-signature" aria-hidden="true" /> Falta firmar y enviar
-              </small>
-              <small v-else>
-                {{ formatRecordDate(r.recordDate) }}
-                <template v-if="r.context?.place"> · {{ r.context.place }}</template>
-                <template v-if="r.equipment"> · {{ r.equipment.name }}</template>
-              </small>
-              <span v-if="r.flags" class="bar bar--small">
-                <span :style="{ width: `${(r.flags.answered / Math.max(1, r.flags.total)) * 100}%` }" />
+    <!-- Capitán y Persona Designada: primero lo que espera su firma. -->
+    <section v-if="awaiting.length" class="block" aria-labelledby="h-awaiting">
+      <div class="panel-head">
+        <h2 id="h-awaiting">Esperan tu firma</h2>
+        <RouterLink to="/por-firmar" class="panel-link">Ver todos</RouterLink>
+      </div>
+      <TransitionGroup tag="ul" name="list" appear class="rows card">
+        <li v-for="r in awaiting" :key="r._id">
+          <RouterLink :to="`/registro/${r._id}`" class="row">
+            <span class="row-main">
+              <strong class="row-title">{{ recordTitle(r) }} <span class="row-code">{{ r.code.replace('_', ' · ') }}</span></strong>
+              <span class="row-meta">{{ recordWhen(r) }}<template v-if="recordWho(r)"> · {{ recordWho(r) }}</template></span>
+              <span class="row-tags">
+                <span v-if="r.flags?.novedades" class="pill pill--nov">
+                  <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                  {{ r.flags.novedades }} {{ r.flags.novedades === 1 ? 'novedad' : 'novedades' }}
+                </span>
+                <SignTrail :record="r" />
               </span>
             </span>
-            <span v-if="r.flags" class="rcount">{{ r.flags.answered }}/{{ r.flags.total }}</span>
-            <i class="fa-solid fa-chevron-right chev" aria-hidden="true" />
+            <span class="row-go">Revisar y firmar <i class="fa-solid fa-chevron-right" aria-hidden="true" /></span>
           </RouterLink>
         </li>
       </TransitionGroup>
     </section>
 
-    <section class="counts">
-      <template v-if="loading">
-        <SkeletonBlock v-for="i in 4" :key="i" height="92px" />
-      </template>
-      <TransitionGroup v-else name="list" appear>
-        <RouterLink v-for="c in cards" :key="c.key" :to="c.to" class="count card">
-          <i class="fa-solid" :class="c.icon" aria-hidden="true" />
-          <strong>{{ c.value }}</strong>
-          <span>{{ c.label }}</span>
+    <!-- Lo que dejaste a medias o te devolvieron: se continúa, no se crea otro. -->
+    <section v-if="toContinue.length" class="block" aria-labelledby="h-continue">
+      <div class="panel-head">
+        <h2 id="h-continue">Para continuar</h2>
+        <RouterLink to="/por-firmar?tab=borradores" class="panel-link">Ver todos</RouterLink>
+      </div>
+      <TransitionGroup tag="ul" name="list" appear class="rows card">
+        <li v-for="r in toContinue" :key="r._id" :class="{ 'is-returned': r.returnInfo }">
+          <RouterLink :to="`/registro/${r._id}`" class="row">
+            <span class="row-main">
+              <strong class="row-title">{{ recordTitle(r) }} <span class="row-code">{{ r.code.replace('_', ' · ') }}</span></strong>
+              <span class="row-meta">
+                {{ recordWhen(r) }}<template v-if="r.context?.place"> · {{ r.context.place }}</template><template v-if="r.equipment"> · {{ r.equipment.name }}</template><template v-if="recordWho(r)"> · {{ recordWho(r) }}</template>
+              </span>
+              <span v-if="r.returnInfo" class="row-returned">
+                <i class="fa-solid fa-rotate-left" aria-hidden="true" />
+                <span>Devuelto<template v-if="r.returnInfo.section"> · {{ r.returnInfo.section }}</template>: {{ r.returnInfo.reason }}</span>
+              </span>
+              <span v-if="r.flags" class="row-progress">
+                <span class="bar"><span :style="{ width: `${(r.flags.answered / Math.max(1, r.flags.total)) * 100}%` }" /></span>
+                <span class="num">{{ r.flags.answered }} de {{ r.flags.total }}</span>
+                <span v-if="complete(r) && !r.returnInfo" class="pill pill--turn">
+                  <i class="fa-solid fa-signature" aria-hidden="true" /> Falta firmar y enviar
+                </span>
+              </span>
+            </span>
+            <span class="row-btn btn" :class="r.returnInfo || complete(r) ? 'btn-primary' : 'btn-ghost'">
+              {{ draftAction(r) }} <i class="fa-solid fa-chevron-right" aria-hidden="true" />
+            </span>
+          </RouterLink>
+        </li>
+      </TransitionGroup>
+    </section>
+
+    <section class="block" aria-labelledby="h-tasks">
+      <div class="panel-head">
+        <h2 id="h-tasks">¿Qué vas a hacer?</h2>
+      </div>
+      <TransitionGroup tag="div" name="list" appear class="tasks">
+        <RouterLink v-for="t in tasks" :key="t.key" :to="t.to" class="task" :class="{ 'task--guided': t.guided }">
+          <i class="fa-solid task-icon" :class="t.icon" aria-hidden="true" />
+          <span class="task-body">
+            <strong>{{ t.title }}</strong>
+            <span>{{ t.text }}</span>
+            <small v-if="t.extra" class="task-extra">{{ t.extra }}</small>
+            <small class="task-code">
+              {{ t.code }}<template v-if="t.guided"> · Paso a paso</template>
+            </small>
+          </span>
+          <i class="fa-solid fa-chevron-right task-chev" aria-hidden="true" />
         </RouterLink>
       </TransitionGroup>
     </section>
 
+    <section class="block" aria-labelledby="h-counts">
+      <div class="panel-head">
+        <h2 id="h-counts">Registros en curso</h2>
+      </div>
+      <div v-if="loading" class="counts card">
+        <SkeletonBlock v-for="i in 4" :key="i" height="64px" />
+      </div>
+      <div v-else class="counts card">
+        <RouterLink v-for="c in cards" :key="c.key" :to="c.to" class="count">
+          <span class="count-label">{{ c.label }}</span>
+          <strong class="num" :class="{ zero: !c.value }">{{ c.value }}</strong>
+        </RouterLink>
+      </div>
+    </section>
+
     <div class="cols">
-      <section class="card checklist">
-        <header>
-          <h2><i class="fa-solid fa-list-check" aria-hidden="true" /> Obligatorios del mes</h2>
-          <span v-if="summary" class="month">{{ monthLabel }} · {{ done }}/{{ summary.checklist.length }}</span>
-        </header>
+      <section class="card checklist" aria-labelledby="h-month">
+        <div class="panel-head">
+          <h2 id="h-month">Obligatorios del mes</h2>
+          <span v-if="summary" class="month num">{{ monthLabel }} · {{ done }} de {{ summary.checklist.length }}</span>
+        </div>
         <SkeletonList v-if="loading" :rows="5" />
         <ul v-else-if="summary">
           <li v-for="item in summary.checklist" :key="item.code" :class="{ ok: item.done }">
-            <i class="fa-solid" :class="item.done ? 'fa-circle-check' : 'fa-circle-exclamation'" aria-hidden="true" />
+            <i class="fa-solid" :class="item.done ? 'fa-circle-check' : 'fa-circle'" aria-hidden="true" />
             <div class="ci-body">
               <p class="ci-title">
-                <span class="code">{{ item.code.replace('_', ' · ') }}</span> {{ item.title }}
+                {{ item.title }} <span class="ci-code">{{ item.code.replace('_', ' · ') }}</span>
               </p>
-              <div v-if="item.progress" class="bar">
-                <span :style="{ width: `${(item.progress.done / Math.max(1, item.progress.total)) * 100}%` }" />
-              </div>
-              <p v-if="item.progress" class="ci-hint">
-                {{ item.progress.done }} de {{ item.progress.total }}
-                <template v-if="item.missing?.length && item.missing.length <= 4"> · Faltan: {{ item.missing.join(', ') }}</template>
-              </p>
+              <template v-if="item.progress">
+                <span class="bar"><span :style="{ width: `${(item.progress.done / Math.max(1, item.progress.total)) * 100}%` }" /></span>
+                <p class="ci-hint num">
+                  {{ item.progress.done }} de {{ item.progress.total }}
+                  <template v-if="item.missing?.length && item.missing.length <= 4"> · Faltan: {{ item.missing.join(', ') }}</template>
+                </p>
+              </template>
+              <p v-else class="ci-hint">{{ item.done ? 'Hecho este mes' : 'Falta este mes' }}</p>
             </div>
           </li>
         </ul>
       </section>
 
-      <section class="card recent">
-        <header>
-          <h2><i class="fa-solid fa-clock-rotate-left" aria-hidden="true" /> Recientes</h2>
-          <RouterLink to="/archivo" class="more">Ver todo</RouterLink>
-        </header>
+      <section class="card recent" aria-labelledby="h-recent">
+        <div class="panel-head">
+          <h2 id="h-recent">Recientes</h2>
+          <RouterLink to="/archivo" class="panel-link">Ver todo</RouterLink>
+        </div>
         <SkeletonList v-if="loading" :rows="5" />
-        <p v-else-if="!recent.length" class="empty">
-          <i class="fa-regular fa-folder-open" aria-hidden="true" /> Aún no hay registros. Empieza con «Nuevo registro».
+        <p v-else-if="!recent.length" class="empty-state">
+          <i class="fa-regular fa-folder-open" aria-hidden="true" />
+          <span><strong>Aún no hay registros.</strong> Empieza con «¿Qué vas a hacer?».</span>
         </p>
-        <TransitionGroup v-else tag="ul" name="list" appear>
+        <TransitionGroup v-else tag="ul" name="list" appear class="recent-list">
           <li v-for="r in recent" :key="r._id">
             <RouterLink :to="`/registro/${r._id}`" class="rrow">
-              <span class="status-dot" :class="`s-${r.status}`">
-                <i class="fa-solid" :class="STATUS_ICONS[r.status]" aria-hidden="true" />
-              </span>
               <span class="rbody">
-                <strong>{{ r.code.replace('_', ' · ') }} · {{ r.title }}</strong>
-                <small>
-                  {{ formatRecordDate(r.recordDate) }} · {{ statusLabel(r) }}
-                  <template v-if="authorName(r)"> · {{ authorName(r) }}</template>
-                  <template v-if="r.equipment"> · {{ r.equipment.name }}</template>
-                </small>
+                <strong>{{ r.code.replace('_', ' · ') }} · {{ recordTitle(r) }}</strong>
+                <small>{{ recordWhen(r) }}<template v-if="recordWho(r)"> · {{ recordWho(r) }}</template></small>
+                <span class="rtrail">
+                  <SignTrail :record="r" />
+                  <span v-if="r.status === 'borrador' && !r.returnInfo" class="sr-only">{{ statusLabel(r) }}</span>
+                </span>
               </span>
               <i class="fa-solid fa-chevron-right chev" aria-hidden="true" />
             </RouterLink>
@@ -319,84 +369,202 @@ onMounted(load)
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
 
-.hero {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
+.block {
+  margin-bottom: 2rem;
+}
 
-  @include tablet {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
+.load-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  color: var(--danger);
+
+  span {
+    flex: 1;
+    min-width: 200px;
+    color: var(--ink-900);
   }
 }
 
-.eyebrow {
+// Filas de trabajo: lo que está a medias o espera firma.
+.rows {
+  list-style: none;
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold-500);
+  padding: 0;
+  overflow: hidden;
+
+  li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  li.is-returned {
+    box-shadow: inset 4px 0 0 var(--danger);
+  }
 }
 
-.lead {
-  margin: 0.2rem 0 0;
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.1rem 1rem 1.25rem;
+  min-height: 72px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.row-title {
+  font-weight: 600;
+  font-size: 1.08rem;
+}
+
+.row-code {
+  font-weight: 500;
+  color: var(--ink-400);
+  white-space: nowrap;
+}
+
+.row-meta {
   color: var(--ink-600);
 }
 
-.hero .btn {
-  white-space: nowrap;
-  flex-shrink: 0;
+.row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+  margin-top: 0.15rem;
 }
 
+.row-returned {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+  color: var(--danger);
+  font-weight: 600;
+
+  i {
+    margin-top: 0.3rem;
+    font-size: 0.85rem;
+  }
+}
+
+.row-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.2rem;
+  color: var(--ink-600);
+
+  .bar {
+    width: 160px;
+  }
+}
+
+.row-go {
+  flex-shrink: 0;
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--navy-800);
+
+  @include tablet {
+    display: inline-flex;
+  }
+
+  i {
+    font-size: 0.85rem;
+  }
+}
+
+.row-btn {
+  flex-shrink: 0;
+  min-width: 128px;
+
+  i {
+    font-size: 0.8rem;
+  }
+}
+
+.bar {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--powder-100);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--navy-700);
+    transition: width 0.4s var(--ease);
+  }
+}
+
+// Las cuatro acciones del barco.
 .tasks {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.7rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
 
-  @include tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  @media (min-width: 1100px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .task {
-  min-height: 96px;
   display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  text-decoration: none;
-  color: inherit;
-  border: 1.5px solid transparent;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 1rem 1.1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.12s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--gold-400);
+    border-color: var(--navy-600);
   }
 
   &:active {
     transform: scale(0.99);
   }
+}
 
-  &--guided {
-    border-color: rgba(159, 107, 60, 0.45);
+// El formato guiado del día (R-14) ocupa toda la fila: es lo que más se hace.
+.task--guided {
+  border-color: var(--navy-700);
+  box-shadow: inset 0 0 0 1px var(--navy-700);
+
+  grid-column: 1 / -1;
+
+  .task-body strong {
+    font-size: 1.55rem;
   }
 }
 
 .task-icon {
-  width: 52px;
-  height: 52px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: var(--navy-800);
-  color: var(--gold-400);
+  width: 1.6rem;
+  margin-top: 0.35rem;
   font-size: 1.25rem;
+  text-align: center;
+  color: var(--navy-700);
+  flex-shrink: 0;
 }
 
 .task-body {
@@ -404,94 +572,46 @@ onMounted(load)
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.2rem;
 
   strong {
     font-family: var(--font-serif);
     font-weight: 400;
-    font-size: 1.2rem;
+    font-size: 1.35rem;
+    line-height: 1.2;
   }
 
-  span {
-    font-size: 1rem;
+  > span {
     color: var(--ink-600);
   }
-
-  small {
-    margin-top: 0.15rem;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--ink-400);
-  }
 }
 
-.task-body .task-extra {
-  letter-spacing: normal;
+.task-extra {
+  font-size: 1rem;
+  color: var(--ink-900);
   font-weight: 500;
-  color: var(--ink-600);
 }
 
-.task-chev {
+.task-code {
+  margin-top: 0.15rem;
+  font-size: 1rem;
   color: var(--ink-400);
 }
 
-.load-error {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-
-  > i {
-    color: var(--warning);
-    font-size: 1.2rem;
-  }
-
-  span {
-    flex: 1;
-  }
+.task-chev {
+  align-self: center;
+  color: var(--ink-400);
+  font-size: 0.9rem;
 }
 
-.continue {
-  margin-bottom: 1rem;
-}
-
-.rrow--returned {
-  background: rgba(180, 72, 59, 0.06);
-}
-
-.ready-hint {
-  color: var(--navy-700) !important;
-  font-weight: 700;
-}
-
-.returned-hint {
-  color: var(--danger) !important;
-  font-weight: 600;
-}
-
-.rcount {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ink-600);
-  font-variant-numeric: tabular-nums;
-}
-
-.bar--small {
-  display: block;
-  height: 4px;
-  max-width: 220px;
-  margin-top: 0.3rem;
-}
-
+// Cuatro cifras en una sola tarjeta dividida, sin íconos.
 .counts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
-  margin-bottom: 1rem;
+  padding: 0;
+  overflow: hidden;
 
-  @include desktop {
+  @include tablet {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
@@ -499,107 +619,88 @@ onMounted(load)
 .count {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  justify-content: space-between;
+  gap: 0.4rem;
+  min-height: 96px;
+  padding: 1rem 1.1rem;
+  transition: background 0.15s ease;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  i {
-    color: var(--gold-500);
+    background: var(--hover);
   }
 
   strong {
-    font-size: 1.7rem;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.1;
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1;
+
+    &.zero {
+      color: var(--ink-400);
+    }
+  }
+}
+
+.count-label {
+  color: var(--ink-600);
+}
+
+.counts .count:nth-child(-n + 2) {
+  border-top: none;
+}
+
+.counts .count:nth-child(odd) {
+  border-left: none;
+}
+
+@include tablet {
+  .counts .count {
+    border-top: none;
+    border-left: 1px solid var(--line);
   }
 
-  span {
-    font-size: 1rem;
-    color: var(--ink-600);
+  .counts .count:first-child {
+    border-left: none;
   }
 }
 
 .cols {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
+  align-items: start;
 
-  @include desktop {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
+  @media (min-width: 1100px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.card header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.7rem;
-
-  h2 {
-    margin: 0;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-
-    i {
-      color: var(--gold-500);
-    }
-  }
-}
-
-.month,
-.more {
-  font-size: 1rem;
+.month {
   color: var(--ink-600);
+  white-space: nowrap;
 }
 
-// Enlaces "Ver todos" / "Ver todo": área de toque de 44 px (prueba con el tripulante de 70 años).
-.more {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 0.6rem;
-  margin: -0.4rem -0.6rem -0.4rem 0;
-  border-radius: var(--radius-sm);
-  color: var(--gold-500);
-  font-weight: 600;
-  text-decoration: none;
-
-  &:hover {
-    background: var(--powder-100);
-  }
-}
-
-ul {
+.checklist ul,
+.recent-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
 }
 
 .checklist li {
   display: flex;
-  gap: 0.6rem;
-  padding: 0.5rem 0.2rem;
-  border-bottom: 1px solid var(--cream-200);
+  gap: 0.75rem;
+  padding: 0.75rem 0;
 
-  &:last-child {
-    border-bottom: none;
+  & + li {
+    border-top: 1px solid var(--line);
   }
 
   > i {
-    margin-top: 0.15rem;
-    color: var(--warning);
+    margin-top: 0.3rem;
+    font-size: 0.9rem;
+    color: var(--line-strong);
   }
 
   &.ok > i {
@@ -610,82 +711,44 @@ ul {
 .ci-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .ci-title {
   margin: 0;
-  font-size: 1rem;
+  font-weight: 500;
 }
 
-.code {
-  font-weight: 700;
-  color: var(--navy-700);
-}
-
-.bar {
-  margin-top: 0.35rem;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--cream-200);
-  overflow: hidden;
-
-  span {
-    display: block;
-    height: 100%;
-    background: var(--gold-500);
-    border-radius: inherit;
-    transition: width 0.5s ease;
-  }
+.ci-code {
+  color: var(--ink-400);
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .ci-hint {
-  margin: 0.25rem 0 0;
-  font-size: 1rem;
+  margin: 0;
   color: var(--ink-600);
 }
 
 .rrow {
-  min-height: 52px;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.55rem 0.4rem;
+  gap: 0.75rem;
+  padding: 0.8rem 0.5rem;
+  margin: 0 -0.5rem;
   border-radius: var(--radius-sm);
-  text-decoration: none;
-  color: inherit;
   transition: background 0.15s ease;
 
   &:hover {
-    background: var(--powder-100);
+    background: var(--hover);
   }
 }
 
-.status-dot {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--powder-100);
-  color: var(--navy-700);
-  font-size: 0.8rem;
-
-  &.s-por_capitan,
-  &.s-por_oficina {
-    background: rgba(185, 128, 47, 0.15);
-    color: #8a5d1d;
-  }
-
-  &.s-archivado {
-    background: rgba(63, 122, 87, 0.14);
-    color: var(--success);
-  }
-
-  &.s-devuelto {
-    background: rgba(180, 72, 59, 0.12);
-    color: var(--danger);
-  }
+.recent-list li + li .rrow {
+  border-top: 1px solid var(--line);
+  border-radius: 0;
 }
 
 .rbody {
@@ -693,9 +756,10 @@ ul {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 0.2rem;
 
   strong {
-    font-size: 1rem;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -707,14 +771,22 @@ ul {
   }
 }
 
-.chev {
-  color: var(--ink-400);
-  font-size: 0.75rem;
+.rtrail {
+  display: flex;
+  margin-top: 0.15rem;
 }
 
-.empty {
-  margin: 0;
-  color: var(--ink-600);
-  font-size: 1rem;
+.chev {
+  color: var(--ink-400);
+  font-size: 0.85rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 </style>
