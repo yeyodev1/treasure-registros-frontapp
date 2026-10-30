@@ -256,6 +256,7 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
           :model-value="context"
           :account-name="accountName"
           :positions="positions"
+          :vessel-name="fullContext?.vessel"
           :editable="editable"
           :missing="contextMissing"
           @update:model-value="emit('context', $event)"
