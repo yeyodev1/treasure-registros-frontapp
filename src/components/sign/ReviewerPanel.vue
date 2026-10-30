@@ -50,7 +50,8 @@ const folder = computed(() => {
   const [y, m] = (props.record.context?.activityDate ?? '').split('-').map(Number)
   const base = (props.schema.archiveFolder ?? `ISM/${props.record.code}`).split('/').filter(Boolean)
   if (!y || !m) return base.join(' › ')
-  return [...base.slice(-1), String(y), `${String(m).padStart(2, '0')}_${MONTHS[m - 1]}`].join(' › ')
+  const short = base.length > 2 ? [base[0]!, base[base.length - 1]!] : base
+  return [...short, String(y), `${String(m).padStart(2, '0')}_${MONTHS[m - 1]}`].join(' › ')
 })
 
 const novedadText = computed(() => {
