@@ -15,9 +15,12 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
   background: var(--bg);
   color: var(--ink-900);
   min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
 }
 
 #app {
@@ -32,7 +35,13 @@ h3 {
   margin: 0;
   font-family: var(--font-serif);
   font-weight: 400;
-  letter-spacing: 0.01em;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 button {
@@ -55,23 +64,39 @@ a {
   text-decoration: none;
 }
 
-// Utilidades compartidas
+:focus-visible {
+  outline: 3px solid var(--teal-400);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--powder-300);
+}
+
+// ---------------------------------------------------------------------------
+// Botones: azul profundo para la acción principal; blanco con borde para lo
+// secundario. Todos de 48 px (44 mínimo por la regla del informe).
+// ---------------------------------------------------------------------------
 .btn {
   @include touch-target;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   padding: 0.65rem 1.25rem;
   border-radius: var(--radius-sm);
   font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.2;
+  text-align: center;
   transition:
     transform 0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease;
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 
-  &:active {
-    transform: scale(0.97);
+  &:active:not(:disabled) {
+    transform: scale(0.98);
   }
 
   &:disabled {
@@ -80,12 +105,23 @@ a {
   }
 }
 
+// Acción grande del tripulante (firmar, continuar): 56 px y letra más grande.
+.btn-lg {
+  min-height: 56px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.08rem;
+}
+
+.btn-block {
+  width: 100%;
+}
+
 .btn-primary {
   background: var(--navy-800);
-  color: var(--cream-100);
+  color: #fff;
 
   &:hover:not(:disabled) {
-    background: var(--navy-700);
+    background: var(--navy-900);
   }
 }
 
@@ -94,14 +130,19 @@ a {
   color: #fff;
 
   &:hover:not(:disabled) {
-    background: var(--gold-400);
+    background: #8a6541;
   }
 }
 
 .btn-ghost {
-  background: transparent;
-  border: 1.5px solid var(--navy-700);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   color: var(--navy-800);
+
+  &:hover:not(:disabled) {
+    background: var(--hover);
+    border-color: var(--navy-600);
+  }
 }
 
 .btn-danger {
@@ -109,14 +150,115 @@ a {
   color: #fff;
 }
 
+// Enlace con forma de texto subrayado, con área de toque de 44 px.
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.25rem;
+  font-weight: 600;
+  color: var(--navy-800);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Superficies: blanco con un borde suave, sin sombra en reposo.
+// ---------------------------------------------------------------------------
 .card {
   background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
   padding: 1rem;
 
   @include tablet {
     padding: 1.25rem;
+  }
+}
+
+// Encabezado de un bloque: título a la izquierda, enlace o cifra a la derecha.
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    font-size: 1.3rem;
+  }
+}
+
+.panel-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  color: var(--navy-800);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  white-space: nowrap;
+}
+
+// Etiqueta corta sobre un dato: en frase, gris, nunca en mayúsculas espaciadas.
+.label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ink-600);
+}
+
+// Marcas de estado dentro de una fila o junto a un dato.
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 28px;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  background: var(--powder-100);
+  color: var(--navy-700);
+
+  i {
+    font-size: 0.85em;
+  }
+
+  &--nov {
+    background: var(--warning-100);
+    color: #7a4f12;
+  }
+
+  &--ret {
+    background: var(--danger-100);
+    color: var(--danger);
+  }
+
+  &--ok {
+    background: var(--success-100);
+    color: var(--success);
+  }
+
+  &--turn {
+    background: var(--gold-100);
+    color: #7a5634;
+  }
+
+  &--plain {
+    background: transparent;
+    padding-left: 0;
+    color: var(--ink-600);
+    font-weight: 500;
   }
 }
 
@@ -128,7 +270,7 @@ a {
   label {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--ink-600);
+    color: var(--ink-900);
   }
 
   input,
@@ -136,42 +278,94 @@ a {
   textarea {
     @include touch-target;
     padding: 0.6rem 0.8rem;
-    border: 1.5px solid var(--cream-200);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-sm);
     background: #fff;
     width: 100%;
+    font-size: 1rem;
+    color: var(--ink-900);
 
     &:focus {
-      outline: 2px solid var(--teal-400);
-      outline-offset: 1px;
-      border-color: var(--teal-400);
+      outline: 3px solid var(--powder-300);
+      outline-offset: 0;
+      border-color: var(--navy-600);
     }
   }
 }
 
-// Contenido alineado a la izquierda, aprovechando el ancho disponible.
+// ---------------------------------------------------------------------------
+// Página: contenido alineado a la izquierda, con márgenes iguales.
+// ---------------------------------------------------------------------------
 .page {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1240px;
   margin: 0;
-  padding: 1rem;
+  padding: 1.25rem 1rem 2.5rem;
 
   @include tablet {
-    padding: 1.5rem;
+    padding: 1.75rem 1.5rem 3rem;
   }
 
   @include desktop {
-    padding: 1.75rem 2rem;
+    padding: 2rem 2rem 3rem;
+  }
+}
+
+// Fila del título: h1 con su frase debajo y, a la derecha, una acción.
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 1.5rem;
+
+  @include tablet {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
   }
 }
 
 .page-title {
-  font-size: 1.35rem;
-  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  margin-bottom: 0.35rem;
 
   @include tablet {
-    font-size: 1.6rem;
+    font-size: 2rem;
   }
+}
+
+.page-lead {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--ink-600);
+  max-width: 62ch;
+}
+
+// Estado vacío: dice qué pasa y qué hacer.
+.empty-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1.25rem;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink-600);
+  font-size: 1rem;
+
+  i {
+    margin-top: 0.2rem;
+    color: var(--ink-400);
+  }
+
+  strong {
+    display: block;
+    color: var(--ink-900);
+  }
+}
+
+// Cifras que se alinean dígito por dígito.
+.num {
+  font-variant-numeric: tabular-nums;
 }
 
 // Transición entre vistas: suave, nunca brusca.
