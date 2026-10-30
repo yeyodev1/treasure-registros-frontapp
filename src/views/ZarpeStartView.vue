@@ -8,7 +8,7 @@ import { useSound } from '@/composables/useSound'
 import { apiCreateRecord, apiRecords } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
 import { newKey } from '@/utils/format'
-import { formatStamp, nowTimeGalapagos, todayGalapagos } from '@/utils/ism'
+import { formatActivity, formatStamp, nowTimeGalapagos, todayGalapagos } from '@/utils/ism'
 import GuidedContextForm, { type ContextDraft } from '@/components/guided/GuidedContextForm.vue'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
 import type { IsmRecord, IsmSchema } from '@/types'
@@ -28,6 +28,23 @@ const loading = shallowRef(true)
 const error = shallowRef('')
 const creating = shallowRef(false)
 const showMissing = shallowRef(false)
+/** Con un chequeo abierto, primero se ofrece continuarlo; "Nuevo zarpe" crea otro a propósito. */
+const showForm = shallowRef(false)
+
+/** Primero los del día y los devueltos. */
+const ordered = computed(() =>
+  [...drafts.value].sort(
+    (a, b) =>
+      Number(Boolean(b.returnInfo)) - Number(Boolean(a.returnInfo)) ||
+      Number(b.context?.activityDate === todayGalapagos()) - Number(a.context?.activityDate === todayGalapagos()),
+  ),
+)
+
+function continueLabel(d: IsmRecord): string {
+  const progress = d.flags ? ` (${d.flags.answered} de ${d.flags.total})` : ''
+  if (d.returnInfo) return `Corregir el chequeo devuelto${progress}`
+  return d.context?.activityDate === todayGalapagos() ? `Continuar el chequeo de hoy${progress}` : `Continuar el chequeo${progress}`
+}
 
 const ctx = ref<ContextDraft>({
   activityDate: todayGalapagos(),
@@ -72,6 +89,7 @@ async function load() {
     ])
     schema.value = s
     drafts.value = list.records
+    showForm.value = !list.records.length
   } catch (err) {
     error.value = apiErrorMessage(err)
   } finally {
@@ -130,7 +148,40 @@ async function start() {
       </div>
     </div>
 
-    <div v-else-if="schema" class="cols">
+    <Transition v-else-if="schema" name="fade" mode="out-in">
+    <section v-if="!showForm && ordered.length" key="continue" class="card resume">
+      <h2>Tienes un chequeo sin enviar</h2>
+      <RouterLink :to="`/registro/${ordered[0]!._id}`" class="btn btn-primary resume-main">
+        <i class="fa-solid fa-play" aria-hidden="true" /> {{ continueLabel(ordered[0]!) }}
+      </RouterLink>
+      <p class="resume-meta">
+        {{ formatActivity(ordered[0]!.context?.activityDate, ordered[0]!.context?.activityTime) }}
+        <template v-if="ordered[0]!.context?.place"> · {{ ordered[0]!.context!.place }}</template>
+        <template v-if="ordered[0]!.returnInfo"> · Devuelto: {{ ordered[0]!.returnInfo!.reason }}</template>
+      </p>
+      <TransitionGroup v-if="ordered.length > 1" tag="ul" name="list" appear class="resume-more">
+        <li v-for="d in ordered.slice(1)" :key="d._id">
+          <RouterLink :to="`/registro/${d._id}`" class="draft">
+            <span class="draft-body">
+              <strong>{{ continueLabel(d) }}</strong>
+              <small>
+                {{ formatActivity(d.context?.activityDate, d.context?.activityTime) }}
+                <template v-if="d.context?.place"> · {{ d.context.place }}</template>
+                · guardado {{ formatStamp(d.updatedAt) }}
+              </small>
+            </span>
+            <i class="fa-solid fa-chevron-right" aria-hidden="true" />
+          </RouterLink>
+        </li>
+      </TransitionGroup>
+      <div class="resume-new">
+        <p>¿Es otro zarpe? Crea uno nuevo; el anterior queda guardado.</p>
+        <button type="button" class="btn btn-ghost" @click="showForm = true">
+          <i class="fa-solid fa-plus" aria-hidden="true" /> Nuevo zarpe
+        </button>
+      </div>
+    </section>
+    <div v-else key="form" class="cols">
       <section class="card main">
         <p class="notice">
           <i class="fa-solid fa-anchor" aria-hidden="true" />
@@ -152,30 +203,12 @@ async function start() {
           </button>
           <p>
             {{ schema.sections.length }} secciones · {{ schema.sections.reduce((n, s) => n + s.items.length, 0) }} puntos.
-            Se guarda solo; nada se envía hasta que toques «Enviar al Capitán».
+            Se guarda solo. Nada se envía hasta que firmes.
           </p>
         </div>
       </section>
-
-      <aside v-if="drafts.length" class="card side">
-        <h2><i class="fa-solid fa-pen-to-square" aria-hidden="true" /> Continuar un chequeo</h2>
-        <TransitionGroup tag="ul" name="list" appear>
-          <li v-for="d in drafts" :key="d._id">
-            <RouterLink :to="`/registro/${d._id}`" class="draft">
-              <span class="draft-body">
-                <strong>{{ d.context?.place || 'Sin lugar' }} · {{ d.context?.activityTime || '—' }}</strong>
-                <small>
-                  {{ d.flags ? `${d.flags.answered}/${d.flags.total} respondidos` : '' }}
-                  <template v-if="d.returnInfo"> · Devuelto</template>
-                  · {{ formatStamp(d.updatedAt) }}
-                </small>
-              </span>
-              <i class="fa-solid fa-chevron-right" aria-hidden="true" />
-            </RouterLink>
-          </li>
-        </TransitionGroup>
-      </aside>
     </div>
+    </Transition>
   </div>
 </template>
 
@@ -194,7 +227,7 @@ async function start() {
 
 .eyebrow {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -254,8 +287,58 @@ async function start() {
 
   p {
     margin: 0;
-    font-size: 0.82rem;
+    font-size: 1rem;
     color: var(--ink-600);
+  }
+}
+
+.resume {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 760px;
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-self: stretch;
+  }
+}
+
+.resume-main {
+  min-height: 56px;
+  padding: 0 1.4rem;
+  font-size: 1.05rem;
+}
+
+.resume-meta {
+  margin: 0;
+  color: var(--ink-600);
+}
+
+.resume-new {
+  margin-top: 0.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--cream-200);
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+
+  p {
+    margin: 0;
+    color: var(--ink-600);
+  }
+
+  .btn {
+    min-height: 48px;
   }
 }
 
@@ -294,7 +377,7 @@ async function start() {
 
   i {
     color: var(--ink-400);
-    font-size: 0.75rem;
+    font-size: 1rem;
   }
 }
 
@@ -305,7 +388,7 @@ async function start() {
 
   small {
     color: var(--ink-400);
-    font-size: 0.76rem;
+    font-size: 1rem;
   }
 }
 
