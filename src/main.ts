@@ -34,6 +34,20 @@ window.addEventListener('online', () => {
 })
 setInterval(() => userStore.refreshIfNeeded(), 10 * 60 * 1000)
 
-router.isReady().then(() => userStore.refreshIfNeeded())
+router.isReady().then(() => {
+  userStore.refreshIfNeeded()
+  // Las pantallas principales se bajan en segundo plano: al tocar el menú
+  // aparecen sin quedar en blanco mientras se descargan.
+  const idle = (cb: () => void) =>
+    'requestIdleCallback' in window ? window.requestIdleCallback(cb) : setTimeout(cb, 1200)
+  idle(() => {
+    void import('@/views/HomeView.vue')
+    void import('@/views/ZarpeStartView.vue')
+    void import('@/views/RecordView.vue')
+    void import('@/views/InboxView.vue')
+    void import('@/views/NewRecordView.vue')
+    void import('@/views/ArchiveView.vue')
+  })
+})
 
 app.mount('#app')
