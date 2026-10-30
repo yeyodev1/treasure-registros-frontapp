@@ -13,6 +13,7 @@ import { useSignatureImages } from '@/composables/useSignatureImages'
 import {
   apiDiscard,
   apiRecord,
+  apiSetTest,
   apiRecordAction,
   apiRemoveSignature,
   apiReturnRecord,
@@ -432,6 +433,30 @@ async function giveBack() {
   })
 }
 
+/** Solo la Persona Designada (o Gerencia) separa los registros de prueba. */
+const canMarkTest = computed(() => userStore.role === 'designada' || userStore.role === 'duena')
+
+async function toggleTest() {
+  const rec = record.value
+  if (!rec) return
+  const next = !rec.test
+  const reason = await confirmStore.askReason({
+    title: next ? '¿Marcar como registro de prueba?' : '¿Quitar la marca de prueba?',
+    message: next
+      ? 'Sale de los indicadores y no genera avisos. No cambia su contenido ni sus firmas.'
+      : 'Vuelve a contar en indicadores y avisos.',
+    confirmLabel: next ? 'Marcar como prueba' : 'Quitar la marca',
+    icon: 'fa-flask',
+    reason: { label: 'Motivo', suggestions: ['Prueba de la app', 'Capacitación', 'Registro real'] },
+  })
+  if (!reason) return
+  await run(async () => {
+    const res = await apiSetTest(rec._id, next, reason)
+    record.value = { ...record.value!, test: res.test }
+    toast.success(res.test ? 'Marcado como prueba' : 'Ya no es de prueba')
+  })
+}
+
 async function discard() {
   const ok = await confirmStore.ask({
     title: '¿Descartar este borrador?',
@@ -630,6 +655,13 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             <button type="button" class="btn btn-ghost" :disabled="busy" @click="openPdf">
               <i class="fa-regular fa-file-pdf" aria-hidden="true" /> Ver cómo queda el PDF
             </button>
+            <button v-if="canMarkTest" type="button" class="btn btn-ghost" :disabled="busy" @click="toggleTest">
+              <i class="fa-solid fa-flask" aria-hidden="true" />
+              {{ record.test ? 'Ya no es de prueba' : 'Marcar como prueba' }}
+            </button>
+            <p v-if="record.test" class="test-note">
+              <i class="fa-solid fa-flask" aria-hidden="true" /> Registro de prueba: no cuenta en indicadores ni avisos.
+            </p>
             <button v-if="canDiscard" type="button" class="btn btn-ghost danger" :disabled="busy" @click="discard">
               <i class="fa-solid fa-trash" aria-hidden="true" /> Descartar borrador
             </button>
@@ -936,6 +968,13 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 .danger {
   color: var(--danger);
   border-color: rgba(180, 72, 59, 0.4);
+}
+
+.test-note {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--navy-700);
+  font-weight: 600;
 }
 
 .archived {
