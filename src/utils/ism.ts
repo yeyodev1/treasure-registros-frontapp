@@ -21,7 +21,7 @@ export const STATUS_ICONS: Record<IsmStatus, string> = {
 }
 
 export const STAGE_LABELS: Record<SignatureStage, string> = {
-  tripulacion: 'Quien llena',
+  tripulacion: 'Quien hace el chequeo',
   capitan: 'Capitán',
   oficina: 'Persona Designada',
 }
@@ -36,7 +36,7 @@ export const FREQUENCY_LABELS: Record<string, string> = {
   mensual: 'Mensual',
 }
 
-/** Dueña o administración: pueden todo. */
+/** Gerencia o Administración: pueden todo. */
 export function isManagerRole(role: UserRole | null): boolean {
   return role === 'duena' || role === 'admin'
 }

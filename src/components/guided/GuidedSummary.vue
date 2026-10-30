@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { hasNovedad, schemaItems } from '@/utils/guided'
+import { formatActivity } from '@/utils/ism'
 import type { IsmAnswer, IsmContext, IsmMissing, IsmSchema } from '@/types'
 
 /**
@@ -14,7 +15,7 @@ const props = defineProps<{
   context: Partial<IsmContext> | null
   missing?: IsmMissing[]
   positionLabel?: (value: string) => string
-  /** Muestra el botón para ir a la pregunta (solo quien llena). */
+  /** Muestra el botón para ir a la pregunta (solo quien hace el chequeo). */
   canGoTo?: boolean
 }>()
 
@@ -37,9 +38,9 @@ const contextMissing = computed(() => (props.missing ?? []).filter((m) => m.sect
 
 const LABEL: Record<string, string> = { si: 'Sí', no: 'No', na: 'No aplica' }
 
+/** "30 oct 2026": mismo formato de fecha que el resto de la app. */
 function fmtDate(key?: string) {
-  const [y, m, d] = (key ?? '').split('-')
-  return y && m && d ? `${d}/${m}/${y}` : '—'
+  return formatActivity(key)
 }
 </script>
 
@@ -52,7 +53,7 @@ function fmtDate(key?: string) {
         <div><dt>Hora</dt><dd>{{ context?.activityTime || '—' }}</dd></div>
         <div><dt>Lugar</dt><dd>{{ context?.place || '—' }}</dd></div>
         <div>
-          <dt>Quién llena</dt>
+          <dt>Quien hace el chequeo</dt>
           <dd>
             {{ context?.filledBy?.name || '—' }}
             <template v-if="context?.filledBy?.position"> · {{ positionLabel?.(context.filledBy.position) ?? context.filledBy.position }}</template>
@@ -74,7 +75,7 @@ function fmtDate(key?: string) {
       </h3>
       <TransitionGroup tag="ul" name="list">
         <li v-for="r in novedades" :key="r.item.id" class="nov">
-          <p class="nov-ref">{{ r.section.title }} · {{ r.item.n }} · <strong>{{ r.answer?.value === 'no' ? 'No' : 'Sí, con problema' }}</strong></p>
+          <p class="nov-ref">{{ r.section.title }} · {{ r.item.n }} · <strong>{{ r.answer?.value === 'no' ? 'No' : 'Novedad' }}</strong></p>
           <p class="nov-q">{{ r.item.prompt }}</p>
           <p class="nov-d"><span>Novedad:</span> {{ r.answer?.descripcion || '—' }}</p>
           <p class="nov-d"><span>Acción tomada:</span> {{ r.answer?.accion || '—' }}</p>

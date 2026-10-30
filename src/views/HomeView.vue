@@ -51,7 +51,7 @@ const TASKS = [
   },
   {
     key: 'problema',
-    title: 'Reportar un problema',
+    title: 'Reportar una novedad',
     text: 'Accidente, cuasi accidente o condición peligrosa.',
     code: 'R-09',
     icon: 'fa-triangle-exclamation',
@@ -77,9 +77,9 @@ const tasks = computed(() =>
     if (!d) return { ...t, extra: '' }
     const progress = d.flags ? ` (${d.flags.answered} de ${d.flags.total})` : ''
     const today = d.context?.activityDate === todayGalapagos()
+    // La tarjeta lleva a /zarpe/nuevo: ahí se continúa el abierto o se toca «Nuevo zarpe» (falla 10).
     return {
       ...t,
-      to: `/registro/${d._id}`,
       text: d.returnInfo
         ? `Corregir el chequeo devuelto${progress}`
         : today
@@ -191,7 +191,7 @@ onMounted(load)
             <span class="rbody">
               <strong>{{ r.schemaVersion ? 'Preparar el zarpe' : r.title }} · {{ r.code.replace('_', ' · ') }}</strong>
               <small v-if="r.returnInfo" class="returned-hint">
-                Devuelto · {{ r.returnInfo.section }}: {{ r.returnInfo.reason }}
+                Devuelto<template v-if="r.returnInfo.section"> · {{ r.returnInfo.section }}</template>: {{ r.returnInfo.reason }}
               </small>
               <small v-else-if="complete(r)" class="ready-hint">
                 <i class="fa-solid fa-signature" aria-hidden="true" /> Falta firmar y enviar

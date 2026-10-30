@@ -37,7 +37,7 @@ const catalog = useCatalogStore()
             <i class="fa-solid fa-minus" aria-hidden="true" /> {{ record.flags.noAplica }} no aplican
           </span>
           <span v-if="record.returnInfo" class="tag tag--ret">
-            <i class="fa-solid fa-rotate-left" aria-hidden="true" /> Devuelto · {{ record.returnInfo.section }}
+            <i class="fa-solid fa-rotate-left" aria-hidden="true" /> Devuelto<template v-if="record.returnInfo.section"> · {{ record.returnInfo.section }}</template>
           </span>
         </span>
         <small class="by">

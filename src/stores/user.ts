@@ -42,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
 
   const isLogged = computed(() => Boolean(user.value))
   const role = computed(() => user.value?.role ?? null)
-  /** Dueña o administración: ven y pueden todo. */
+  /** Gerencia o Administración: ven y pueden todo. */
   const isAdmin = computed(() => role.value === 'admin' || role.value === 'duena')
   /** Firma y aprueba como Capitán. */
   const isCaptain = computed(() => role.value === 'capitan' || isAdmin.value)
