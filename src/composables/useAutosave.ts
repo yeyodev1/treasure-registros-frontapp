@@ -19,7 +19,14 @@ function merge(a: PendingPatch, b: PendingPatch): PendingPatch {
   return {
     data: { ...a.data, ...b.data },
     answers: { ...a.answers, ...b.answers },
-    context: { ...a.context, ...b.context },
+    context: {
+      ...a.context,
+      ...b.context,
+      // Las horas por sección se suman (el servidor también las mezcla por sección).
+      ...(a.context.sectionTimes || b.context.sectionTimes
+        ? { sectionTimes: { ...a.context.sectionTimes, ...b.context.sectionTimes } }
+        : {}),
+    },
   }
 }
 
