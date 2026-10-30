@@ -170,7 +170,7 @@ function pick(suggestion: string) {
 .dialog-message {
   margin: 0;
   color: var(--ink-600);
-  font-size: 0.92rem;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
@@ -184,7 +184,7 @@ function pick(suggestion: string) {
 
   label,
   .dialog-label {
-    font-size: 0.8rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--ink-600);
   }
@@ -195,7 +195,7 @@ function pick(suggestion: string) {
     padding: 0.6rem 0.75rem;
     border: 1.5px solid var(--cream-200);
     border-radius: var(--radius-sm);
-    font-size: 0.92rem;
+    font-size: 1rem;
 
     &:focus {
       outline: none;
@@ -208,15 +208,15 @@ function pick(suggestion: string) {
 .dialog-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .dialog-chip {
-  min-height: 40px;
-  padding: 0.35rem 0.8rem;
+  min-height: 44px;
+  padding: 0.4rem 0.9rem;
   border-radius: 999px;
   border: 1.5px solid var(--cream-200);
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--ink-600);
   transition: all 0.14s ease;

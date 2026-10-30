@@ -14,7 +14,7 @@ const open = shallowRef(false)
 const trigger = useTemplateRef<HTMLElement>('trigger')
 const panel = useTemplateRef<HTMLElement>('panel')
 
-const { style: panelStyle, openUp, bind, unbind } = useAnchoredPanel(trigger, { minWidth: 276 })
+const { style: panelStyle, openUp, bind, unbind } = useAnchoredPanel(trigger, { minWidth: 348, maxHeight: 420 })
 
 const today = new Date()
 const viewYear = shallowRef(today.getFullYear())
@@ -189,7 +189,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
   border-radius: var(--radius-sm);
   background: #fff;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 1rem;
   user-select: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 
@@ -254,8 +254,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
 }
 
 .picker-nav {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   display: grid;
   place-items: center;
   border-radius: 7px;
@@ -278,19 +278,20 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
 
 .picker-weekday {
   text-align: center;
-  font-size: 0.68rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--ink-400);
+  color: var(--ink-600);
   text-transform: uppercase;
   padding: 0.2rem 0;
 }
 
 .picker-day {
   aspect-ratio: 1;
+  min-height: 44px;
   display: grid;
   place-items: center;
   border-radius: 7px;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
   transition: background 0.14s ease, color 0.14s ease;
 

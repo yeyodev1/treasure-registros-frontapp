@@ -137,7 +137,7 @@ async function submit() {
 
   p {
     margin: 0.2rem 0 0;
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--ink-600);
   }
 }
@@ -145,7 +145,7 @@ async function submit() {
 .login-error {
   margin: 0;
   color: var(--danger);
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -163,7 +163,7 @@ async function submit() {
   background: rgba(185, 128, 47, 0.12);
   border: 1px solid rgba(185, 128, 47, 0.35);
   color: #6f4a17;
-  font-size: 0.88rem;
+  font-size: 1rem;
   line-height: 1.4;
 
   i {
@@ -204,12 +204,12 @@ async function submit() {
   display: flex;
   flex-direction: column;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 1rem;
 
   small {
     font-weight: 400;
-    font-size: 0.78rem;
-    color: var(--ink-400);
+    font-size: 1rem;
+    color: var(--ink-600);
   }
 }
 

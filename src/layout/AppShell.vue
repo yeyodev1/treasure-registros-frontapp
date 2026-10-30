@@ -265,8 +265,8 @@ async function logout() {
 }
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
@@ -281,13 +281,15 @@ async function logout() {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-sm);
   border: 1px solid rgba(27, 43, 37, 0.35);
   color: var(--ink-900);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 1rem;
 
   &:hover {
     border-color: var(--navy-700);
@@ -359,9 +361,9 @@ async function logout() {
 .section-label {
   margin: 0 0 0.3rem;
   padding: 0 0.8rem;
-  font-size: 0.66rem;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-400);
 }
@@ -371,10 +373,11 @@ async function logout() {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  min-height: 48px;
   padding: 0.62rem 0.8rem;
   border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 0.93rem;
+  font-size: 1rem;
   color: var(--ink-600);
   transition: background 0.15s ease, color 0.15s ease;
 
@@ -465,15 +468,15 @@ async function logout() {
 
 .user-name {
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 1rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .user-role {
-  font-size: 0.72rem;
-  color: var(--ink-400);
+  font-size: 1rem;
+  color: var(--ink-600);
 }
 
 .content {

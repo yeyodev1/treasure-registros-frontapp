@@ -130,7 +130,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
   border-radius: var(--radius-sm);
   background: #fff;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 
@@ -172,13 +172,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
 }
 
 .tpick-now {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 0.8rem;
   border-radius: 999px;
   background: var(--powder-100);
   color: var(--navy-800);
   font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -187,11 +187,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
 
 .tpick-label {
   margin: 0.45rem 0 0.25rem;
-  font-size: 0.68rem;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-400);
+  color: var(--ink-600);
 }
 
 .tpick-grid {
@@ -208,9 +208,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
 }
 
 .tpick-cell {
-  min-height: 40px;
+  min-height: 44px;
   border-radius: 7px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
   transition: background 0.14s ease, color 0.14s ease;
 

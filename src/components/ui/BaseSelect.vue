@@ -205,7 +205,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
   border-radius: var(--radius-sm);
   background: #fff;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 1rem;
   user-select: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 
@@ -287,7 +287,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.92rem;
+    min-height: 40px;
+    font-size: 1rem;
     color: var(--ink-900);
     user-select: text;
   }
@@ -296,18 +297,19 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
 .select-empty {
   margin: 0;
   padding: 0.6rem 0.7rem;
-  font-size: 0.85rem;
-  color: var(--ink-400);
+  font-size: 1rem;
+  color: var(--ink-600);
 }
 
 .select-option {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.55rem 0.7rem;
+  min-height: 48px;
+  padding: 0.6rem 0.8rem;
   border-radius: 7px;
   cursor: pointer;
-  font-size: 0.92rem;
+  font-size: 1rem;
 
   &--highlighted {
     background: var(--cream-200);
@@ -328,8 +330,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onOutside))
 }
 
 .select-option-hint {
-  font-size: 0.78rem;
-  color: var(--ink-400);
+  font-size: 1rem;
+  color: var(--ink-600);
   white-space: nowrap;
 }
 

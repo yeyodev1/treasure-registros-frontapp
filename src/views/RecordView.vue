@@ -804,9 +804,9 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
 .rec-code {
   margin: 0 0 0.1rem;
-  font-size: 0.72rem;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--gold-500);
 }
@@ -816,7 +816,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem 0.9rem;
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: var(--ink-600);
 
   i {
@@ -827,7 +827,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
 .file {
   font-variant-numeric: tabular-nums;
-  color: var(--ink-400);
+  color: var(--ink-600);
 }
 
 .status {
@@ -835,9 +835,10 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
+  min-height: 36px;
+  padding: 0.35rem 0.85rem;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   background: var(--powder-100);
   color: var(--navy-700);
@@ -861,7 +862,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   border-radius: var(--radius-sm);
   background: rgba(180, 72, 59, 0.08);
   border: 1px solid rgba(180, 72, 59, 0.3);
-  font-size: 0.88rem;
+  font-size: 1rem;
 }
 
 .toolbar {
@@ -883,8 +884,8 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   border: 1px solid var(--cream-200);
 
   button {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     display: grid;
     place-items: center;
     border-radius: 50%;
@@ -898,15 +899,15 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   span {
     min-width: 3rem;
     text-align: center;
-    font-size: 0.82rem;
+    font-size: 1rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 }
 
 .save {
-  font-size: 0.8rem;
-  color: var(--ink-400);
+  font-size: 1rem;
+  color: var(--ink-600);
 
   &--offline {
     color: var(--warning);
@@ -978,14 +979,14 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
 .test-note {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: 1rem;
   color: var(--navy-700);
   font-weight: 600;
 }
 
 .archived {
   margin: 0.2rem 0 0;
-  font-size: 0.82rem;
+  font-size: 1rem;
   color: var(--success);
   font-weight: 600;
 }
@@ -999,7 +1000,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
 .sigs h3 {
   margin: 0 0 0.6rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 0.45rem;
@@ -1015,7 +1016,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
 .sig-stage {
   margin: 0 0 0.3rem;
-  font-size: 0.68rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1031,7 +1032,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   text-align: left;
   padding: 0.45rem 0.55rem;
   border-radius: var(--radius-sm);
-  font-size: 0.86rem;
+  font-size: 1rem;
   color: var(--ink-400);
   transition: background 0.15s ease;
 
@@ -1059,7 +1060,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
 .sig-who {
   grid-column: 2;
-  font-size: 0.74rem;
+  font-size: 1rem;
   color: var(--ink-400);
   font-weight: 400;
 }
@@ -1067,14 +1068,19 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 .muted {
   margin: 0;
   color: var(--ink-400);
-  font-size: 0.85rem;
+  font-size: 1rem;
 }
 
 .history {
+  // "Historial": área de toque de 44 px.
   summary {
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
   }
 
   ol {
@@ -1091,11 +1097,11 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
     flex-direction: column;
     padding-left: 0.7rem;
     border-left: 2px solid var(--cream-200);
-    font-size: 0.82rem;
+    font-size: 1rem;
 
     span {
-      color: var(--ink-400);
-      font-size: 0.75rem;
+      color: var(--ink-600);
+      font-size: 1rem;
     }
 
     em {
@@ -1147,7 +1153,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
     padding: 0 1rem;
     border-radius: 999px;
     font-weight: 600;
-    font-size: 0.86rem;
+    font-size: 1rem;
     color: var(--ink-600);
     display: inline-flex;
     align-items: center;
@@ -1205,28 +1211,36 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--ink-600);
 }
 
 .sig-annulled {
   margin-top: 0.7rem;
-  font-size: 0.86rem;
+  font-size: 1rem;
 
   summary {
     cursor: pointer;
     font-weight: 600;
     color: var(--danger);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
   ul {
     margin: 0.4rem 0 0;
     padding-left: 1rem;
   }
+
+  small {
+    font-size: 1rem;
+    color: var(--ink-600);
+  }
 }
 
 .sig-note {
   margin-top: 0.7rem;
-  font-size: 0.78rem;
+  font-size: 1rem;
 }
 </style>

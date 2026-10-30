@@ -301,7 +301,7 @@ onMounted(load)
 
 .eyebrow {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -380,17 +380,23 @@ onMounted(load)
   }
 
   span {
-    font-size: 0.86rem;
+    font-size: 1rem;
     color: var(--ink-600);
   }
 
   small {
     margin-top: 0.15rem;
-    font-size: 0.72rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--ink-400);
   }
+}
+
+.task-body .task-extra {
+  letter-spacing: normal;
+  font-weight: 500;
+  color: var(--ink-600);
 }
 
 .task-chev {
@@ -433,7 +439,7 @@ onMounted(load)
 }
 
 .rcount {
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--ink-600);
   font-variant-numeric: tabular-nums;
@@ -481,7 +487,7 @@ onMounted(load)
   }
 
   span {
-    font-size: 0.82rem;
+    font-size: 1rem;
     color: var(--ink-600);
   }
 }
@@ -518,14 +524,25 @@ onMounted(load)
 
 .month,
 .more {
-  font-size: 0.8rem;
-  color: var(--ink-400);
+  font-size: 1rem;
+  color: var(--ink-600);
 }
 
+// Enlaces "Ver todos" / "Ver todo": área de toque de 44 px (prueba con el tripulante de 70 años).
 .more {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.6rem;
+  margin: -0.4rem -0.6rem -0.4rem 0;
+  border-radius: var(--radius-sm);
   color: var(--gold-500);
   font-weight: 600;
   text-decoration: none;
+
+  &:hover {
+    background: var(--powder-100);
+  }
 }
 
 ul {
@@ -564,7 +581,7 @@ ul {
 
 .ci-title {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .code {
@@ -590,11 +607,12 @@ ul {
 
 .ci-hint {
   margin: 0.25rem 0 0;
-  font-size: 0.76rem;
-  color: var(--ink-400);
+  font-size: 1rem;
+  color: var(--ink-600);
 }
 
 .rrow {
+  min-height: 52px;
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -644,15 +662,15 @@ ul {
   flex-direction: column;
 
   strong {
-    font-size: 0.88rem;
+    font-size: 1rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   small {
-    font-size: 0.75rem;
-    color: var(--ink-400);
+    font-size: 1rem;
+    color: var(--ink-600);
   }
 }
 
@@ -663,7 +681,7 @@ ul {
 
 .empty {
   margin: 0;
-  color: var(--ink-400);
-  font-size: 0.9rem;
+  color: var(--ink-600);
+  font-size: 1rem;
 }
 </style>

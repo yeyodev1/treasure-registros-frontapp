@@ -42,8 +42,8 @@ const visible = shallowRef(false)
   top: 50%;
   right: 0.35rem;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: 7px;

@@ -386,7 +386,7 @@ function pinState(m: CrewMember): { text: string; tone: string } {
 
 .pin {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
 
   &--ok {
     color: var(--success) !important;
@@ -476,7 +476,7 @@ function pinState(m: CrewMember): { text: string; tone: string } {
 
 .hint {
   color: var(--ink-600);
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 
 .big-pin {
