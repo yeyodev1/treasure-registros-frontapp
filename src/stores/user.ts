@@ -5,7 +5,7 @@ import { apiLogin, apiMe, apiRefresh } from '@/services/api'
 import { getToken, isUnauthorized, setToken, tokenClaims, tokenExpired } from '@/services/httpBase'
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  duena: 'Dueña',
+  duena: 'Gerencia',
   admin: 'Administración',
   direccion: 'Dirección de crucero',
   bartender: 'Bar',
