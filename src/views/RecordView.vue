@@ -6,12 +6,12 @@ import { useUserStore } from '@/stores/user'
 import { useCatalogStore } from '@/stores/catalog'
 import { useConfirmStore } from '@/stores/confirm'
 import { useToastStore } from '@/stores/toast'
+import { usePdfViewerStore } from '@/stores/pdfViewer'
 import { useSound } from '@/composables/useSound'
 import { useAutosave } from '@/composables/useAutosave'
 import { useSignatureImages } from '@/composables/useSignatureImages'
 import {
   apiDiscard,
-  apiPdfUrl,
   apiRecord,
   apiRecordAction,
   apiRemoveSignature,
@@ -31,6 +31,7 @@ import {
   canSignSlot,
   formatRecordDate,
   formatStamp,
+  statusLabel,
 } from '@/utils/ism'
 import FormCanvas from '@/components/registros/FormCanvas.vue'
 import SignaturePad from '@/components/registros/SignaturePad.vue'
@@ -46,6 +47,7 @@ const userStore = useUserStore()
 const catalogStore = useCatalogStore()
 const confirmStore = useConfirmStore()
 const toast = useToastStore()
+const pdfViewer = usePdfViewerStore()
 const { play } = useSound()
 
 const recordId = () => String(route.params.id)
@@ -80,7 +82,7 @@ function onSaved(result: SaveResult) {
   }
   if (result.invalidated.length) {
     const labels = result.record.signatures.filter((s) => result.invalidated.includes(s.field)).map((s) => s.label)
-    toast.push(`Cambiaste datos ya firmados: ${labels.join(', ')} debe volver a firmar.`, 'info')
+    toast.push(`Firma anulada: cambiaste datos después de firmar. Vuelve a firmar: ${labels.join(', ')}.`, 'info')
   }
 }
 
@@ -213,6 +215,16 @@ function onContext(next: ContextDraft) {
   if (Object.keys(changed).length) autosave.queueContext(changed)
 }
 
+/** Hora de una sección: se ve al instante y se guarda con lo demás. */
+function onSectionTime(sectionId: string, time: string) {
+  if (!record.value?.context) return
+  record.value = {
+    ...record.value,
+    context: { ...record.value.context, sectionTimes: { ...(record.value.context.sectionTimes ?? {}), [sectionId]: time } },
+  }
+  autosave.queueContext({ sectionTimes: { [sectionId]: time } })
+}
+
 function openSign(f: IsmField) {
   const existing = signedMap.value.get(f.name)
   if (existing && existing.valid !== false) {
@@ -326,17 +338,17 @@ async function approve() {
   const toOffice = record.value?.status === 'por_capitan'
   const novedades = record.value?.flags?.novedades ?? 0
   const ok = await confirmStore.ask({
-    title: toOffice ? '¿Aprobar y enviar a oficina?' : '¿Recibir y archivar el registro?',
+    title: toOffice ? '¿Firmar y enviar a la Persona Designada?' : '¿Firmar y archivar el registro?',
     message: toOffice
-      ? `Queda tu aprobación con tu usuario y la hora${guided.value && novedades ? `. Revisaste ${novedades} ${novedades === 1 ? 'novedad' : 'novedades'}` : ''}.`
-      : 'Queda archivado con todas sus firmas y ya no se puede modificar.',
-    confirmLabel: toOffice ? 'Aprobar' : 'Archivar',
+      ? `Firmar deja constancia de tu revisión${guided.value && novedades ? ` (${novedades} ${novedades === 1 ? 'novedad' : 'novedades'})` : ''}. La decisión de zarpar sigue siendo tuya.`
+      : 'Al firmar, el registro se archiva y ya no se puede modificar.',
+    confirmLabel: toOffice ? 'Firmar y enviar a la Persona Designada' : 'Firmar y archivar',
     icon: toOffice ? 'fa-anchor' : 'fa-box-archive',
   })
   if (!ok) return
   await run(async () => {
     record.value = await apiRecordAction(record.value!._id, 'approve')
-    toast.success(toOffice ? 'Aprobado: enviado a oficina' : 'Archivado')
+    toast.success(toOffice ? 'Firmado: ya está con la Persona Designada' : 'Firmado y archivado')
   })
 }
 
@@ -379,17 +391,10 @@ async function discard() {
   })
 }
 
+/** El PDF se abre dentro de la app, con su nombre y el botón Descargar. */
 async function openPdf() {
-  busy.value = true
-  try {
-    await autosave.flush().catch(() => undefined)
-    const url = await apiPdfUrl(record.value!._id)
-    window.open(url, '_blank')
-  } catch (err) {
-    toast.error(apiErrorMessage(err))
-  } finally {
-    busy.value = false
-  }
+  await autosave.flush().catch(() => undefined)
+  pdfViewer.open(record.value!._id, record.value!.fileName)
 }
 
 const lastEvent = computed(() => record.value?.history?.[record.value.history.length - 1])
@@ -434,7 +439,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
         </div>
         <span class="status" :class="`status--${record.status}`">
           <i class="fa-solid" :class="STATUS_ICONS[record.status]" aria-hidden="true" />
-          {{ STATUS_LABELS[record.status] }}
+          {{ statusLabel(record) }}
         </span>
       </header>
 
@@ -490,6 +495,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             :sync-label="saveLabel"
             @answer="onAnswer"
             @context="onContext"
+            @section-time="onSectionTime"
             @submit="submit"
           />
           <Transition v-else name="fade" mode="out-in">
@@ -528,13 +534,14 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             </button>
             <button v-if="canApprove" type="button" class="btn btn-primary" :disabled="busy" @click="approve">
               <i class="fa-solid" :class="record.status === 'por_capitan' ? 'fa-anchor' : 'fa-box-archive'" aria-hidden="true" />
-              {{ record.status === 'por_capitan' ? 'Aprobar y enviar a oficina' : 'Recibir y archivar' }}
+              {{ record.status === 'por_capitan' ? 'Firmar y enviar a la Persona Designada' : 'Firmar y archivar' }}
             </button>
             <button v-if="canApprove" type="button" class="btn btn-return" :disabled="busy" @click="giveBack">
-              <i class="fa-solid fa-rotate-left" aria-hidden="true" /> Devolver con motivo
+              <i class="fa-solid fa-rotate-left" aria-hidden="true" />
+              {{ record.status === 'por_capitan' ? 'Devolver al tripulante' : 'Devolver' }}
             </button>
             <button type="button" class="btn btn-ghost" :disabled="busy" @click="openPdf">
-              <i class="fa-regular fa-file-pdf" aria-hidden="true" /> Ver PDF oficial
+              <i class="fa-regular fa-file-pdf" aria-hidden="true" /> Ver cómo queda el PDF
             </button>
             <button v-if="canDiscard" type="button" class="btn btn-ghost danger" :disabled="busy" @click="discard">
               <i class="fa-solid fa-trash" aria-hidden="true" /> Descartar borrador
@@ -578,7 +585,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
                   />
                   <span class="sig-label">{{ s.label }}</span>
                   <span v-if="signedMap.get(s.name)?.valid === false" class="sig-who sig-who--invalid">
-                    Invalidada: los datos cambiaron después de firmar. Vuelve a firmar.
+                    Firma anulada: cambiaste datos después de firmar. Vuelve a firmar.
                   </span>
                   <span v-else-if="signedMap.has(s.name)" class="sig-who">
                     {{ signedMap.get(s.name)!.signerName }} · {{ formatStamp(signedMap.get(s.name)!.signedAt) }}
