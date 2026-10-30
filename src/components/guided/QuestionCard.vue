@@ -4,12 +4,13 @@ import { apiUploadPhoto } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
 import { useToastStore } from '@/stores/toast'
 import { emptyAnswer, hasNovedad } from '@/utils/guided'
+import BaseDatePicker from '@/components/ui/BaseDatePicker.vue'
 import type { AnswerValue, IsmAnswer, IsmSchemaItem } from '@/types'
 
 /**
- * Un punto del chequeo: respuesta explícita SI / NO / No aplica (nada viene
- * marcado), "Hay un problema" con descripción, evidencia y acción tomada, y
- * motivo cuando no aplica.
+ * Un punto del chequeo: respuesta explícita Sí · No · No aplica (nada viene
+ * marcado). "No" abre qué encontraste y qué hiciste (con seguimiento
+ * opcional); "No aplica" pide por qué. El texto del formato queda plegado.
  */
 const props = defineProps<{
   item: IsmSchemaItem
@@ -29,23 +30,40 @@ const current = computed<IsmAnswer>(() => ({ ...emptyAnswer(), ...(props.answer 
 const novedad = computed(() => hasNovedad(current.value))
 
 /** Lo escrito no se pierde si se toca otra respuesta por error y se vuelve. */
-const memory = reactive({ descripcion: '', accion: '', motivo: '', evidencia: [] as string[] })
+const memory = reactive({
+  descripcion: '',
+  accion: '',
+  motivo: '',
+  evidencia: [] as string[],
+  responsable: '',
+  plazo: '',
+  estado: '' as IsmAnswer['estado'],
+})
 
 function emitWith(patch: Partial<IsmAnswer>) {
   const next = { ...current.value, ...patch }
-  const keepsNovedad = next.value === 'no' || (next.value === 'si' && next.problem)
-  if (!keepsNovedad) {
+  // Solo "No" es novedad (ya no existe "Hay un problema").
+  next.problem = false
+  if (next.value !== 'no') {
     if (current.value.descripcion) memory.descripcion = current.value.descripcion
     if (current.value.accion) memory.accion = current.value.accion
     if (current.value.evidencia.length) memory.evidencia = current.value.evidencia
+    if (current.value.responsable) memory.responsable = current.value.responsable
+    if (current.value.plazo) memory.plazo = current.value.plazo
+    if (current.value.estado) memory.estado = current.value.estado
     next.descripcion = ''
     next.accion = ''
     next.evidencia = []
-    next.problem = false
+    delete next.responsable
+    delete next.plazo
+    delete next.estado
   } else {
     next.descripcion = next.descripcion || memory.descripcion
     next.accion = next.accion || memory.accion
     next.evidencia = next.evidencia.length ? next.evidencia : memory.evidencia
+    if (!next.responsable && memory.responsable) next.responsable = memory.responsable
+    if (!next.plazo && memory.plazo) next.plazo = memory.plazo
+    if (!next.estado && memory.estado) next.estado = memory.estado
   }
   if (next.value !== 'na') {
     if (current.value.motivo) memory.motivo = current.value.motivo
@@ -58,17 +76,22 @@ function emitWith(patch: Partial<IsmAnswer>) {
 
 function choose(value: AnswerValue) {
   if (!props.editable) return
-  emitWith({ value, problem: value === 'si' ? current.value.problem : false })
+  emitWith({ value })
 }
 
-function toggleProblem() {
-  if (!props.editable || current.value.value !== 'si') return
-  emitWith({ problem: !current.value.problem })
-}
-
-function onText(field: 'descripcion' | 'accion' | 'motivo', e: Event) {
+function onText(field: 'descripcion' | 'accion' | 'motivo' | 'responsable', e: Event) {
   emit('update', { ...current.value, [field]: (e.target as HTMLTextAreaElement).value })
 }
+
+function setFollow(patch: Pick<IsmAnswer, 'plazo' | 'estado'>) {
+  if (!props.editable) return
+  emit('update', { ...current.value, ...patch })
+}
+
+const plazo = computed({
+  get: () => current.value.plazo ?? '',
+  set: (v: string) => setFollow({ plazo: v }),
+})
 
 function pickMotivo(text: string) {
   emit('update', { ...current.value, motivo: text })
@@ -108,7 +131,10 @@ const miss = (f: string) => props.missing?.has(f) ?? false
       <span class="q-n">{{ item.n }}</span>
       <div class="q-text">
         <p class="q-prompt">{{ item.prompt }}</p>
-        <p class="q-official">Formato: «{{ item.official }}»</p>
+        <details class="q-official">
+          <summary>Ver texto del formato</summary>
+          <p>{{ item.official }}</p>
+        </details>
       </div>
     </header>
 
@@ -147,19 +173,6 @@ const miss = (f: string) => props.missing?.has(f) ?? false
       >
         <i class="fa-solid fa-minus" aria-hidden="true" /> No aplica
       </button>
-      <Transition name="fade">
-        <button
-          v-if="current.value === 'si'"
-          type="button"
-          class="opt opt--problem"
-          :class="{ on: current.problem }"
-          :aria-pressed="current.problem"
-          :disabled="!editable"
-          @click="toggleProblem"
-        >
-          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Hay un problema
-        </button>
-      </Transition>
     </div>
 
     <Transition name="fade">
@@ -181,7 +194,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
           <small v-if="miss('descripcion')" class="q-miss">Describe la novedad</small>
         </div>
         <div class="field" :class="{ 'field--miss': miss('accion') }">
-          <label :for="`a-${item.id}`">¿Qué acción tomaste?</label>
+          <label :for="`a-${item.id}`">¿Qué hiciste?</label>
           <textarea
             :id="`a-${item.id}`"
             rows="2"
@@ -192,6 +205,49 @@ const miss = (f: string) => props.missing?.has(f) ?? false
           />
           <small v-if="miss('accion')" class="q-miss">Indica la acción tomada</small>
         </div>
+        <details class="q-follow" :open="Boolean(current.responsable || current.plazo || current.estado)">
+          <summary>Seguimiento de la novedad (opcional)</summary>
+          <div class="q-follow-grid">
+            <div class="field">
+              <label :for="`r-${item.id}`">¿Quién la resuelve?</label>
+              <input
+                :id="`r-${item.id}`"
+                :value="current.responsable ?? ''"
+                :readonly="!editable"
+                placeholder="Nombre o cargo"
+                @input="onText('responsable', $event)"
+              />
+            </div>
+            <div class="field">
+              <label>¿Para cuándo?</label>
+              <BaseDatePicker v-if="editable" v-model="plazo" />
+              <p v-else class="q-ro">{{ current.plazo || '—' }}</p>
+            </div>
+            <div class="field q-follow-state">
+              <label>¿Quedó resuelta?</label>
+              <div class="q-chips">
+                <button
+                  type="button"
+                  class="q-chip"
+                  :class="{ on: current.estado !== 'cerrada' }"
+                  :disabled="!editable"
+                  @click="setFollow({ estado: 'abierta' })"
+                >
+                  No, sigue abierta
+                </button>
+                <button
+                  type="button"
+                  class="q-chip"
+                  :class="{ on: current.estado === 'cerrada' }"
+                  :disabled="!editable"
+                  @click="setFollow({ estado: 'cerrada' })"
+                >
+                  Sí, quedó cerrada
+                </button>
+              </div>
+            </div>
+          </div>
+        </details>
         <div class="q-photos">
           <TransitionGroup name="list">
             <figure v-for="url in current.evidencia" :key="url" class="q-photo">
@@ -309,9 +365,55 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 }
 
 .q-official {
-  margin: 0.2rem 0 0;
-  font-size: 0.76rem;
-  color: var(--ink-400);
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  color: var(--ink-600);
+
+  summary {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--ink-400);
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 0.3rem;
+  }
+}
+
+.q-follow summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink-600);
+}
+
+.q-follow-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+
+  @include tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.q-follow-state {
+  @include tablet {
+    grid-column: 1 / -1;
+  }
+}
+
+.q-ro {
+  margin: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
 }
 
 .q-options {
@@ -363,18 +465,6 @@ const miss = (f: string) => props.missing?.has(f) ?? false
     color: #fff;
   }
 
-  &--problem {
-    font-weight: 600;
-    font-size: 0.92rem;
-    color: #8a5d1d;
-    border-style: dashed;
-
-    &.on {
-      background: rgba(185, 128, 47, 0.14);
-      border-color: var(--warning);
-      border-style: solid;
-    }
-  }
 }
 
 .q-miss {
@@ -409,11 +499,11 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 }
 
 .q-chip {
-  min-height: 40px;
-  padding: 0 0.85rem;
+  min-height: 44px;
+  padding: 0 0.95rem;
   border-radius: 999px;
   border: 1.5px solid var(--cream-200);
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--ink-600);
   transition: background 0.14s ease, color 0.14s ease;
