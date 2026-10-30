@@ -38,8 +38,10 @@ const editDraft = shallowRef({ name: '', position: '' })
 const ROLE_TEXT: Record<string, string> = { tripulante: 'Tripulante', capitan: 'Capitán', designada: 'Persona Designada' }
 
 const positions = computed(() => catalog.positions)
-const active = computed(() => members.value.filter((m) => m.active))
-const inactive = computed(() => members.value.filter((m) => !m.active))
+const active = computed(() => members.value.filter((m) => m.active && !m.sharedDevice))
+const inactive = computed(() => members.value.filter((m) => !m.active && !m.sharedDevice))
+/** Cuentas compartidas (tablet del barco): no son personas; se marcan a mano. */
+const shared = computed(() => members.value.filter((m) => m.sharedDevice))
 
 async function load() {
   loading.value = true
@@ -155,6 +157,28 @@ async function setActive(m: CrewMember, value: boolean) {
   }
 }
 
+async function setShared(m: CrewMember, value: boolean) {
+  const ok = await confirmStore.ask({
+    title: value ? `¿«${m.name}» es una tablet compartida?` : `¿«${m.name}» es una persona?`,
+    message: value
+      ? 'Deja de aparecer en «¿Quién hace el chequeo?»: la tablet no es una persona y no firma. Se puede seguir usando para iniciar sesión.'
+      : 'Vuelve a aparecer en la lista para hacer chequeos y firmar.',
+    confirmLabel: value ? 'Sí, es una tablet compartida' : 'Sí, es una persona',
+    icon: value ? 'fa-tablet-screen-button' : 'fa-user',
+  })
+  if (!ok) return
+  busy.value = m.id
+  try {
+    replace(await apiUpdateCrew(m.id, { sharedDevice: value }))
+    editing.value = null
+    toast.success(value ? `${m.name} quedó como tablet compartida` : `${m.name} vuelve a la lista de tripulantes`)
+  } catch (err) {
+    toast.error(apiErrorMessage(err))
+  } finally {
+    busy.value = ''
+  }
+}
+
 function pinState(m: CrewMember): { text: string; tone: string } {
   if (m.lockedUntil) return { text: `Bloqueada hasta las ${formatHour(m.lockedUntil)}`, tone: 'bad' }
   if (!m.hasPin) return { text: 'Sin clave', tone: 'warn' }
@@ -200,6 +224,19 @@ function pinState(m: CrewMember): { text: string; tone: string } {
         </div>
       </li>
     </TransitionGroup>
+
+    <section v-if="shared.length" class="card gone shared">
+      <h2><i class="fa-solid fa-tablet-screen-button" aria-hidden="true" /> Cuentas compartidas ({{ shared.length }})</h2>
+      <p class="hint">No son personas: no salen en «¿Quién hace el chequeo?» ni firman.</p>
+      <ul>
+        <li v-for="m in shared" :key="m.id">
+          <span>{{ m.name }}</span>
+          <button type="button" class="btn btn-ghost" :disabled="busy === m.id" @click="setShared(m, false)">
+            <i class="fa-solid fa-user" aria-hidden="true" /> Es una persona
+          </button>
+        </li>
+      </ul>
+    </section>
 
     <details v-if="inactive.length" class="card gone">
       <summary>Fuera de la lista ({{ inactive.length }})</summary>
@@ -247,7 +284,12 @@ function pinState(m: CrewMember): { text: string; tone: string } {
         <button v-if="!editing.hasAccount" type="button" class="btn btn-ghost danger" @click="setActive(editing, false)">
           <i class="fa-solid fa-user-minus" aria-hidden="true" /> Sacar de la lista
         </button>
-        <p v-else class="hint">Tiene cuenta propia: su rol y su acceso los maneja Gerencia.</p>
+        <template v-else>
+          <button v-if="editing.role === 'tripulante'" type="button" class="btn btn-ghost" @click="setShared(editing, true)">
+            <i class="fa-solid fa-tablet-screen-button" aria-hidden="true" /> Es una tablet compartida, no una persona
+          </button>
+          <p class="hint">Tiene cuenta propia: su rol y su acceso los maneja Gerencia.</p>
+        </template>
       </div>
     </BaseModal>
 
@@ -277,10 +319,29 @@ function pinState(m: CrewMember): { text: string; tone: string } {
     justify-content: space-between;
   }
 
+  > div {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .btn {
     min-height: 48px;
     white-space: nowrap;
+    flex-shrink: 0;
+    align-self: flex-start;
+
+    @include tablet {
+      align-self: flex-end;
+    }
   }
+}
+
+.shared h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .lead {

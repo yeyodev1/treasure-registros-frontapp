@@ -102,6 +102,8 @@ export interface CrewMember {
   positionLabel: string
   active: boolean
   hasAccount: boolean
+  /** Cuenta compartida (tablet del barco): no es una persona, no hace chequeos ni firma. */
+  sharedDevice?: boolean
   onboard: boolean
   hasPin: boolean
   pinTemporary: boolean
