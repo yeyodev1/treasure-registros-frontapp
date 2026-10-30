@@ -4,6 +4,7 @@ import { useCatalogStore } from '@/stores/catalog'
 import { useConfirmStore } from '@/stores/confirm'
 import { useToastStore } from '@/stores/toast'
 import { useCrewStore } from '@/stores/crew'
+import { useUserStore } from '@/stores/user'
 import { apiCreateCrew, apiCrew, apiTemporaryPin, apiUpdateCrew } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
 import { formatHour } from '@/utils/ism'
@@ -21,6 +22,9 @@ const catalog = useCatalogStore()
 const confirmStore = useConfirmStore()
 const toast = useToastStore()
 const crewStore = useCrewStore()
+const userStore = useUserStore()
+/** La clave temporal solo la da la Persona Designada (ni Gerencia). */
+const canGivePin = computed(() => userStore.role === 'designada')
 
 const members = shallowRef<CrewMember[]>([])
 const loading = shallowRef(true)
@@ -68,7 +72,7 @@ async function add() {
     crewStore.load(true).catch(() => undefined)
     adding.value = false
     draft.value = { name: '', position: '', onboard: true }
-    toast.success(`${m.name} quedó en la lista. Ahora dale su clave temporal.`)
+    toast.success(canGivePin.value ? `${m.name} quedó en la lista. Ahora dale su clave temporal.` : `${m.name} quedó en la lista. La Persona Designada le da su clave temporal.`)
   } catch (err) {
     toast.error(apiErrorMessage(err))
   } finally {
@@ -187,7 +191,7 @@ function pinState(m: CrewMember): { text: string; tone: string } {
           <button type="button" class="chip" :class="{ on: m.onboard }" :disabled="busy === m.id" :aria-pressed="m.onboard" @click="toggleOnboard(m)">
             <i class="fa-solid" :class="m.onboard ? 'fa-ship' : 'fa-house'" aria-hidden="true" /> {{ m.onboard ? 'A bordo' : 'En tierra' }}
           </button>
-          <button type="button" class="btn btn-ghost" :disabled="busy === m.id" @click="givePin(m)">
+          <button v-if="canGivePin" type="button" class="btn btn-ghost" :disabled="busy === m.id" @click="givePin(m)">
             <i class="fa-solid fa-key" aria-hidden="true" /> Clave temporal
           </button>
           <button type="button" class="btn btn-ghost" @click="openEdit(m)">
