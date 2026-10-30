@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, watch } from 'vue'
+import { computed, nextTick, onMounted, shallowRef, watch } from 'vue'
 import { useConfirmStore } from '@/stores/confirm'
 import { emptyAnswer, sectionProgress, validateGuided } from '@/utils/guided'
 import QuestionCard from './QuestionCard.vue'
@@ -118,12 +118,24 @@ async function go(i: number, itemId?: string) {
   step.value = i
   if (i === steps.value.length - 1) showMissing.value = true
   await nextTick()
+  revealActiveStep()
   if (itemId) {
     setTimeout(() => document.getElementById(`q-${itemId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 260)
   } else {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
+
+/** La sección actual siempre visible en la fila de secciones (tablet vertical). */
+function revealActiveStep() {
+  const bar = document.querySelector<HTMLElement>('.wiz-steps')
+  const chip = bar?.querySelector<HTMLElement>('.wiz-step.active')
+  if (!bar || !chip) return
+  const left = chip.offsetLeft - bar.offsetLeft - (bar.clientWidth - chip.clientWidth) / 2
+  bar.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
+}
+
+onMounted(() => nextTick(revealActiveStep))
 
 /** Siguiente: si faltan puntos en la sección, se avisa ahora y no al final. */
 async function next() {
@@ -250,7 +262,10 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
 
     <Transition :name="`step-${direction}`" mode="out-in">
       <section v-if="step === 0" key="ctx" class="wiz-body">
-        <h2 class="wiz-title">Confirma el contexto</h2>
+        <div>
+          <h2 class="wiz-title">Confirma el contexto</h2>
+          <p class="wiz-where">Dónde y cuándo hiciste el chequeo, y quién lo hizo.</p>
+        </div>
         <GuidedContextForm
           :schema="schema"
           :model-value="context"
@@ -266,8 +281,11 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
       <section v-else-if="currentSection" :key="currentSection.id" class="wiz-body">
         <header class="wiz-sec-head">
           <div>
-            <p class="wiz-eyebrow">Sección {{ step }} de {{ schema.sections.length }} · {{ sectionProgress(currentSection, answers).done }}/{{ currentSection.items.length }}</p>
             <h2 class="wiz-title">{{ currentSection.title }}</h2>
+            <p class="wiz-where num">
+              Sección {{ step }} de {{ schema.sections.length }} ·
+              {{ sectionProgress(currentSection, answers).done }} de {{ currentSection.items.length }} respondidos
+            </p>
             <p v-if="currentSection.hint" class="wiz-hint">{{ currentSection.hint }}</p>
           </div>
           <button v-if="editable && sectionAllowsNa" type="button" class="btn btn-ghost wiz-na" @click="sectionNotApplicable">
@@ -293,7 +311,8 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
       </section>
 
       <section v-else key="review" class="wiz-body">
-        <h2 class="wiz-title">Revisa y firma</h2>
+        <div>
+          <h2 class="wiz-title">Revisa y firma</h2>
         <Transition name="fade" mode="out-in">
           <p v-if="missing.length" key="m" class="wiz-missing">
             <i class="fa-solid fa-circle-exclamation" aria-hidden="true" />
@@ -303,6 +322,7 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
             Así va a quedar tu chequeo. Mira la novedad y, si está bien, firma abajo.
           </p>
         </Transition>
+        </div>
         <ReviewCard
           :schema="schema"
           :answers="answers"
@@ -349,21 +369,26 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
       </section>
     </Transition>
 
-    <footer class="wiz-nav">
-      <button type="button" class="btn btn-ghost" :disabled="step === 0" @click="go(step - 1)">
+    <!-- Último paso (pantalla 1): Firmar y Ver cómo queda el PDF, grandes y abajo. -->
+    <footer v-if="step === steps.length - 1 && editable" class="wiz-final">
+      <button type="button" class="btn btn-primary btn-lg btn-block" :disabled="submitting || missing.length > 0" @click="emit('sign')">
+        <i class="fa-solid fa-signature" aria-hidden="true" /> Firmar
+      </button>
+      <button type="button" class="btn btn-ghost btn-lg btn-block" :disabled="submitting" @click="emit('pdf')">
+        <i class="fa-regular fa-file-pdf" aria-hidden="true" /> Ver cómo queda el PDF
+      </button>
+      <p v-if="missing.length" class="wiz-final-why">Para firmar, completa lo que falta arriba.</p>
+      <button type="button" class="link-btn wiz-back" @click="go(step - 1)">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Volver a la sección anterior
+      </button>
+    </footer>
+    <footer v-else class="wiz-nav">
+      <button type="button" class="btn btn-ghost btn-lg" :disabled="step === 0" @click="go(step - 1)">
         <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Anterior
       </button>
-      <button v-if="step < steps.length - 1" type="button" class="btn btn-primary" @click="next">
+      <button v-if="step < steps.length - 1" type="button" class="btn btn-primary btn-lg" @click="next">
         {{ step === steps.length - 2 ? 'Revisa y firma' : 'Siguiente' }} <i class="fa-solid fa-arrow-right" aria-hidden="true" />
       </button>
-      <div v-else-if="editable" class="wiz-sign">
-        <button type="button" class="btn btn-ghost" :disabled="submitting" @click="emit('pdf')">
-          <i class="fa-regular fa-file-pdf" aria-hidden="true" /> Ver cómo queda el PDF
-        </button>
-        <button type="button" class="btn btn-primary" :disabled="submitting || missing.length > 0" @click="emit('sign')">
-          <i class="fa-solid fa-signature" aria-hidden="true" /> Firmar
-        </button>
-      </div>
     </footer>
   </div>
 </template>
@@ -374,42 +399,44 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
 .wiz {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
+// Avance y secciones: se quedan a la vista mientras se responde.
 .wiz-top {
   position: sticky;
   top: calc(64px + env(safe-area-inset-top));
   z-index: 10;
   background: var(--bg);
-  padding: 0.6rem 0 0.4rem;
-  margin-top: -0.6rem;
+  padding: 0.75rem 0 0.6rem;
+  margin-top: -0.75rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .wiz-progress {
   height: 8px;
   border-radius: 999px;
-  background: var(--cream-200);
+  background: var(--powder-200);
   overflow: hidden;
 
   span {
     display: block;
     height: 100%;
-    background: var(--gold-500);
+    background: var(--navy-700);
     border-radius: inherit;
-    transition: width 0.4s ease;
+    transition: width 0.4s var(--ease);
   }
 }
 
 .wiz-count {
-  margin: 0.35rem 0 0.5rem;
+  margin: 0.4rem 0 0.6rem;
   font-size: 1rem;
   color: var(--ink-600);
   font-variant-numeric: tabular-nums;
 }
 
 .wiz-sync {
-  color: var(--ink-400);
+  color: var(--ink-600);
 }
 
 .wiz-steps {
@@ -418,6 +445,10 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 0.15rem;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .wiz-step {
@@ -425,15 +456,19 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   min-height: 48px;
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0 0.85rem 0 0.4rem;
+  gap: 0.5rem;
+  padding: 0 0.9rem 0 0.45rem;
   border-radius: 999px;
-  border: 1.5px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
   background: var(--surface);
   font-size: 1rem;
   font-weight: 600;
-  color: var(--ink-600);
+  color: var(--ink-900);
   transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+
+  &:hover:not(.active) {
+    border-color: var(--navy-600);
+  }
 
   &.active {
     background: var(--navy-800);
@@ -450,7 +485,7 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   border-radius: 50%;
   background: var(--powder-100);
   color: var(--navy-700);
-  font-size: 1rem;
+  font-size: 0.85rem;
 
   .st-done & {
     background: var(--success);
@@ -458,12 +493,18 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   }
 
   .st-partial & {
-    background: rgba(159, 107, 60, 0.2);
-    color: var(--gold-500);
+    background: var(--gold-100);
+    color: #7a5634;
   }
 
   .st-miss & {
     background: var(--danger);
+    color: #fff;
+  }
+
+  .active.st-todo &,
+  .active.st-partial & {
+    background: rgba(255, 255, 255, 0.18);
     color: #fff;
   }
 }
@@ -471,15 +512,15 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
 .wiz-returned {
   margin: 0;
   display: flex;
-  gap: 0.5rem;
-  padding: 0.7rem 0.85rem;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
   border-radius: var(--radius-sm);
-  background: rgba(180, 72, 59, 0.08);
-  border: 1px solid rgba(180, 72, 59, 0.3);
+  background: var(--danger-100);
+  box-shadow: inset 4px 0 0 var(--danger);
   font-size: 1rem;
 
   i {
-    margin-top: 0.2rem;
+    margin-top: 0.25rem;
     color: var(--danger);
   }
 }
@@ -487,13 +528,13 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
 .wiz-body {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.1rem;
 }
 
 .wiz-sec-head {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 
   @include tablet {
     flex-direction: row;
@@ -502,37 +543,33 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   }
 }
 
-.wiz-eyebrow {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-500);
-}
-
 .wiz-title {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
 
   @include tablet {
-    font-size: 1.6rem;
+    font-size: 1.85rem;
   }
 }
 
-.wiz-hint {
-  margin: 0.25rem 0 0;
+.wiz-where {
+  margin: 0.3rem 0 0;
   color: var(--ink-600);
   font-size: 1rem;
+}
+
+.wiz-hint {
+  margin: 0.4rem 0 0;
+  color: var(--ink-900);
+  font-size: 1.05rem;
 }
 
 .wiz-na {
   flex-shrink: 0;
-  border-color: var(--cream-200);
-  color: var(--ink-600);
+  color: var(--ink-900);
 }
 
 .wiz-time {
-  max-width: 320px;
+  max-width: 340px;
 
   p {
     margin: 0;
@@ -546,47 +583,31 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   gap: 0.75rem;
 }
 
-.wiz-notice {
-  margin: 0;
-  display: flex;
-  gap: 0.6rem;
-  padding: 0.8rem 0.95rem;
-  border-radius: var(--radius-sm);
-  background: var(--navy-800);
-  color: var(--cream-100);
-  font-weight: 600;
-  line-height: 1.4;
-
-  i {
-    margin-top: 0.2rem;
-    color: var(--gold-400);
-  }
-}
-
 .wiz-missing,
 .wiz-ready {
-  margin: 0;
-  font-weight: 600;
-  font-size: 1rem;
+  margin: 0.4rem 0 0;
+  font-size: 1.05rem;
 }
 
 .wiz-missing {
   color: var(--danger);
+  font-weight: 600;
 }
 
 .wiz-ready {
-  color: var(--success);
+  color: var(--ink-600);
 }
 
+// ¿Quién firma este registro? (pantalla 1): tres pasos, uno después de otro.
 .wiz-who {
   h3 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.35rem;
   }
 
   ol {
     list-style: none;
-    margin: 0.6rem 0 0;
+    margin: 0.75rem 0 0;
     padding: 0;
   }
 
@@ -594,14 +615,19 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 0;
-    border-top: 1px solid var(--cream-200);
+    gap: 0.85rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--line);
 
     strong,
     small {
       display: block;
       font-size: 1rem;
+    }
+
+    strong {
+      font-weight: 600;
+      font-size: 1.05rem;
     }
 
     small {
@@ -611,7 +637,7 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
 }
 
 .wiz-who-sub {
-  margin: 0.2rem 0 0;
+  margin: 0.25rem 0 0;
   color: var(--ink-600);
 }
 
@@ -622,8 +648,9 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   display: grid;
   place-items: center;
   font-weight: 700;
-  border: 2px solid var(--ink-400);
+  border: 2px solid var(--line-strong);
   color: var(--ink-600);
+  font-variant-numeric: tabular-nums;
 
   &.now {
     background: var(--gold-500);
@@ -633,7 +660,7 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
 }
 
 .wiz-tag {
-  padding: 0.2rem 0.7rem;
+  padding: 0.2rem 0.75rem;
   border-radius: 999px;
   background: var(--powder-100);
   font-size: 1rem;
@@ -641,27 +668,43 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   color: var(--ink-600);
 
   &.now {
-    background: rgba(185, 128, 47, 0.18);
-    color: #7a4f12;
+    background: var(--gold-100);
+    color: #7a5634;
   }
 }
 
 .wiz-all summary {
-  min-height: 44px;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--navy-800);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.wiz-sign {
+.wiz-final {
   display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  max-width: 640px;
 }
 
+.wiz-final-why {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.wiz-back {
+  align-self: flex-start;
+}
+
+// Anterior / Siguiente: abajo y a la vista, sobre un fondo liso.
 .wiz-nav {
   position: sticky;
   bottom: 0;
@@ -669,11 +712,24 @@ const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.la
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  margin: 0 -1rem;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+
+  @include tablet {
+    margin: 0 -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @include desktop {
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
 
   .btn {
-    min-height: 52px;
     min-width: 150px;
   }
 }
