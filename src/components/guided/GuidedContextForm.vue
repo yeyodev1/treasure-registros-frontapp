@@ -41,6 +41,12 @@ const time = computed({
   get: () => props.modelValue.activityTime,
   set: (v: string) => set('activityTime', v),
 })
+// El Capitán no va primero: un toque errado no debe dejar "Capitán" elegido.
+const orderedPositions = computed(() => [
+  ...props.positions.filter((p) => p.value !== 'CAP'),
+  ...props.positions.filter((p) => p.value === 'CAP'),
+])
+
 const position = computed({
   get: () => props.modelValue.position,
   set: (v: string) => set('position', v),
@@ -112,7 +118,7 @@ const miss = (f: string) => props.missing?.has(f) ?? false
       </div>
       <div class="field">
         <label>Cargo</label>
-        <BaseSelect v-if="editable" v-model="position" :options="positions" placeholder="Elige el cargo" />
+        <BaseSelect v-if="editable" v-model="position" :options="orderedPositions" placeholder="Elige el cargo" />
         <p v-else class="ctx-ro">{{ positions.find((p) => p.value === modelValue.position)?.label ?? '—' }}</p>
       </div>
     </div>
