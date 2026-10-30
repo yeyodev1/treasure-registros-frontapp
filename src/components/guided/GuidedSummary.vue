@@ -147,10 +147,8 @@ function fmtDate(key?: string) {
 
   dt {
     font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-400);
+    font-weight: 500;
+    color: var(--ink-600);
   }
 
   dd {
@@ -177,13 +175,13 @@ function fmtDate(key?: string) {
 
 .sum-block {
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: 1rem 1.15rem;
   background: var(--surface);
-  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
 
   h3 {
     margin: 0 0 0.6rem;
-    font-size: 1.05rem;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -199,16 +197,16 @@ function fmtDate(key?: string) {
   }
 
   &--nov {
-    background: rgba(185, 128, 47, 0.1);
-    border: 1.5px solid rgba(185, 128, 47, 0.45);
+    background: var(--warning-100);
+    border: 1px solid var(--warning-line);
 
     h3 {
       color: #7a4f14;
     }
 
     &.empty {
-      background: rgba(63, 122, 87, 0.08);
-      border-color: rgba(63, 122, 87, 0.35);
+      background: var(--success-100);
+      border-color: #c9ddd0;
 
       h3 {
         color: var(--success);
@@ -221,8 +219,8 @@ function fmtDate(key?: string) {
 .nov {
   background: #fff;
   border-radius: var(--radius-sm);
-  padding: 0.7rem 0.8rem;
-  border-left: 4px solid var(--warning);
+  padding: 0.8rem 0.9rem 0.8rem 1.05rem;
+  box-shadow: inset 4px 0 0 var(--warning);
 
   p {
     margin: 0;
@@ -231,7 +229,7 @@ function fmtDate(key?: string) {
 
 .nov-ref {
   font-size: 1rem;
-  color: var(--ink-400);
+  color: var(--ink-600);
 }
 
 .nov-q {
@@ -243,7 +241,7 @@ function fmtDate(key?: string) {
   font-size: 1rem;
 
   span {
-    color: var(--ink-400);
+    color: var(--ink-600);
     font-weight: 600;
   }
 }
@@ -269,13 +267,13 @@ function fmtDate(key?: string) {
 
 .na-ref {
   font-size: 1rem;
-  color: var(--ink-400);
+  color: var(--ink-600);
 }
 
 .sum-sec {
   h3 {
     margin: 0 0 0.5rem;
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
 
   ul {
@@ -290,8 +288,8 @@ function fmtDate(key?: string) {
   grid-template-columns: 28px minmax(0, 1fr) auto;
   gap: 0.2rem 0.6rem;
   align-items: center;
-  padding: 0.5rem 0.2rem;
-  border-bottom: 1px solid var(--cream-200);
+  padding: 0.6rem 0.2rem;
+  border-bottom: 1px solid var(--line);
   font-size: 1rem;
 
   &:last-child {
@@ -299,7 +297,7 @@ function fmtDate(key?: string) {
   }
 
   &--miss {
-    background: rgba(180, 72, 59, 0.06);
+    background: var(--danger-100);
   }
 
   .goto {
@@ -327,24 +325,25 @@ function fmtDate(key?: string) {
 
 .row-a {
   justify-self: end;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.7rem;
   border-radius: 999px;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 
+  // "Sí" es lo normal: en tinta, sin color. Solo "No" y lo que falta se marcan.
   &.a-si {
-    background: rgba(63, 122, 87, 0.14);
-    color: var(--success);
+    background: transparent;
+    color: var(--ink-900);
   }
 
   &.a-no {
-    background: rgba(180, 72, 59, 0.12);
+    background: var(--danger-100);
     color: var(--danger);
   }
 
   &.a-na {
-    background: var(--cream-200);
+    background: var(--powder-100);
     color: var(--ink-600);
   }
 
@@ -356,8 +355,8 @@ function fmtDate(key?: string) {
 }
 
 .goto {
-  min-height: 40px;
-  padding: 0 0.85rem;
+  min-height: 44px;
+  padding: 0 1rem;
   border-radius: 999px;
   background: var(--navy-800);
   color: #fff;
