@@ -162,7 +162,7 @@ function photoUrl(f: IsmField): string {
             @click="emit('sign', f)"
           >
             <span v-if="signatureMap.get(f.name)?.valid === false" class="sign-cta sign-invalid">
-              <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Firma invalidada: volver a firmar
+              <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" /> Firma anulada: cambiaste datos después de firmar. Vuelve a firmar.
             </span>
             <Transition v-else-if="signatureMap.has(f.name)" name="fade" mode="out-in">
               <img
