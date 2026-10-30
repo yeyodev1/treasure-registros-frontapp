@@ -116,10 +116,11 @@ const miss = (f: string) => props.missing?.has(f) ?? false
         />
         <small class="ctx-hint">Sesión iniciada como {{ accountName }}. Si la cuenta es compartida, escribe tu nombre.</small>
       </div>
-      <div class="field">
+      <div class="field" :class="{ 'field--miss': miss('position') }">
         <label>Cargo</label>
         <BaseSelect v-if="editable" v-model="position" :options="orderedPositions" placeholder="Elige el cargo" />
         <p v-else class="ctx-ro">{{ positions.find((p) => p.value === modelValue.position)?.label ?? '—' }}</p>
+        <small v-if="miss('position')" class="ctx-miss">Falta el cargo</small>
       </div>
     </div>
 
@@ -221,7 +222,8 @@ const miss = (f: string) => props.missing?.has(f) ?? false
 
 .field--miss input,
 .field--miss :deep(.picker-trigger),
-.field--miss :deep(.tpick-trigger) {
+.field--miss :deep(.tpick-trigger),
+.field--miss :deep(.select-trigger) {
   border-color: rgba(180, 72, 59, 0.6);
 }
 
