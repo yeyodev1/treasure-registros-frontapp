@@ -137,8 +137,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', setup))
 <style scoped lang="scss">
 .ipad {
   position: relative;
-  height: 200px;
-  border: 2px dashed var(--ink-400);
+  height: 220px;
+  border: 2px dashed var(--line-strong);
   border-radius: var(--radius);
   background: #fff;
   overflow: hidden;
@@ -179,11 +179,11 @@ onBeforeUnmount(() => window.removeEventListener('resize', setup))
   min-height: 44px;
   padding: 0 0.9rem;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--cream-200);
+  border: 1px solid var(--line-strong);
   background: #fff;
   font-weight: 600;
   font-size: 1rem;
-  color: var(--ink-600);
+  color: var(--navy-800);
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
