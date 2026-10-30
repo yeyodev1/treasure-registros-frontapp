@@ -6,6 +6,7 @@ import QuestionCard from './QuestionCard.vue'
 import GuidedContextForm, { type ContextDraft } from './GuidedContextForm.vue'
 import GuidedSummary from './GuidedSummary.vue'
 import BaseTimePicker from '@/components/ui/BaseTimePicker.vue'
+import ReviewCard from '@/components/sign/ReviewCard.vue'
 import type { IsmAnswer, IsmContext, IsmMissing, IsmReturnInfo, IsmSchema } from '@/types'
 
 /**
@@ -33,7 +34,9 @@ const emit = defineEmits<{
   answer: [id: string, answer: IsmAnswer]
   context: [value: ContextDraft]
   sectionTime: [sectionId: string, time: string]
-  submit: []
+  /** Ir a firmar (pantalla 2). */
+  sign: []
+  pdf: []
 }>()
 
 const confirmStore = useConfirmStore()
@@ -50,7 +53,12 @@ const missing = computed(() =>
     activityDate: props.context.activityDate,
     activityTime: props.context.activityTime,
     place: props.context.place,
-    filledBy: { ...(props.fullContext?.filledBy ?? { user: '', accountName: '', role: '', position: '' }), name: props.context.name, position: props.context.position } as IsmContext['filledBy'],
+    filledBy: {
+      ...(props.fullContext?.filledBy ?? { user: '', accountName: '', role: '', position: '' }),
+      name: props.context.name,
+      position: props.context.position,
+      fromList: Boolean(props.context.crewId),
+    } as IsmContext['filledBy'],
   }),
 )
 
@@ -181,6 +189,21 @@ async function sectionNotApplicable() {
 const sectionAllowsNa = computed(() => currentSection.value?.items.some((i) => i.allowNa && !props.answers[i.id]?.value) ?? false)
 
 const RETURN_HINT = computed(() => props.returnInfo)
+
+const reviewContext = computed<Partial<IsmContext>>(() => ({
+  ...(props.fullContext ?? {}),
+  activityDate: props.context.activityDate,
+  activityTime: props.context.activityTime,
+  place: props.context.place,
+  filledBy: {
+    ...(props.fullContext?.filledBy as IsmContext['filledBy']),
+    name: props.context.name,
+    position: props.context.position,
+    fromList: Boolean(props.context.crewId),
+  },
+}))
+
+const positionOf = (v: string) => props.positions.find((p) => p.value === v)?.label ?? v
 </script>
 
 <template>
@@ -278,15 +301,49 @@ const RETURN_HINT = computed(() => props.returnInfo)
             Así va a quedar tu chequeo. Mira la novedad y, si está bien, firma abajo.
           </p>
         </Transition>
-        <GuidedSummary
+        <ReviewCard
           :schema="schema"
           :answers="answers"
-          :context="{ ...(fullContext ?? {}), activityDate: context.activityDate, activityTime: context.activityTime, place: context.place, filledBy: { ...(fullContext?.filledBy as IsmContext['filledBy']), name: context.name, position: context.position } }"
+          :context="reviewContext"
+          :position-label="positionOf"
+          :can-change="editable"
+          @change="gotoMissing"
+        />
+        <section class="wiz-who card">
+          <h3>¿Quién firma este registro?</h3>
+          <p class="wiz-who-sub">Firman tres personas, una después de otra. Tú firmas primero.</p>
+          <ol>
+            <li>
+              <span class="wiz-who-n now">1</span>
+              <span><strong>Tú</strong><small>Confirmas que hiciste el chequeo</small></span>
+              <span class="wiz-tag now">Ahora</span>
+            </li>
+            <li>
+              <span class="wiz-who-n">2</span>
+              <span><strong>Capitán</strong><small>Revisa y decide el zarpe. Firma desde su cuenta</small></span>
+              <span class="wiz-tag">Después</span>
+            </li>
+            <li>
+              <span class="wiz-who-n">3</span>
+              <span><strong>Persona Designada</strong><small>Recibe en oficina y archiva. A bordo no hay que hacer nada</small></span>
+              <span class="wiz-tag">Al final</span>
+            </li>
+          </ol>
+        </section>
+        <GuidedSummary
+          v-if="missing.length"
+          :schema="schema"
+          :answers="answers"
+          :context="reviewContext"
           :missing="missing"
-          :position-label="(v: string) => positions.find((p) => p.value === v)?.label ?? v"
+          :position-label="positionOf"
           can-go-to
           @goto="gotoMissing"
         />
+        <details v-else class="wiz-all">
+          <summary>Ver todas las respuestas</summary>
+          <GuidedSummary :schema="schema" :answers="answers" :context="reviewContext" :position-label="positionOf" />
+        </details>
       </section>
     </Transition>
 
@@ -297,16 +354,14 @@ const RETURN_HINT = computed(() => props.returnInfo)
       <button v-if="step < steps.length - 1" type="button" class="btn btn-primary" @click="next">
         {{ step === steps.length - 2 ? 'Revisa y firma' : 'Siguiente' }} <i class="fa-solid fa-arrow-right" aria-hidden="true" />
       </button>
-      <button
-        v-else-if="editable"
-        type="button"
-        class="btn btn-gold"
-        :disabled="submitting || missing.length > 0"
-        @click="emit('submit')"
-      >
-        <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'" aria-hidden="true" />
-        {{ submitting ? 'Enviando…' : 'Enviar al Capitán' }}
-      </button>
+      <div v-else-if="editable" class="wiz-sign">
+        <button type="button" class="btn btn-ghost" :disabled="submitting" @click="emit('pdf')">
+          <i class="fa-regular fa-file-pdf" aria-hidden="true" /> Ver cómo queda el PDF
+        </button>
+        <button type="button" class="btn btn-primary" :disabled="submitting || missing.length > 0" @click="emit('sign')">
+          <i class="fa-solid fa-signature" aria-hidden="true" /> Firmar
+        </button>
+      </div>
     </footer>
   </div>
 </template>
@@ -519,6 +574,90 @@ const RETURN_HINT = computed(() => props.returnInfo)
 
 .wiz-ready {
   color: var(--success);
+}
+
+.wiz-who {
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  ol {
+    list-style: none;
+    margin: 0.6rem 0 0;
+    padding: 0;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--cream-200);
+
+    strong,
+    small {
+      display: block;
+      font-size: 1rem;
+    }
+
+    small {
+      color: var(--ink-600);
+    }
+  }
+}
+
+.wiz-who-sub {
+  margin: 0.2rem 0 0;
+  color: var(--ink-600);
+}
+
+.wiz-who-n {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  border: 2px solid var(--ink-400);
+  color: var(--ink-600);
+
+  &.now {
+    background: var(--gold-500);
+    border-color: var(--gold-500);
+    color: #fff;
+  }
+}
+
+.wiz-tag {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: var(--powder-100);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink-600);
+
+  &.now {
+    background: rgba(185, 128, 47, 0.18);
+    color: #7a4f12;
+  }
+}
+
+.wiz-all summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--navy-800);
+}
+
+.wiz-sign {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .wiz-nav {
