@@ -123,8 +123,5 @@ const trail = computed(() => {
 .trail-text {
   font-size: 1rem;
   color: var(--ink-600);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>
