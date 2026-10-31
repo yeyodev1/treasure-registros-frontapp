@@ -1,184 +1,187 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useCatalogStore } from '@/stores/catalog'
-import { STATUS_ICONS, authorName, formatRecordDate, formatStamp, statusLabel } from '@/utils/ism'
+import { formatStamp, recordWhen, recordWho } from '@/utils/ism'
+import SignTrail from '@/components/sign/SignTrail.vue'
 import type { IsmRecord } from '@/types'
 
-defineProps<{ record: IsmRecord }>()
+/**
+ * Una fila de Por firmar o del Archivo: qué es, cuándo y quién, las marcas
+ * que importan (novedad, devuelto, prueba) y la cadena de firmas. El PDF se
+ * abre con un botón con texto, no con un ícono suelto.
+ */
+const props = defineProps<{ record: IsmRecord }>()
 const emit = defineEmits<{ pdf: [record: IsmRecord] }>()
 const catalog = useCatalogStore()
+
+/** Nombre reconocible: la tarjeta del formato guiado ("Preparar el zarpe") o el título oficial. */
+const title = computed(() => {
+  const card = catalog.byCode.get(props.record.code)?.card
+  return props.record.schemaVersion && card ? card.title : props.record.title
+})
+
+const readyToSign = computed(() => {
+  const r = props.record
+  return r.status === 'borrador' && !r.returnInfo && r.flags && r.flags.total > 0 && r.flags.answered === r.flags.total
+})
+
+const place = computed(() => {
+  const r = props.record
+  return [r.context?.place, r.equipment?.name, r.position ? catalog.positionLabel.get(r.position) ?? r.position : '']
+    .filter(Boolean)
+    .join(' · ')
+})
 </script>
 
 <template>
-  <div class="row card" :class="{ 'row--nov': record.flags?.novedades, 'row--returned': record.returnInfo }">
-    <RouterLink :to="`/registro/${record._id}`" class="main">
-      <span class="dot" :class="`s-${record.status}`">
-        <i class="fa-solid" :class="STATUS_ICONS[record.status]" aria-hidden="true" />
+  <div class="rr" :class="{ 'rr--returned': record.returnInfo && record.status !== 'archivado', 'rr--nov': record.flags?.novedades }">
+    <RouterLink :to="`/registro/${record._id}`" class="rr-main">
+      <span class="rr-title">
+        {{ title }} <span class="rr-code">{{ record.code.replace('_', ' · ') }}</span>
       </span>
-      <span class="body">
-        <strong>{{ record.code.replace('_', ' · ') }} · {{ record.title }}</strong>
-        <small>
-          {{ formatRecordDate(record.recordDate) }} · {{ statusLabel(record) }}
-          <template v-if="record.equipment"> · {{ record.equipment.name }}</template>
-          <template v-if="record.position"> · {{ catalog.positionLabel.get(record.position) ?? record.position }}</template>
-        </small>
-        <span v-if="record.flags || record.returnInfo || record.test" class="tags">
-          <span v-if="record.test" class="tag tag--test"><i class="fa-solid fa-flask" aria-hidden="true" /> Prueba</span>
-          <span
-            v-if="record.status === 'borrador' && !record.returnInfo && record.flags && record.flags.answered === record.flags.total"
-            class="tag tag--ready"
-          >
-            <i class="fa-solid fa-signature" aria-hidden="true" /> Falta firmar y enviar
-          </span>
-          <span v-if="record.flags?.novedades" class="tag tag--nov">
-            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" />
-            {{ record.flags.novedades }} {{ record.flags.novedades === 1 ? 'novedad' : 'novedades' }}
-          </span>
-          <span v-if="record.flags?.noAplica" class="tag">
-            <i class="fa-solid fa-minus" aria-hidden="true" /> {{ record.flags.noAplica }} no aplican
-          </span>
-          <span v-if="record.returnInfo" class="tag tag--ret">
-            <i class="fa-solid fa-rotate-left" aria-hidden="true" /> Devuelto<template v-if="record.returnInfo.section"> · {{ record.returnInfo.section }}</template>
-          </span>
+      <span class="rr-meta">
+        {{ recordWhen(record) }}<template v-if="place"> · {{ place }}</template><template v-if="recordWho(record)"> · {{ recordWho(record) }}</template>
+      </span>
+      <span v-if="record.returnInfo && record.status !== 'archivado'" class="rr-returned">
+        <i class="fa-solid fa-rotate-left" aria-hidden="true" />
+        <span>Devuelto<template v-if="record.returnInfo.section"> · {{ record.returnInfo.section }}</template>: {{ record.returnInfo.reason }}</span>
+      </span>
+      <span class="rr-tags">
+        <SignTrail :record="record" />
+        <span v-if="record.flags?.novedades" class="pill pill--nov">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+          {{ record.flags.novedades }} {{ record.flags.novedades === 1 ? 'novedad' : 'novedades' }}
         </span>
-        <small class="by">
-          <template v-if="record.context?.filledBy?.name || authorName(record)">{{ record.context?.filledBy?.name || authorName(record) }} · </template>actualizado {{ formatStamp(record.updatedAt) }}
-        </small>
+        <span v-if="record.flags?.noAplica" class="pill">{{ record.flags.noAplica }} no aplican</span>
+        <span v-if="readyToSign" class="pill pill--turn">
+          <i class="fa-solid fa-signature" aria-hidden="true" /> Falta firmar y enviar
+        </span>
+        <span v-if="record.test" class="pill"><i class="fa-solid fa-flask" aria-hidden="true" /> Prueba</span>
       </span>
+      <span class="rr-by">Actualizado {{ formatStamp(record.updatedAt) }} · {{ record.fileName }}</span>
     </RouterLink>
-    <button type="button" class="pdf" aria-label="Ver PDF" title="Ver PDF" @click="emit('pdf', record)">
+    <button type="button" class="rr-pdf" :aria-label="`Ver el PDF ${record.fileName}`" @click="emit('pdf', record)">
       <i class="fa-regular fa-file-pdf" aria-hidden="true" />
+      <span>PDF</span>
     </button>
   </div>
 </template>
 
 <style scoped lang="scss">
-.row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.6rem;
-  transition: box-shadow 0.18s ease, transform 0.18s ease;
+@use '@/styles/mixins' as *;
 
-  &:hover {
-    box-shadow: var(--shadow-lg);
-  }
-}
-
-.tag--test {
-  background: rgba(39, 68, 90, 0.12) !important;
-  color: var(--navy-700) !important;
-}
-
-.tag--ready {
-  background: var(--navy-800) !important;
-  color: #fff !important;
-}
-
-.row--nov {
-  border-left: 4px solid var(--warning);
-}
-
-.row--returned {
-  border-left: 4px solid var(--danger);
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin: 0.25rem 0 0.1rem;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.12rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  background: var(--cream-200);
-  color: var(--ink-600);
-
-  &--nov {
-    background: rgba(185, 128, 47, 0.18);
-    color: #7a4f14;
-  }
-
-  &--ret {
-    background: rgba(180, 72, 59, 0.12);
-    color: var(--danger);
-  }
-}
-
-.main {
-  flex: 1;
-  min-width: 0;
+.rr {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  text-decoration: none;
-  color: inherit;
-  padding: 0.2rem;
-}
-
-.dot {
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--powder-100);
-  color: var(--navy-700);
-  font-size: 0.85rem;
-
-  &.s-por_capitan,
-  &.s-por_oficina {
-    background: rgba(185, 128, 47, 0.15);
-    color: #8a5d1d;
-  }
-
-  &.s-archivado {
-    background: rgba(63, 122, 87, 0.14);
-    color: var(--success);
-  }
-}
-
-.body {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-
-  strong {
-    font-size: 0.92rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  small {
-    font-size: 0.76rem;
-    color: var(--ink-600);
-  }
-
-  .by {
-    color: var(--ink-400);
-  }
-}
-
-.pdf {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
-  color: var(--danger);
+  padding: 0 0.9rem 0 0;
+  background: var(--surface);
   transition: background 0.15s ease;
 
   &:hover {
-    background: rgba(180, 72, 59, 0.08);
+    background: var(--hover);
+  }
+
+  &--returned {
+    box-shadow: inset 4px 0 0 var(--danger);
+  }
+}
+
+.rr-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 0 1rem 1.25rem;
+}
+
+.rr-title {
+  font-weight: 600;
+  font-size: 1.08rem;
+}
+
+.rr-code {
+  font-weight: 500;
+  color: var(--ink-400);
+  white-space: nowrap;
+}
+
+.rr-meta {
+  color: var(--ink-600);
+  font-variant-numeric: tabular-nums;
+}
+
+.rr-returned {
+  display: flex;
+  gap: 0.5rem;
+  color: var(--danger);
+  font-weight: 600;
+
+  i {
+    margin-top: 0.3rem;
+    font-size: 0.85rem;
+  }
+}
+
+.rr-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+  margin-top: 0.15rem;
+}
+
+.rr-by {
+  font-size: 1rem;
+  color: var(--ink-400);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rr-pdf {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 48px;
+  padding: 0 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  font-weight: 600;
+  color: var(--navy-800);
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--navy-600);
+    background: var(--hover);
+  }
+
+  // En el teléfono el botón queda solo con el ícono (su nombre lo lee el lector).
+  @media (max-width: 639px) {
+    width: 48px;
+    padding: 0;
+    justify-content: center;
+    align-self: flex-start;
+    margin-top: 0.9rem;
+
+    span {
+      display: none;
+    }
+  }
+}
+
+.rr {
+  @media (max-width: 639px) {
+    padding-right: 0.6rem;
+  }
+}
+
+.rr-main {
+  @media (max-width: 639px) {
+    padding-left: 1rem;
   }
 }
 </style>
