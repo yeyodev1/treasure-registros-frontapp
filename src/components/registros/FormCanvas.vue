@@ -89,10 +89,18 @@ function photoUrl(f: IsmField): string {
 
 <template>
   <div ref="wrap" class="canvas" :style="{ '--zoom': zoom }">
+    <p v-if="editable" class="canvas-legend">
+      <span><span class="swatch swatch--text" aria-hidden="true" /> Recuadro azul: tócalo para escribir o marcar.</span>
+      <span><span class="swatch swatch--sign" aria-hidden="true" /> Recuadro con borde: espera una firma o una foto.</span>
+    </p>
     <div class="sheets">
-      <div
+      <figure
         v-for="(page, pi) in form.pages"
         :key="pi"
+        class="sheet-wrap"
+      >
+        <figcaption v-if="form.pages.length > 1" class="sheet-label num">Página {{ pi + 1 }} de {{ form.pages.length }}</figcaption>
+      <div
         class="sheet"
         :style="{ aspectRatio: `${page.width} / ${page.height}` }"
       >
@@ -192,11 +200,14 @@ function photoUrl(f: IsmField): string {
           </button>
         </template>
       </div>
+      </figure>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
+// Marco de la hoja oficial: la hoja tal cual, con borde suave, su número de
+// página y una leyenda corta de qué se toca.
 .canvas {
   width: 100%;
   overflow-x: auto;
@@ -204,20 +215,67 @@ function photoUrl(f: IsmField): string {
   border-radius: var(--radius-sm);
 }
 
+.canvas-legend {
+  position: sticky;
+  left: 0;
+  margin: 0 0 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  font-size: 1rem;
+  color: var(--ink-600);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.swatch {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+
+  &--text {
+    background: rgba(200, 215, 231, 0.8);
+  }
+
+  &--sign {
+    background: rgba(158, 117, 77, 0.12);
+    box-shadow: inset 0 0 0 1.5px rgba(158, 117, 77, 0.7);
+  }
+}
+
 .sheets {
   width: calc(100% * var(--zoom));
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  transition: width 0.2s ease;
+  gap: 1.25rem;
+  transition: width 0.25s var(--ease);
+}
+
+.sheet-wrap {
+  margin: 0;
+}
+
+.sheet-label {
+  position: sticky;
+  left: 0;
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink-600);
 }
 
 .sheet {
   position: relative;
   width: 100%;
   background: #fff;
-  box-shadow: var(--shadow);
-  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
   overflow: hidden;
 }
 
@@ -244,8 +302,8 @@ function photoUrl(f: IsmField): string {
 
   &:focus {
     outline: none;
-    background: rgba(159, 107, 60, 0.12);
-    box-shadow: inset 0 0 0 1.5px var(--gold-500);
+    background: rgba(191, 212, 225, 0.5);
+    box-shadow: inset 0 0 0 2px var(--navy-700);
   }
 
   &.ro {
