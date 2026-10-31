@@ -75,34 +75,44 @@ watch(() => route.fullPath, refresh)
     <button
       type="button"
       class="icon-btn bell-btn"
+      :class="{ open }"
       :aria-label="unread ? `Avisos: ${unread} sin leer` : 'Avisos'"
       :aria-expanded="open"
       @click="open = !open"
     >
       <i class="fa-solid fa-bell" aria-hidden="true" />
-      <Transition name="fade">
-        <span v-if="unread" class="bell-badge">{{ unread > 9 ? '9+' : unread }}</span>
+      <Transition name="badge">
+        <span v-if="unread" :key="unread" class="bell-badge num">{{ unread > 9 ? '9+' : unread }}</span>
       </Transition>
     </button>
     <Transition name="pop">
       <div v-if="open" class="bell-panel" role="dialog" aria-label="Avisos">
         <header>
-          <strong>Avisos</strong>
-          <button v-if="unread" type="button" class="bell-all" @click="readAll">Marcar todo como leído</button>
+          <h2>Avisos</h2>
+          <span v-if="unread" class="pill pill--turn num">{{ unread }} sin leer</span>
         </header>
-        <p v-if="!notices.length" class="bell-empty">No tienes avisos.</p>
+        <p v-if="!notices.length" class="bell-empty">
+          <i class="fa-regular fa-bell-slash" aria-hidden="true" />
+          <span><strong>No tienes avisos.</strong> Aquí aparecen los registros por firmar, las devoluciones y las claves bloqueadas.</span>
+        </p>
         <ul v-else>
           <li v-for="n in notices" :key="n._id">
             <button type="button" class="bell-item" :class="{ unread: !n.readAt }" @click="go(n)">
               <i class="fa-solid" :class="ICONS[n.kind] ?? 'fa-bell'" aria-hidden="true" />
-              <span>
+              <span class="bell-text">
                 <strong>{{ n.title }}</strong>
-                <small v-if="n.body">{{ n.body }}</small>
-                <small>{{ formatStamp(n.createdAt) }}</small>
+                <span v-if="n.body" class="bell-body">{{ n.body }}</span>
+                <span class="bell-when num">{{ formatStamp(n.createdAt) }}</span>
               </span>
+              <span v-if="!n.readAt" class="bell-dot" aria-label="Sin leer" />
             </button>
           </li>
         </ul>
+        <footer v-if="unread">
+          <button type="button" class="link-btn" @click="readAll">
+            <i class="fa-solid fa-check-double" aria-hidden="true" /> Marcar todo como leído
+          </button>
+        </footer>
       </div>
     </Transition>
   </div>
@@ -115,30 +125,36 @@ watch(() => route.fullPath, refresh)
 
 .bell-btn {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
   color: var(--ink-900);
+  font-size: 1.1rem;
+  transition: background 0.15s ease;
 
-  &:hover {
-    background: rgba(27, 43, 37, 0.08);
+  &:hover,
+  &.open {
+    background: var(--active);
   }
 }
 
+// Contador: caramelo, el color de «te toca».
 .bell-badge {
   position: absolute;
-  top: 4px;
-  right: 2px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
+  top: 3px;
+  right: 1px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
   border-radius: 999px;
-  background: var(--danger);
+  background: var(--gold-500);
+  border: 2px solid var(--surface);
   color: #fff;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 700;
+  line-height: 1;
   display: grid;
   place-items: center;
 }
@@ -147,92 +163,146 @@ watch(() => route.fullPath, refresh)
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
-  width: min(380px, calc(100vw - 24px));
+  width: min(400px, calc(100vw - 24px));
   max-height: 70dvh;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   z-index: 40;
   text-align: left;
+  overflow: hidden;
+  transform-origin: top right;
 
   header {
-    position: sticky;
-    top: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.7rem 0.9rem;
-    background: var(--surface);
-    border-bottom: 1px solid var(--cream-200);
+    min-height: 60px;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--line);
+
+    h2 {
+      font-size: 1.3rem;
+    }
   }
 
   ul {
+    flex: 1;
+    overflow: auto;
     list-style: none;
     margin: 0;
-    padding: 0.3rem;
+    padding: 0;
   }
-}
 
-.bell-all {
-  min-height: 44px;
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--navy-700);
-  text-decoration: underline;
+  li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  footer {
+    padding: 0.25rem 0.75rem;
+    border-top: 1px solid var(--line);
+  }
 }
 
 .bell-empty {
   margin: 0;
-  padding: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1.1rem 1rem;
   color: var(--ink-600);
+
+  i {
+    margin-top: 0.2rem;
+    color: var(--ink-400);
+  }
+
+  strong {
+    display: block;
+    color: var(--ink-900);
+  }
 }
 
 .bell-item {
   width: 100%;
-  min-height: 56px;
-  display: flex;
-  gap: 0.7rem;
-  align-items: flex-start;
-  padding: 0.6rem;
-  border-radius: var(--radius-sm);
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 10px;
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.85rem 1rem;
   text-align: left;
   color: var(--ink-600);
+  transition: background 0.15s ease;
 
   &:hover {
-    background: var(--powder-100);
+    background: var(--hover);
+  }
+
+  > i {
+    margin-top: 0.2rem;
+    color: var(--ink-400);
   }
 
   &.unread {
     color: var(--ink-900);
-    background: rgba(39, 68, 90, 0.06);
 
-    strong::before {
-      content: '';
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      margin-right: 0.4rem;
-      border-radius: 50%;
-      background: var(--danger);
-      vertical-align: middle;
+    > i {
+      color: var(--navy-700);
     }
   }
+}
 
-  i {
-    margin-top: 0.25rem;
-    color: var(--navy-700);
-  }
+.bell-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
 
-  span {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
+  strong {
+    font-weight: 600;
   }
+}
 
-  small {
-    color: var(--ink-400);
-  }
+.bell-body {
+  color: var(--ink-600);
+}
+
+.bell-when {
+  color: var(--ink-400);
+}
+
+.bell-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 0.45rem;
+  border-radius: 50%;
+  background: var(--gold-500);
+}
+
+.pop-enter-active,
+.pop-leave-active {
+  transition: transform 0.2s var(--ease), opacity 0.18s ease;
+}
+
+.pop-enter-from,
+.pop-leave-to {
+  transform: translateY(-6px) scale(0.98);
+  opacity: 0;
+}
+
+.badge-enter-active,
+.badge-leave-active {
+  transition: transform 0.2s var(--ease), opacity 0.2s ease;
+}
+
+.badge-enter-from,
+.badge-leave-to {
+  transform: scale(0.5);
+  opacity: 0;
 }
 </style>
