@@ -118,39 +118,43 @@ async function create() {
 
 <template>
   <div class="page">
-    <h1 class="page-title">Nuevo registro</h1>
-    <p class="lead">Elige el formato oficial. Se abre igual que el papel, listo para llenar y firmar.</p>
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Nuevo registro</h1>
+        <p class="page-lead">Elige el formato oficial. Se abre igual que el papel, listo para llenar y firmar.</p>
+      </div>
+    </header>
 
     <div class="search">
       <i class="fa-solid fa-magnifying-glass" aria-hidden="true" />
-      <input v-model="query" type="search" placeholder="Buscar por código o nombre (R-16, botiquín, zarpe…)" />
+      <input v-model="query" type="search" aria-label="Buscar formato" placeholder="Busca por código o nombre: R-16, botiquín, zarpe" />
     </div>
 
     <SkeletonList v-if="loading" variant="card" :rows="6" />
 
-    <p v-else-if="!groups.length" class="empty">No hay formatos con «{{ query }}».</p>
+    <p v-else-if="!groups.length" class="empty-state">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true" />
+      <span><strong>No hay formatos con «{{ query }}».</strong> Prueba con el código, por ejemplo R-16.</span>
+    </p>
 
-    <section v-for="[group, items] in groups" :key="group" class="group">
+    <section v-for="[group, items] in groups" :key="group" class="group" :aria-label="group">
       <h2>{{ group }}</h2>
-      <TransitionGroup tag="div" name="list" appear class="grid">
-        <button
-          v-for="f in items"
-          :key="f.code"
-          type="button"
-          class="form card"
-          :class="{ locked: blocked(f) }"
-          @click="choose(f)"
-        >
-          <span class="fcode">{{ f.code.replace('_', ' · ') }}</span>
-          <span class="ftitle">{{ f.title }}</span>
-          <span v-if="f.guidedVersion" class="fguided"><i class="fa-solid fa-list-check" aria-hidden="true" /> Llenado guiado</span>
-          <span class="fmeta">
-            <span><i class="fa-regular fa-clock" aria-hidden="true" /> {{ FREQUENCY_LABELS[f.frequency] ?? f.frequency }}</span>
-            <span v-if="f.stages.capitan"><i class="fa-solid fa-anchor" aria-hidden="true" /> Capitán</span>
-            <span v-if="f.officeOnly"><i class="fa-solid fa-building" aria-hidden="true" /> Solo oficina</span>
-            <span v-if="f.pages > 1"><i class="fa-regular fa-copy" aria-hidden="true" /> {{ f.pages }} págs.</span>
-          </span>
-        </button>
+      <TransitionGroup tag="ul" name="list" appear class="forms card">
+        <li v-for="f in items" :key="f.code">
+          <button type="button" class="form" :class="{ locked: blocked(f) }" @click="choose(f)">
+            <span class="fbody">
+              <span class="ftitle">{{ f.title }} <span class="fcode">{{ f.code.replace('_', ' · ') }}</span></span>
+              <span class="fmeta">
+                {{ FREQUENCY_LABELS[f.frequency] ?? f.frequency }}<template v-if="f.stages.capitan"> · Firma el Capitán</template><template v-if="f.pages > 1"> · {{ f.pages }} páginas</template>
+              </span>
+              <span v-if="f.officeOnly" class="fmeta flock">
+                <i class="fa-solid fa-lock" aria-hidden="true" /> Lo llena la Persona Designada
+              </span>
+            </span>
+            <span v-if="f.guidedVersion" class="pill pill--ok">Paso a paso</span>
+            <i class="fa-solid fa-chevron-right fchev" aria-hidden="true" />
+          </button>
+        </li>
       </TransitionGroup>
     </section>
 
@@ -188,19 +192,14 @@ async function create() {
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
 
-.lead {
-  margin: 0.2rem 0 1rem;
-  color: var(--ink-600);
-}
-
 .search {
   position: relative;
-  margin-bottom: 1.2rem;
-  max-width: 560px;
+  margin-bottom: 1.75rem;
+  max-width: 620px;
 
   i {
     position: absolute;
-    left: 0.9rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--ink-400);
@@ -208,119 +207,138 @@ async function create() {
 
   input {
     width: 100%;
-    min-height: 48px;
-    padding: 0 1rem 0 2.5rem;
+    min-height: 52px;
+    padding: 0 1rem 0 2.75rem;
     border-radius: var(--radius-sm);
-    border: 1.5px solid var(--cream-200);
+    border: 1px solid var(--line-strong);
     background: var(--surface);
     font: inherit;
+    font-size: 1.05rem;
     transition: border-color 0.15s ease;
 
     &:focus {
-      outline: none;
-      border-color: var(--gold-500);
+      outline: 3px solid var(--powder-300);
+      border-color: var(--navy-600);
     }
   }
 }
 
 .group {
-  margin-bottom: 1.4rem;
+  margin-bottom: 2rem;
 
   h2 {
-    margin: 0 0 0.6rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-400);
+    margin: 0 0 0.75rem;
+    font-size: 1.35rem;
   }
 }
 
-.grid {
+// Los formatos de un grupo en una sola lista; dos columnas en computadora.
+.forms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0.6rem;
 
-  @include tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  li {
+    border-top: 1px solid var(--line);
   }
 
-  @include desktop {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  li:first-child {
+    border-top: none;
+  }
+
+  @media (min-width: 1100px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0;
+
+    li:nth-child(2) {
+      border-top: none;
+    }
+
+    li:nth-child(even) {
+      border-left: 1px solid var(--line);
+    }
   }
 }
 
 .form {
+  width: 100%;
+  height: 100%;
+  min-height: 72px;
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem 0.85rem 1.25rem;
   text-align: left;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: background 0.15s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    border-color: var(--gold-400);
-    box-shadow: var(--shadow-lg);
+    background: var(--hover);
   }
 
-  &.locked {
-    opacity: 0.55;
+  &.locked .ftitle {
+    color: var(--ink-600);
   }
 }
 
-.fcode {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--gold-500);
+.fbody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .ftitle {
   font-weight: 600;
-  line-height: 1.3;
+  font-size: 1.05rem;
+  line-height: 1.35;
 }
 
-.fguided {
-  align-self: flex-start;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  background: rgba(63, 122, 87, 0.14);
-  color: var(--success);
-  font-size: 0.72rem;
-  font-weight: 700;
+.fcode {
+  font-weight: 500;
+  color: var(--ink-400);
+  white-space: nowrap;
 }
 
 .fmeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2rem 0.75rem;
-  font-size: 0.75rem;
-  color: var(--ink-400);
+  font-size: 1rem;
+  color: var(--ink-600);
 }
 
-.empty {
+.flock i {
+  font-size: 0.85rem;
+  margin-right: 0.2rem;
+}
+
+.fchev {
   color: var(--ink-400);
+  font-size: 0.85rem;
 }
 
 .new-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.1rem;
 
   small {
-    color: var(--ink-400);
-    font-size: 0.78rem;
+    color: var(--ink-600);
+    font-size: 1rem;
+  }
+
+  .btn {
+    min-height: 56px;
   }
 }
 
 .note {
   margin: 0;
-  font-size: 0.82rem;
-  color: var(--ink-600);
+  font-size: 1rem;
+  color: var(--navy-900);
   background: var(--powder-100);
   border-radius: var(--radius-sm);
-  padding: 0.6rem 0.75rem;
+  padding: 0.75rem 0.9rem;
 }
 </style>
