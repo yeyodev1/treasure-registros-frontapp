@@ -128,8 +128,12 @@ function openPdf(r: IsmRecord) {
 
 <template>
   <div class="page">
-    <h1 class="page-title">Archivo</h1>
-    <p class="lead">Todos los registros con su PDF oficial. Los archivados no se pueden modificar.</p>
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">Archivo</h1>
+        <p class="page-lead">Todos los registros con su PDF oficial. Los archivados no se pueden modificar.</p>
+      </div>
+    </header>
 
     <section class="filters card">
       <div class="search">
@@ -152,12 +156,15 @@ function openPdf(r: IsmRecord) {
     </section>
 
     <SkeletonList v-if="loading" variant="card" :rows="6" />
-    <p v-else-if="!records.length" class="empty">
-      <i class="fa-regular fa-folder-open" aria-hidden="true" /> No hay registros con estos filtros.
+    <p v-else-if="!records.length" class="empty-state">
+      <i class="fa-regular fa-folder-open" aria-hidden="true" />
+      <span><strong>No hay registros con estos filtros.</strong> Prueba con otras fechas o quita los filtros.</span>
     </p>
     <template v-else>
-      <TransitionGroup tag="div" name="list" appear class="list">
-        <RecordRow v-for="r in records" :key="r._id" :record="r" @pdf="openPdf" />
+      <TransitionGroup tag="ul" name="list" appear class="list card">
+        <li v-for="r in records" :key="r._id">
+          <RecordRow :record="r" @pdf="openPdf" />
+        </li>
       </TransitionGroup>
       <div ref="sentinel" class="sentinel">
         <BaseSpinner v-if="loadingMore" />
@@ -170,16 +177,12 @@ function openPdf(r: IsmRecord) {
 <style scoped lang="scss">
 @use '@/styles/mixins' as *;
 
-.lead {
-  margin: 0.2rem 0 1rem;
-  color: var(--ink-600);
-}
-
+// Filtros en una sola tarjeta: la búsqueda arriba, las opciones debajo.
 .filters {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .search {
@@ -187,7 +190,7 @@ function openPdf(r: IsmRecord) {
 
   i {
     position: absolute;
-    left: 0.9rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--ink-400);
@@ -195,16 +198,17 @@ function openPdf(r: IsmRecord) {
 
   input {
     width: 100%;
-    min-height: 46px;
-    padding: 0 1rem 0 2.5rem;
+    min-height: 48px;
+    padding: 0 1rem 0 2.75rem;
     border-radius: var(--radius-sm);
-    border: 1.5px solid var(--cream-200);
+    border: 1px solid var(--line-strong);
     background: var(--surface);
     font: inherit;
+    font-size: 1rem;
 
     &:focus {
-      outline: none;
-      border-color: var(--gold-500);
+      outline: 3px solid var(--powder-300);
+      border-color: var(--navy-600);
     }
   }
 }
@@ -224,25 +228,25 @@ function openPdf(r: IsmRecord) {
 }
 
 .list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+
+  li + li {
+    border-top: 1px solid var(--line);
+  }
 }
 
 .sentinel {
   display: grid;
   place-items: center;
-  min-height: 56px;
+  min-height: 64px;
 }
 
 .end {
-  font-size: 0.8rem;
-  color: var(--ink-400);
-}
-
-.empty {
-  color: var(--ink-400);
-  padding: 2rem 0;
+  font-size: 1rem;
+  color: var(--ink-600);
 }
 
 .fade-enter-active,
