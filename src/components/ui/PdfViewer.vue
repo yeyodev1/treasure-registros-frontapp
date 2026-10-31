@@ -82,19 +82,21 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition name="pdfv">
       <div v-if="viewer.recordId" class="pdfv" role="dialog" :aria-label="viewer.fileName">
         <header class="pdfv-head">
-          <button type="button" class="pdfv-btn" aria-label="Cerrar el PDF" @click="viewer.close()">
+          <button type="button" class="btn btn-ghost pdfv-back" aria-label="Cerrar el PDF" @click="viewer.close()">
             <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Volver
           </button>
-          <p class="pdfv-name">
+          <div class="pdfv-name">
             <i class="fa-regular fa-file-pdf" aria-hidden="true" />
-            <span>{{ viewer.fileName }}</span>
-            <small v-if="pageCount">{{ pageCount === 1 ? '1 página' : `${pageCount} páginas` }}</small>
-          </p>
+            <span class="pdfv-file num">{{ viewer.fileName }}</span>
+            <Transition name="fade">
+              <span v-if="pageCount" class="pdfv-pages-count">{{ pageCount === 1 ? '1 página' : `${pageCount} páginas` }}</span>
+            </Transition>
+          </div>
           <a
-            class="pdfv-btn pdfv-btn--main"
+            class="btn btn-primary pdfv-download"
             :class="{ disabled: !url }"
             :href="url || undefined"
             :download="viewer.fileName"
@@ -106,11 +108,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
         <div class="pdfv-body">
           <Transition name="fade" mode="out-in">
             <div v-if="state === 'loading'" key="l" class="pdfv-state">
-              <i class="fa-solid fa-spinner fa-spin" aria-hidden="true" /> Preparando el PDF…
+              <p><i class="fa-solid fa-spinner fa-spin" aria-hidden="true" /> Preparando el PDF…</p>
             </div>
-            <div v-else-if="state === 'error'" key="e" class="pdfv-state">
-              <p><i class="fa-solid fa-triangle-exclamation" aria-hidden="true" /> No se pudo abrir el PDF. {{ error }}</p>
-              <button type="button" class="pdfv-btn pdfv-btn--main" @click="render(viewer.recordId!)">
+            <div v-else-if="state === 'error'" key="e" class="pdfv-state pdfv-state--error">
+              <p>
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                <span><strong>No se pudo abrir el PDF.</strong> {{ error }}</span>
+              </p>
+              <button type="button" class="btn btn-primary" @click="render(viewer.recordId!)">
                 <i class="fa-solid fa-rotate-right" aria-hidden="true" /> Reintentar
               </button>
             </div>
@@ -123,79 +128,93 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/mixins' as *;
+
+// Visor claro: barra blanca con el nombre del archivo y Descargar; las hojas
+// sobre el azul gris del libro de registro.
 .pdfv {
   position: fixed;
   inset: 0;
   z-index: 60;
   display: flex;
   flex-direction: column;
-  background: #3a4651;
+  background: var(--cream-200);
 }
 
 .pdfv-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  padding: calc(0.5rem + env(safe-area-inset-top)) 0.75rem 0.5rem;
-  background: var(--navy-800);
-  color: #fff;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: calc(0.6rem + env(safe-area-inset-top)) 1rem 0.6rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-900);
+
+  @include tablet {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
+.pdfv-back,
+.pdfv-download {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.pdfv-download.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+// En el teléfono el nombre del archivo baja a su propia línea, entero.
 .pdfv-name {
-  flex: 1;
+  order: 3;
+  flex: 1 0 100%;
   min-width: 0;
-  margin: 0;
+
+  @include tablet {
+    order: 0;
+    flex: 1 1 auto;
+  }
+
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
+  flex-wrap: wrap;
+  column-gap: 0.6rem;
+  row-gap: 0;
   font-size: 1rem;
 
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
-
-  small {
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 400;
-    white-space: nowrap;
+  > i {
+    color: var(--navy-700);
   }
 }
 
-.pdfv-btn {
-  min-height: 44px;
-  padding: 0 1rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  border-radius: var(--radius-sm);
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  color: #fff;
-  font-weight: 600;
-  font-size: 1rem;
-  text-decoration: none;
+.pdfv-file {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 600;
+}
 
-  &--main {
-    background: #fff;
-    border-color: #fff;
-    color: var(--navy-800);
-  }
-
-  &.disabled {
-    opacity: 0.5;
-    pointer-events: none;
-  }
+.pdfv-pages-count {
+  color: var(--ink-600);
+  white-space: nowrap;
 }
 
 .pdfv-body {
   flex: 1;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 1rem 0.75rem calc(1rem + env(safe-area-inset-bottom));
+  padding: 1rem 0.75rem calc(1.5rem + env(safe-area-inset-bottom));
+
+  @include tablet {
+    padding: 1.5rem 1.5rem calc(2rem + env(safe-area-inset-bottom));
+  }
 }
 
 .pdfv-pages {
@@ -208,22 +227,61 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     max-width: 100%;
     height: auto;
     background: #fff;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    animation: page-in 0.3s var(--ease) both;
   }
 }
 
 .pdfv-state {
-  color: #fff;
-  font-size: 1rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 0.9rem;
   max-width: 640px;
   margin: 2rem auto;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  color: var(--ink-600);
 
   p {
     margin: 0;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+
+  i {
+    margin-top: 0.2rem;
+  }
+
+  strong {
+    color: var(--ink-900);
+  }
+
+  &--error i {
+    color: var(--danger);
+  }
+}
+
+.pdfv-enter-active,
+.pdfv-leave-active {
+  transition: opacity 0.2s ease, transform 0.22s var(--ease);
+}
+
+.pdfv-enter-from,
+.pdfv-leave-to {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
 </style>
