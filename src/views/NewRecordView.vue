@@ -69,6 +69,11 @@ const equipmentOptions = computed(() =>
 
 const needsEquipment = computed(() => chosen.value?.frequency === 'por_equipo')
 const needsPosition = computed(() => chosen.value?.frequency.startsWith('por_cargo') ?? false)
+/** R-07 y R-23: la directora elige entre hotelería; quien tiene un solo cargo lo abre a su nombre. */
+const positionOptions = computed(() => {
+  const allowed = catalog.fillPositions
+  return allowed ? catalog.positions.filter((p) => allowed.includes(p.value)) : catalog.positions
+})
 const blocked = (f: IsmCatalogItem) => f.canCreate === false
 
 function choose(f: IsmCatalogItem) {
@@ -85,7 +90,15 @@ function choose(f: IsmCatalogItem) {
   creationKey = newKey()
   recordDate.value = todayGalapagos()
   equipmentFolder.value = ''
-  position.value = f.frequency.startsWith('por_cargo') ? userStore.user?.position ?? '' : ''
+  const own = userStore.user?.position ?? ''
+  const opts = positionOptions.value
+  position.value = !f.frequency.startsWith('por_cargo')
+    ? ''
+    : opts.length === 1
+      ? opts[0]!.value
+      : opts.some((p) => p.value === own)
+        ? own
+        : ''
 }
 
 const canCreate = computed(
@@ -170,10 +183,18 @@ async function create() {
           <small>Se llenan solos el nombre, la marca, el modelo y la serie del equipo.</small>
         </div>
 
-        <div v-if="needsPosition" class="field">
-          <label>Cargo</label>
-          <BaseSelect v-model="position" :options="catalog.positions" placeholder="Elige el cargo" />
+        <div v-if="needsPosition && positionOptions.length > 1" class="field">
+          <label>¿Quién lo llena?</label>
+          <BaseSelect v-model="position" :options="positionOptions" placeholder="Elige el cargo" />
         </div>
+        <p v-else-if="needsPosition && position" class="note">
+          <i class="fa-solid fa-user" aria-hidden="true" />
+          Se abre a tu nombre: {{ catalog.positionLabel.get(position) ?? position }}.
+        </p>
+        <p v-else-if="needsPosition" class="note">
+          <i class="fa-solid fa-circle-info" aria-hidden="true" />
+          Aún no tienes cargo. Pide a la Persona Designada que te lo ponga en Tripulantes.
+        </p>
 
         <p class="note">
           <i class="fa-solid fa-circle-info" aria-hidden="true" />

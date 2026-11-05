@@ -238,9 +238,10 @@ async function sign() {
   place-items: center;
   padding: 1rem 1rem 2rem;
 
+  // Tamaño de firma real, no estirada a todo el recuadro (5-nov-2026: "queda muy grande").
   img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: min(60%, 320px);
+    max-height: 90px;
     object-fit: contain;
   }
 }

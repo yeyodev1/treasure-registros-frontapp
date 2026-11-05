@@ -51,6 +51,8 @@ export async function apiCatalog() {
     forms: IsmCatalogItem[]
     equipment: IsmEquipment[]
     positions: Array<{ value: string; label: string }>
+    /** Cargos por los que esta cuenta abre un R-07 o R-23 (null = cualquiera). */
+    fillPositions?: string[] | null
     vessel?: { id: string; name: string } | null
   }>('/ism/catalog')
   return data
