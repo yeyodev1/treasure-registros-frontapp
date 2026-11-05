@@ -46,6 +46,10 @@ export interface IsmForm {
   stages: Record<SignatureStage, number>
   pages: Array<{ width: number; height: number }>
   fields: IsmField[]
+  /** Quién recibe en tierra (R-18 Hotelería: Administración). Por defecto, la Persona Designada. */
+  officeRole?: 'admin'
+  /** R-07: recuadro del saliente y del que recibe el cargo. */
+  handoff?: { from: string; to: string }
 }
 
 export interface IsmCatalogItem {
@@ -285,6 +289,8 @@ export interface IsmRecord {
   answers?: Record<string, IsmAnswer>
   flags?: IsmFlags | null
   returnInfo?: IsmReturnInfo | null
+  /** R-07 enviado a quien recibe el cargo. */
+  handoff?: { to: string; toName: string; by: string; at: string } | null
   /** Edición del formato oficial con que se llenó. */
   formEdition?: string
   /** Registro de prueba: fuera de indicadores y avisos. */

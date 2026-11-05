@@ -24,6 +24,8 @@ const ICONS: Record<string, string> = {
   espera_capitan: 'fa-hourglass-half',
   espera_designada: 'fa-hourglass-half',
   clave_bloqueada: 'fa-lock',
+  entrega_cargo: 'fa-people-arrows',
+  por_recibir: 'fa-box-open',
 }
 
 async function refresh() {

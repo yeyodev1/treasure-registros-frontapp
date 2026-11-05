@@ -50,10 +50,20 @@ function normalize(s: string) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
+/** R-18 (5-nov): uno solo, dividido en Cubierta, Máquinas y Hotelería. */
+const r18Variants = computed(() => catalog.forms.filter((f) => f.code.startsWith('R-18_') && !blocked(f)))
+const r18Pick = shallowRef(false)
+
 const groups = computed(() => {
   const q = normalize(query.value.trim())
   const map = new Map<string, IsmCatalogItem[]>()
-  for (const f of catalog.forms) {
+  const r18 = r18Variants.value[0]
+  const merged = catalog.forms.flatMap((f) => {
+    if (!f.code.startsWith('R-18_')) return [f]
+    if (!r18 || f.code !== r18.code) return []
+    return [{ ...r18, code: 'R-18', title: 'Orden de requisición · Cubierta, Máquinas u Hotelería' }]
+  })
+  for (const f of merged) {
     // Cada área ve solo los R que llena (tabla del cliente, 5-nov-2026).
     if (blocked(f)) continue
     if (q && !normalize(`${f.code} ${f.title} ${f.group}`).includes(q)) continue
@@ -77,6 +87,11 @@ const positionOptions = computed(() => {
 const blocked = (f: IsmCatalogItem) => f.canCreate === false
 
 function choose(f: IsmCatalogItem) {
+  if (f.code === 'R-18') {
+    if (r18Variants.value.length === 1) choose(r18Variants.value[0]!)
+    else r18Pick.value = true
+    return
+  }
   if (blocked(f)) {
     toast.push(`El ${f.code.replace('_', ' · ')} no lo llena tu área.`, 'info')
     return
@@ -169,6 +184,17 @@ async function create() {
         </li>
       </TransitionGroup>
     </section>
+
+    <BaseModal v-if="r18Pick" title="R-18 · ¿De qué área es el pedido?" @close="r18Pick = false">
+      <ul class="forms card">
+        <li v-for="v in r18Variants" :key="v.code">
+          <button type="button" class="form" @click="r18Pick = false; choose(v)">
+            <span class="fbody"><span class="ftitle">{{ v.title.replace('Orden de requisición · ', '') }}</span></span>
+            <i class="fa-solid fa-chevron-right fchev" aria-hidden="true" />
+          </button>
+        </li>
+      </ul>
+    </BaseModal>
 
     <BaseModal v-if="chosen" :title="`${chosen.code.replace('_', ' · ')} · ${chosen.title}`" @close="chosen = null">
       <form class="new-form" @submit.prevent="create">

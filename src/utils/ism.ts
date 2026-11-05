@@ -58,9 +58,11 @@ export function canEditRecord(
   // borrador, también cuando vuelve devuelto. Los demás revisan y devuelven con motivo.
   if (record.schemaVersion) return record.status === 'borrador' && Boolean(userId) && creatorId(record) === userId
   if (isManagerRole(role)) return true
+  // R-07 enviado: quien recibe lee y firma; no cambia lo que le dejaron.
+  if (record.status === 'borrador' && record.handoff) return false
   if (record.status === 'borrador') return form.officeOnly ? role === 'designada' : true
   if (record.status === 'por_capitan') return role === 'capitan'
-  return role === 'designada'
+  return role === (form.officeRole ?? 'designada')
 }
 
 /** Misma regla que el servidor: quién firma cada recuadro y cuándo. */
@@ -72,7 +74,7 @@ export function canSignSlot(
 ): boolean {
   if (!role) return false
   // La firma va atada al rol: nadie firma por el Capitán ni por la Persona Designada.
-  const roleOk = stage === 'capitan' ? role === 'capitan' : stage === 'oficina' ? role === 'designada' : true
+  const roleOk = stage === 'capitan' ? role === 'capitan' : stage === 'oficina' ? role === (form.officeRole ?? 'designada') : true
   if (!roleOk) return false
   if (stage === 'tripulacion') return record.status === 'borrador'
   if (stage === 'capitan') return record.status === 'borrador' || record.status === 'por_capitan'

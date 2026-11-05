@@ -11,7 +11,9 @@ import { useSound } from '@/composables/useSound'
 import { useAutosave } from '@/composables/useAutosave'
 import { useSignatureImages } from '@/composables/useSignatureImages'
 import {
+  apiCrew,
   apiDiscard,
+  apiHandoff,
   apiRecord,
   apiSetTest,
   apiRecordAction,
@@ -45,6 +47,8 @@ import CrewSign from '@/components/sign/CrewSign.vue'
 import SentPanel from '@/components/sign/SentPanel.vue'
 import ReviewerPanel from '@/components/sign/ReviewerPanel.vue'
 import SignSteps from '@/components/sign/SignSteps.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
+import BaseSelect from '@/components/ui/BaseSelect.vue'
 import type { IsmAnswer, IsmField, IsmForm, IsmMissing, IsmRecord, IsmSchema, IsmSignature, SignatureStage } from '@/types'
 
 const route = useRoute()
@@ -116,7 +120,51 @@ const slotsByStage = computed(() => {
   return groups
 })
 
-const canSubmit = computed(() => record.value?.status === 'borrador' && editable.value)
+/** R-07 enviado a esta cuenta: lee, firma como entrante y lo pasa al Capitán. */
+const receiving = computed(
+  () => record.value?.status === 'borrador' && Boolean(record.value.handoff) && record.value.handoff?.to === userStore.user?.id,
+)
+const canSubmit = computed(() => record.value?.status === 'borrador' && (editable.value || receiving.value))
+/** R-07 (5-nov): el saliente no se encuentra con quien entra; firma y se lo envía. */
+const canHandoff = computed(
+  () =>
+    Boolean(form.value?.handoff) &&
+    record.value?.status === 'borrador' &&
+    !record.value.handoff &&
+    editable.value &&
+    !signedMap.value.get(form.value!.handoff!.to),
+)
+const handoffOpen = shallowRef(false)
+const handoffTo = shallowRef('')
+const handoffOptions = shallowRef<Array<{ value: string; label: string; hint?: string }>>([])
+
+async function openHandoff() {
+  if (!signedMap.value.get(form.value!.handoff!.from)?.valid) {
+    toast.push('Primero firma como saliente.', 'info')
+    return
+  }
+  handoffTo.value = ''
+  handoffOpen.value = true
+  try {
+    const crew = await apiCrew()
+    handoffOptions.value = crew
+      .filter((m) => m.id !== userStore.user?.id)
+      .map((m) => ({ value: m.id, label: m.name, hint: catalogStore.positionLabel.get(m.position) ?? '' }))
+  } catch (err) {
+    toast.error(apiErrorMessage(err))
+  }
+}
+
+async function sendHandoff() {
+  if (!handoffTo.value) return
+  const name = handoffOptions.value.find((o) => o.value === handoffTo.value)?.label ?? ''
+  await run(async () => {
+    await apiHandoff(record.value!._id, handoffTo.value)
+    handoffOpen.value = false
+    toast.success(`Enviado a ${name}. Ya no aparece en tu lista.`)
+    router.push('/')
+  })
+}
 /** Registros guiados con firmas por pasos (R-14): se firman en sus pantallas. */
 const stepSigned = computed(() => Boolean(guided.value && schema.value?.signers?.length))
 const canApprove = computed(
@@ -124,7 +172,7 @@ const canApprove = computed(
     !stepSigned.value &&
     // Firma y devolución solo desde la cuenta del rol (no Gerencia por otro).
     ((record.value?.status === 'por_capitan' && userStore.role === 'capitan') ||
-      (record.value?.status === 'por_oficina' && userStore.role === 'designada')),
+      (record.value?.status === 'por_oficina' && userStore.role === (form.value?.officeRole ?? 'designada'))),
 )
 
 /** Pantalla 4 (Capitán) o 5 (Persona Designada): solo la cuenta de ese rol la ve. */
@@ -377,7 +425,9 @@ async function submit() {
   const novedades = record.value?.flags?.novedades ?? 0
   const ok = await confirmStore.ask({
     title: `¿Enviar ${record.value?.code}?`,
-    message: guided.value
+    message: receiving.value
+      ? 'Confirmas que leíste la entrega del cargo. Pasa al Capitán para su firma.'
+      : guided.value
       ? `Pasa al Capitán para su revisión y firma${novedades ? ` con ${novedades} ${novedades === 1 ? 'novedad' : 'novedades'} destacadas` : ''}. Enviar no autoriza el zarpe: lo decide el Capitán. Ya no podrás editarlo salvo que te lo devuelvan.`
       : form.value?.stages.capitan
         ? 'Pasa al Capitán para su revisión y firma. Ya no podrás editarlo salvo que te lo devuelvan.'
@@ -656,12 +706,22 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 
         <aside class="side">
           <div class="card actions">
-            <button v-if="canSubmit && !guided" type="button" class="btn btn-primary" :disabled="busy" @click="submit">
-              <i class="fa-solid fa-paper-plane" aria-hidden="true" /> Listo para enviar
+            <p v-if="receiving" class="test-note">
+              <i class="fa-solid fa-people-arrows" aria-hidden="true" />
+              Te entregan el cargo. Lee lo que te dejaron, firma como entrante y envíalo al Capitán.
+            </p>
+            <p v-else-if="record.handoff && record.status === 'borrador'" class="test-note">
+              <i class="fa-solid fa-people-arrows" aria-hidden="true" /> Enviado a {{ record.handoff.toName }} para que lo firme.
+            </p>
+            <button v-if="canHandoff" type="button" class="btn btn-primary" :disabled="busy" @click="openHandoff">
+              <i class="fa-solid fa-people-arrows" aria-hidden="true" /> Enviar a quien recibe el cargo
+            </button>
+            <button v-if="canSubmit && !guided" type="button" class="btn" :class="canHandoff ? 'btn-ghost' : 'btn-primary'" :disabled="busy" @click="submit">
+              <i class="fa-solid fa-paper-plane" aria-hidden="true" /> {{ receiving ? 'Firmé: enviar al Capitán' : 'Listo para enviar' }}
             </button>
             <button v-if="canApprove" type="button" class="btn btn-primary" :disabled="busy" @click="approve">
               <i class="fa-solid" :class="record.status === 'por_capitan' ? 'fa-anchor' : 'fa-box-archive'" aria-hidden="true" />
-              {{ record.status === 'por_capitan' ? 'Firmar y enviar a la Persona Designada' : 'Firmar y archivar' }}
+              {{ record.status === 'por_capitan' ? 'Firmar y enviar a la Persona Designada' : form?.officeRole ? 'Firmar recibido' : 'Firmar y archivar' }}
             </button>
             <button v-if="canApprove" type="button" class="btn btn-return" :disabled="busy" @click="giveBack">
               <i class="fa-solid fa-rotate-left" aria-hidden="true" />
@@ -776,6 +836,18 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
         @signed="onSigned"
       />
     </template>
+    <BaseModal v-if="handoffOpen" title="Enviar a quien recibe el cargo" @close="handoffOpen = false">
+      <form class="handoff-form" @submit.prevent="sendHandoff">
+        <p>No se ven entre ustedes: le llega en su cuenta, lo lee, firma como entrante y lo pasa al Capitán. Desde aquí ya no aparece en tu lista.</p>
+        <div class="field">
+          <label>¿Quién recibe el cargo?</label>
+          <BaseSelect v-model="handoffTo" :options="handoffOptions" searchable placeholder="Elige a la persona" />
+        </div>
+        <button type="submit" class="btn btn-primary" :disabled="!handoffTo || busy">
+          <i class="fa-solid fa-paper-plane" aria-hidden="true" /> Enviar
+        </button>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
@@ -1294,5 +1366,15 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
 .sig-note {
   margin-top: 0.7rem;
   font-size: 1rem;
+}
+
+.handoff-form {
+  display: grid;
+  gap: 1rem;
+
+  .field {
+    display: grid;
+    gap: 0.4rem;
+  }
 }
 </style>

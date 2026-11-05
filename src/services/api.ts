@@ -186,6 +186,11 @@ export async function apiRecordAction(id: string, action: 'submit' | 'approve') 
   return data.record
 }
 
+/** R-07: el saliente lo envía a quien recibe el cargo. */
+export async function apiHandoff(id: string, to: string) {
+  await http.post(`/ism/records/${id}/handoff`, { to })
+}
+
 /** Devolver con motivo y sección afectada. */
 export async function apiReturnRecord(id: string, reason: string, section: string) {
   const { data } = await http.post<{ record: IsmRecord }>(`/ism/records/${id}/return`, {
