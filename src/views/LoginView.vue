@@ -2,13 +2,42 @@
 import { computed, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { apiErrorMessage } from '@/services/httpBase'
+import { apiErrorCode, apiErrorMessage } from '@/services/httpBase'
 import BrandSeal from '@/components/ui/BrandSeal.vue'
 import PasswordInput from '@/components/ui/PasswordInput.vue'
+import PinInput from '@/components/sign/PinInput.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
+/** Tripulación entra con usuario + clave; Gerencia y oficina con correo. Se recuerda la última forma. */
+type Mode = 'usuario' | 'correo'
+function savedMode(): Mode {
+  try {
+    return localStorage.getItem('ism.loginMode') === 'correo' ? 'correo' : 'usuario'
+  } catch {
+    return 'usuario'
+  }
+}
+const mode = shallowRef<Mode>(savedMode())
+const username = shallowRef('')
+const pin = shallowRef('')
+const newPin = shallowRef('')
+const newPin2 = shallowRef('')
+/** Clave temporal: se crea la propia en el mismo paso. */
+const firstTime = shallowRef(false)
+const mismatch = computed(() => firstTime.value && newPin2.value.length === 4 && newPin.value !== newPin2.value)
+
+function setMode(next: Mode) {
+  mode.value = next
+  error.value = ''
+  try {
+    localStorage.setItem('ism.loginMode', next)
+  } catch {
+    // nada
+  }
+}
 
 const email = shallowRef('')
 const password = shallowRef('')
@@ -28,10 +57,24 @@ const next = computed(() => {
 async function submit() {
   error.value = ''
   try {
-    await userStore.login(email.value, password.value, remember.value)
+    if (mode.value === 'correo') {
+      await userStore.login(email.value, password.value, remember.value)
+    } else {
+      if (!username.value.trim()) throw new Error('Escribe tu usuario')
+      if (pin.value.length < 4) throw new Error('Escribe tu clave de 4 números')
+      if (firstTime.value && (newPin.value.length < 4 || newPin.value !== newPin2.value)) {
+        throw new Error('Crea tu clave nueva y repítela igual')
+      }
+      await userStore.loginCrew(username.value, pin.value, firstTime.value ? newPin.value : undefined, remember.value)
+    }
     router.replace(next.value)
   } catch (err) {
-    error.value = apiErrorMessage(err)
+    if (apiErrorCode(err) === 'clave_temporal') {
+      firstTime.value = true
+      return
+    }
+    if (apiErrorCode(err) === 'clave_incorrecta') pin.value = ''
+    error.value = err instanceof Error && !('isAxiosError' in err) ? err.message : apiErrorMessage(err)
   }
 }
 </script>
@@ -54,15 +97,61 @@ async function submit() {
         </p>
       </Transition>
 
-      <div class="field">
-        <label for="email">Correo</label>
-        <input id="email" v-model="email" type="email" autocomplete="username" inputmode="email" required />
+      <div class="seg" role="radiogroup" aria-label="Cómo entras">
+        <button type="button" role="radio" :aria-checked="mode === 'usuario'" :class="{ on: mode === 'usuario' }" @click="setMode('usuario')">
+          <i class="fa-solid fa-user" aria-hidden="true" /> Usuario y clave
+        </button>
+        <button type="button" role="radio" :aria-checked="mode === 'correo'" :class="{ on: mode === 'correo' }" @click="setMode('correo')">
+          <i class="fa-solid fa-envelope" aria-hidden="true" /> Correo
+        </button>
       </div>
 
-      <div class="field">
-        <label for="password">Contraseña</label>
-        <PasswordInput id="password" v-model="password" />
-      </div>
+      <template v-if="mode === 'correo'">
+        <div class="field">
+          <label for="email">Correo</label>
+          <input id="email" v-model="email" type="email" autocomplete="username" inputmode="email" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <PasswordInput id="password" v-model="password" />
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="field">
+          <label for="username">Usuario</label>
+          <input
+            id="username"
+            v-model="username"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="nombre.apellido"
+          />
+        </div>
+
+        <div class="field">
+          <span class="field-label">{{ firstTime ? 'Clave temporal' : 'Clave de 4 números' }}</span>
+          <PinInput v-model="pin" label="Clave" :invalid="Boolean(error)" />
+          <small class="login-hint">Te la da la Persona Designada. Es la misma con la que firmas.</small>
+        </div>
+
+        <Transition name="reveal">
+          <div v-if="firstTime" class="login-first">
+            <p><i class="fa-solid fa-key" aria-hidden="true" /> Es la primera vez: crea tu clave de 4 números. Solo tú la vas a saber.</p>
+            <div class="field">
+              <span class="field-label">Clave nueva</span>
+              <PinInput v-model="newPin" label="Clave nueva" />
+            </div>
+            <div class="field">
+              <span class="field-label">Repítela</span>
+              <PinInput v-model="newPin2" label="Repite la clave nueva" :invalid="mismatch" />
+            </div>
+            <small class="login-hint">Que no sean números seguidos ni repetidos (no 1234 ni 0000).</small>
+          </div>
+        </Transition>
+      </template>
 
       <button
         type="button"
@@ -156,6 +245,62 @@ async function submit() {
 
 .field :deep(input) {
   min-height: 52px;
+}
+
+.field-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink-900);
+}
+
+.login-hint {
+  font-size: 0.95rem;
+  color: var(--ink-600);
+}
+
+// Mismo selector de dos opciones que en Tripulantes («A bordo / En tierra»).
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+
+  button {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink-600);
+    font-weight: 600;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+
+    &.on {
+      background: var(--active);
+      border-color: var(--navy-800);
+      box-shadow: inset 0 0 0 1px var(--navy-800);
+      color: var(--navy-900);
+    }
+  }
+}
+
+.login-first {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-sm);
+  background: var(--powder-100);
+  border: 1px solid var(--powder-200);
+
+  > p {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    gap: 0.5rem;
+  }
 }
 
 .login-error {

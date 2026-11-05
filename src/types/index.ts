@@ -108,6 +108,12 @@ export interface IsmAnnulledSignature extends IsmSignature {
 export interface CrewMember {
   id: string
   name: string
+  /** Usuario para entrar con su clave (nombre.apellido). */
+  username: string
+  /** Correo real ('' = sin correo: avisos solo dentro de la app). */
+  email: string
+  /** Ya dibujó su firma: en las siguientes solo toca «Firmar» y pone su clave. */
+  hasSignature: boolean
   role: UserRole
   position: string
   positionLabel: string

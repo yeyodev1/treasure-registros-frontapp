@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type { SessionUser, UserRole } from '@/types'
-import { apiLogin, apiMe, apiRefresh } from '@/services/api'
+import { apiCrewLogin, apiLogin, apiMe, apiRefresh } from '@/services/api'
 import { getToken, isUnauthorized, setToken, tokenClaims, tokenExpired } from '@/services/httpBase'
 
 export const ROLE_LABELS: Record<UserRole, string> = {
@@ -61,9 +61,18 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function login(email: string, password: string, remember: boolean) {
+    return start(() => apiLogin(email, password, remember), remember)
+  }
+
+  /** Tripulación: usuario + clave de 4 números (sin correo). */
+  async function loginCrew(username: string, pin: string, newPin: string | undefined, remember: boolean) {
+    return start(() => apiCrewLogin(username, pin, newPin, remember), remember)
+  }
+
+  async function start(request: () => ReturnType<typeof apiLogin>, remember: boolean) {
     loading.value = true
     try {
-      const data = await apiLogin(email, password, remember)
+      const data = await request()
       setToken(data.token)
       user.value = data.user
       cacheUser(data.user)
@@ -166,6 +175,7 @@ export const useUserStore = defineStore('user', () => {
   return {
     user,
     loading,
+    loginCrew,
     isLogged,
     role,
     isAdmin,

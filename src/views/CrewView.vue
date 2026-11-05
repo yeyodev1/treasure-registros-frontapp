@@ -31,14 +31,22 @@ const loading = shallowRef(true)
 const busy = shallowRef('')
 const adding = shallowRef(false)
 // ref (no shallowRef): v-model escribe campo por campo y el selector debe ver el cargo elegido.
-const draft = ref({ name: '', position: '', onboard: true })
+const blankDraft = () => ({ firstName: '', lastName: '', email: '', position: '', onboard: true })
+const draft = ref(blankDraft())
 const shownPin = shallowRef<{ name: string; pin: string } | null>(null)
 const editing = shallowRef<CrewMember | null>(null)
-const editDraft = ref({ name: '', position: '' })
+const editDraft = ref({ name: '', email: '', position: '' })
 
 const ROLE_TEXT: Record<string, string> = { tripulante: 'Tripulante', capitan: 'Capitán', designada: 'Persona Designada' }
 
 const positions = computed(() => catalog.positions)
+/** Mismo formato que arma el servidor: nombre.apellido sin tildes. */
+const previewUsername = computed(() =>
+  [draft.value.firstName, draft.value.lastName]
+    .map((t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ''))
+    .filter(Boolean)
+    .join('.'),
+)
 const active = computed(() => members.value.filter((m) => m.active && !m.sharedDevice))
 const inactive = computed(() => members.value.filter((m) => !m.active && !m.sharedDevice))
 /** Cuentas compartidas (tablet del barco): no son personas; se marcan a mano. */
@@ -71,8 +79,10 @@ function replace(m: CrewMember) {
 }
 
 async function add() {
-  if (draft.value.name.trim().length < 3 || !draft.value.position) {
-    toast.error(draft.value.position ? 'Escribe el nombre completo' : 'Elige el cargo')
+  const d = draft.value
+  const missing = d.firstName.trim().length < 2 ? 'Escribe el nombre' : d.lastName.trim().length < 2 ? 'Escribe el apellido' : !d.position ? 'Elige el cargo' : ''
+  if (missing) {
+    toast.error(missing)
     return
   }
   busy.value = 'add'
@@ -81,8 +91,10 @@ async function add() {
     members.value = [...members.value, m].sort((a, b) => a.name.localeCompare(b.name))
     crewStore.load(true).catch(() => undefined)
     adding.value = false
-    draft.value = { name: '', position: '', onboard: true }
-    toast.success(canGivePin.value ? `${m.name} quedó en la lista. Ahora dale su clave temporal.` : `${m.name} quedó en la lista. La Persona Designada le da su clave temporal.`)
+    draft.value = blankDraft()
+    toast.success(
+      `${m.name} quedó en la lista con el usuario ${m.username}. ${canGivePin.value ? 'Ahora dale su clave temporal.' : 'La Persona Designada le da su clave temporal.'}`,
+    )
   } catch (err) {
     toast.error(apiErrorMessage(err))
   } finally {
@@ -125,7 +137,7 @@ async function givePin(m: CrewMember) {
 
 function openEdit(m: CrewMember) {
   editing.value = m
-  editDraft.value = { name: m.name, position: m.position }
+  editDraft.value = { name: m.name, email: m.email, position: m.position }
 }
 
 async function saveEdit() {
@@ -133,7 +145,9 @@ async function saveEdit() {
   if (!m) return
   busy.value = 'edit'
   try {
-    replace(await apiUpdateCrew(m.id, editDraft.value))
+    const { email, ...rest } = editDraft.value
+    // El correo de una cuenta propia lo maneja Gerencia.
+    replace(await apiUpdateCrew(m.id, m.hasAccount ? rest : { ...rest, email }))
     editing.value = null
     toast.success('Ficha actualizada')
   } catch (err) {
@@ -229,10 +243,14 @@ function pinState(m: CrewMember): { text: string; tone: string } {
               <strong>{{ m.name }}</strong>
               <span class="meta">
               <span class="member-sub">
-                {{ m.positionLabel || 'Sin cargo' }}<template v-if="m.role !== 'tripulante' && ROLE_TEXT[m.role] !== m.positionLabel"> · {{ ROLE_TEXT[m.role] }}</template><template v-if="!m.hasAccount"> · firma solo en la tablet</template>
+                {{ m.positionLabel || 'Sin cargo' }}<template v-if="m.role !== 'tripulante' && ROLE_TEXT[m.role] !== m.positionLabel"> · {{ ROLE_TEXT[m.role] }}</template>
               </span>
+              <span v-if="m.username" class="member-sub">Usuario: <strong class="username">{{ m.username }}</strong><template v-if="!m.email"> · sin correo, avisos solo en la app</template></span>
               <span class="pill pin" :class="`pin--${pinState(m).tone}`">
                 <i class="fa-solid" :class="m.lockedUntil ? 'fa-lock' : 'fa-key'" aria-hidden="true" /> {{ pinState(m).text }}
+              </span>
+              <span class="pill" :class="m.hasSignature ? 'pin--ok' : 'pin--muted'">
+                <i class="fa-solid fa-signature" aria-hidden="true" /> {{ m.hasSignature ? 'Firma guardada' : 'Sin firma guardada' }}
               </span>
               </span>
             </div>
@@ -295,9 +313,23 @@ function pinState(m: CrewMember): { text: string; tone: string } {
 
     <BaseModal v-if="adding" title="Agregar tripulante" @close="adding = false">
       <div class="form">
+        <div class="name-row">
+          <div class="field">
+            <label for="crew-first">Nombre</label>
+            <input id="crew-first" v-model="draft.firstName" autocomplete="off" autocapitalize="words" placeholder="Juan" />
+          </div>
+          <div class="field">
+            <label for="crew-last">Apellido</label>
+            <input id="crew-last" v-model="draft.lastName" autocomplete="off" autocapitalize="words" placeholder="Pérez" />
+          </div>
+        </div>
+        <p v-if="draft.firstName.trim() && draft.lastName.trim()" class="hint">
+          Usuario para entrar: <strong>{{ previewUsername }}</strong> (si ya existe, se le agrega un número).
+        </p>
         <div class="field">
-          <label for="crew-name">Nombre completo</label>
-          <input id="crew-name" v-model="draft.name" autocomplete="off" placeholder="Nombre y apellido" />
+          <label for="crew-email">Correo <small>(opcional)</small></label>
+          <input id="crew-email" v-model="draft.email" type="email" inputmode="email" autocomplete="off" placeholder="nombre@correo.com" />
+          <small class="hint">Sin correo no le llegan alertas por correo: sus avisos quedan solo dentro de la app.</small>
         </div>
         <div class="field">
           <label>Cargo</label>
@@ -314,7 +346,7 @@ function pinState(m: CrewMember): { text: string; tone: string } {
             </button>
           </div>
         </div>
-        <p class="hint">No necesita correo: firma en la tablet del barco eligiéndose de la lista y con su clave.</p>
+        <p class="hint">Entra con su usuario y su clave de 4 números, y firma con esa misma clave.</p>
         <button type="button" class="btn btn-primary btn-lg" :disabled="busy === 'add'" @click="add">
           <i class="fa-solid" :class="busy === 'add' ? 'fa-spinner fa-spin' : 'fa-user-plus'" aria-hidden="true" /> Agregar a la lista
         </button>
@@ -326,6 +358,11 @@ function pinState(m: CrewMember): { text: string; tone: string } {
         <div class="field">
           <label for="crew-edit-name">Nombre completo</label>
           <input id="crew-edit-name" v-model="editDraft.name" autocomplete="off" />
+        </div>
+        <div v-if="!editing.hasAccount" class="field">
+          <label for="crew-edit-email">Correo <small>(opcional)</small></label>
+          <input id="crew-edit-email" v-model="editDraft.email" type="email" inputmode="email" autocomplete="off" placeholder="nombre@correo.com" />
+          <small class="hint">Sin correo no le llegan alertas por correo: sus avisos quedan solo dentro de la app.</small>
         </div>
         <div class="field">
           <label>Cargo</label>
@@ -478,6 +515,26 @@ function pinState(m: CrewMember): { text: string; tone: string } {
   &--bad {
     background: var(--danger-100);
     color: var(--danger);
+  }
+
+  &--muted {
+    background: var(--powder-100);
+    color: var(--ink-600);
+  }
+}
+
+.username {
+  color: var(--navy-900);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.name-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @include tablet {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

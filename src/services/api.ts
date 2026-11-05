@@ -24,6 +24,17 @@ export async function apiLogin(email: string, password: string, remember: boolea
   return data
 }
 
+/** Tripulación: usuario (nombre.apellido) + clave de 4 números; `newPin` si la clave es temporal. */
+export async function apiCrewLogin(username: string, pin: string, newPin: string | undefined, remember: boolean) {
+  const { data } = await http.post<{ token: string; user: SessionUser }>('/auth/login/crew', {
+    username,
+    pin,
+    ...(newPin ? { newPin } : {}),
+    remember,
+  })
+  return data
+}
+
 /** Sesión deslizante: nuevo token con la misma duración (12 h o 30 días). */
 export async function apiRefresh() {
   const { data } = await http.post<{ token: string; user: SessionUser }>('/auth/refresh')
@@ -206,7 +217,8 @@ export async function apiUploadPhoto(file: File) {
 /** Firma el paso actual con el dedo y la clave de 4 números (y lo pasa al siguiente). */
 export async function apiSignStep(
   id: string,
-  payload: { image: string; pin: string; newPin?: string; signer?: string; deviceAt?: string },
+  /** Sin `image` se estampa la firma guardada de quien firma. */
+  payload: { image?: string; pin: string; newPin?: string; signer?: string; deviceAt?: string },
 ) {
   const { data } = await http.post<{ record: IsmRecord }>(`/ism/records/${id}/sign-step`, payload)
   return data.record
@@ -226,17 +238,29 @@ export async function apiCrew(params: { onboard?: '1'; all?: '1' } = {}) {
   return data.crew
 }
 
-export async function apiCreateCrew(payload: { name: string; position: string; onboard: boolean }) {
+export async function apiCreateCrew(payload: {
+  firstName: string
+  lastName: string
+  email: string
+  position: string
+  onboard: boolean
+}) {
   const { data } = await http.post<{ member: CrewMember }>('/ism/crew', payload)
   return data.member
 }
 
 export async function apiUpdateCrew(
   id: string,
-  payload: Partial<{ name: string; position: string; onboard: boolean; active: boolean; sharedDevice: boolean }>,
+  payload: Partial<{ name: string; email: string; position: string; onboard: boolean; active: boolean; sharedDevice: boolean }>,
 ) {
   const { data } = await http.patch<{ member: CrewMember }>(`/ism/crew/${id}`, payload)
   return data.member
+}
+
+/** Firma guardada de una persona de la lista ('' si aún no la dibujó). */
+export async function apiCrewSignature(id: string) {
+  const { data } = await http.get<{ image: string }>(`/ism/crew/${id}/signature`)
+  return data.image
 }
 
 /** Clave temporal de un solo uso: se muestra una sola vez. */

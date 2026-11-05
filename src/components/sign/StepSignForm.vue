@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from 'vue'
-import { apiSignStep } from '@/services/api'
+import { computed, onMounted, shallowRef, useTemplateRef } from 'vue'
+import { apiCrewSignature, apiSignStep } from '@/services/api'
+import { useUserStore } from '@/stores/user'
 import { apiErrorCode, apiErrorMessage } from '@/services/httpBase'
 import { useSound } from '@/composables/useSound'
 import InlineSignaturePad from './InlineSignaturePad.vue'
@@ -8,7 +9,9 @@ import PinInput from './PinInput.vue'
 import type { IsmRecord } from '@/types'
 
 /**
- * Firma con el dedo + clave de 4 números para el paso actual del registro.
+ * Firma + clave de 4 números para el paso actual del registro. La primera vez
+ * se dibuja con el dedo y queda guardada; después se estampa la guardada con
+ * un toque en «Firmar» y la clave (se puede volver a dibujar).
  * La primera vez (clave temporal) pide crear la propia en el mismo paso.
  * Los errores de clave se dicen en el momento y sin cerrar nada.
  */
@@ -28,6 +31,20 @@ const { play } = useSound()
 
 const pad = useTemplateRef<InstanceType<typeof InlineSignaturePad>>('pad')
 const hasInk = shallowRef(false)
+/** Firma guardada de quien firma ('' = la dibuja ahora y queda guardada). */
+const saved = shallowRef('')
+const redraw = shallowRef(false)
+const useSaved = computed(() => Boolean(saved.value) && !redraw.value)
+
+onMounted(async () => {
+  const id = props.signer || useUserStore().user?.id
+  if (!id) return
+  try {
+    saved.value = await apiCrewSignature(id)
+  } catch {
+    // Sin señal: se dibuja como siempre.
+  }
+})
 const pin = shallowRef('')
 const newPin = shallowRef('')
 const newPin2 = shallowRef('')
@@ -39,14 +56,14 @@ const locked = shallowRef(false)
 const mismatch = computed(() => firstTime.value && newPin2.value.length === 4 && newPin.value !== newPin2.value)
 const ready = computed(
   () =>
-    hasInk.value &&
+    (useSaved.value || hasInk.value) &&
     pin.value.length === 4 &&
     !locked.value &&
     (!firstTime.value || (newPin.value.length === 4 && newPin.value === newPin2.value)),
 )
 
 const missingHint = computed(() => {
-  if (!hasInk.value) return 'Falta tu firma en el recuadro.'
+  if (!useSaved.value && !hasInk.value) return 'Falta tu firma en el recuadro.'
   if (pin.value.length < 4) return 'Falta tu clave de 4 números.'
   if (firstTime.value && (newPin.value.length < 4 || newPin.value !== newPin2.value)) return 'Crea y repite tu clave nueva.'
   return ''
@@ -59,7 +76,7 @@ async function sign() {
   try {
     await props.beforeSign?.()
     const record = await apiSignStep(props.recordId, {
-      image: pad.value!.image(),
+      ...(useSaved.value ? {} : { image: pad.value!.image() }),
       pin: pin.value,
       ...(firstTime.value ? { newPin: newPin.value } : {}),
       ...(props.signer ? { signer: props.signer } : {}),
@@ -89,7 +106,17 @@ async function sign() {
   <div class="ssf">
     <div class="ssf-block">
       <p class="ssf-label">Tu firma</p>
-      <InlineSignaturePad ref="pad" :placeholder="padPlaceholder" @change="hasInk = $event" />
+      <div v-if="useSaved" class="ssf-saved">
+        <img :src="saved" alt="Tu firma guardada" />
+        <span class="ssf-saved-line" aria-hidden="true" />
+        <button type="button" class="ssf-redraw" @click="redraw = true">
+          <i class="fa-solid fa-pen" aria-hidden="true" /> Volver a dibujar
+        </button>
+      </div>
+      <template v-else>
+        <InlineSignaturePad ref="pad" :placeholder="padPlaceholder" @change="hasInk = $event" />
+        <p class="ssf-small">{{ saved ? 'La nueva queda guardada para tus próximas firmas.' : 'Queda guardada: la próxima vez solo tocas «Firmar» y pones tu clave.' }}</p>
+      </template>
     </div>
 
     <div class="ssf-block">
@@ -195,6 +222,48 @@ async function sign() {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem 2rem;
+}
+
+// Firma guardada: se ve como el recuadro de firma, ya firmado.
+.ssf-saved {
+  position: relative;
+  height: 220px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  padding: 1rem 1rem 2rem;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.ssf-saved-line {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 2.25rem;
+  border-bottom: 1px dashed var(--line-strong);
+}
+
+.ssf-redraw {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-700, var(--ink-600));
+  font-weight: 600;
 }
 
 .ssf-error {
