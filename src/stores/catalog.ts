@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import type { IsmCatalogItem, IsmEquipment, IsmForm, IsmSchema } from '@/types'
 import { apiCatalog, apiForm, apiSchema } from '@/services/api'
+import { useUserStore } from './user'
 
 /** Catálogo de registros ISM, equipos del R-16 y cargos; definiciones en caché. */
 export const useCatalogStore = defineStore('catalog', () => {
@@ -11,6 +12,8 @@ export const useCatalogStore = defineStore('catalog', () => {
   /** Embarcación de los datos maestros del servidor. */
   const vessel = shallowRef('')
   const loaded = shallowRef(false)
+  /** Qué R llena cada cuenta cambia con quien entra: el catálogo se recarga al cambiar de usuario. */
+  let loadedFor = ''
   const definitions = new Map<string, IsmForm>()
   const schemas = new Map<string, IsmSchema>()
 
@@ -18,8 +21,10 @@ export const useCatalogStore = defineStore('catalog', () => {
   const positionLabel = computed(() => new Map(positions.value.map((p) => [p.value, p.label])))
 
   async function load() {
-    if (loaded.value) return
+    const uid = useUserStore().user?.id ?? ''
+    if (loaded.value && loadedFor === uid) return
     const data = await apiCatalog()
+    loadedFor = uid
     forms.value = data.forms
     equipment.value = data.equipment
     positions.value = data.positions

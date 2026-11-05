@@ -54,6 +54,8 @@ const groups = computed(() => {
   const q = normalize(query.value.trim())
   const map = new Map<string, IsmCatalogItem[]>()
   for (const f of catalog.forms) {
+    // Cada área ve solo los R que llena (tabla del cliente, 5-nov-2026).
+    if (blocked(f)) continue
     if (q && !normalize(`${f.code} ${f.title} ${f.group}`).includes(q)) continue
     if (!map.has(f.group)) map.set(f.group, [])
     map.get(f.group)!.push(f)
@@ -67,11 +69,11 @@ const equipmentOptions = computed(() =>
 
 const needsEquipment = computed(() => chosen.value?.frequency === 'por_equipo')
 const needsPosition = computed(() => chosen.value?.frequency.startsWith('por_cargo') ?? false)
-const blocked = (f: IsmCatalogItem) => f.officeOnly && !userStore.isOffice
+const blocked = (f: IsmCatalogItem) => f.canCreate === false
 
 function choose(f: IsmCatalogItem) {
   if (blocked(f)) {
-    toast.push('Este registro lo llena la oficina (Persona Designada).', 'info')
+    toast.push(`El ${f.code.replace('_', ' · ')} no lo llena tu área.`, 'info')
     return
   }
   // Los formatos con llenado guiado (R-14) se abren en su asistente.
@@ -146,9 +148,6 @@ async function create() {
               <span class="ftitle">{{ f.title }} <span class="fcode">{{ f.code.replace('_', ' · ') }}</span></span>
               <span class="fmeta">
                 {{ FREQUENCY_LABELS[f.frequency] ?? f.frequency }}<template v-if="f.stages.capitan"> · Firma el Capitán</template><template v-if="f.pages > 1"> · {{ f.pages }} páginas</template>
-              </span>
-              <span v-if="f.officeOnly" class="fmeta flock">
-                <i class="fa-solid fa-lock" aria-hidden="true" /> Lo llena la Persona Designada
               </span>
             </span>
             <span v-if="f.guidedVersion" class="pill pill--ok">Paso a paso</span>
@@ -306,11 +305,6 @@ async function create() {
 .fmeta {
   font-size: 1rem;
   color: var(--ink-600);
-}
-
-.flock i {
-  font-size: 0.85rem;
-  margin-right: 0.2rem;
 }
 
 .fchev {

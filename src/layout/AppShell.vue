@@ -27,7 +27,8 @@ const navItems = computed(() => [
   { to: '/', label: 'Mis tareas', short: 'Mis tareas', icon: 'fa-house', badge: 0 },
   { to: '/nuevo', label: 'Nuevo registro', short: 'Nuevo', icon: 'fa-file-circle-plus', badge: 0 },
   { to: '/por-firmar', label: 'Por firmar', short: 'Por firmar', icon: 'fa-signature', badge: toSign.value },
-  { to: '/archivo', label: 'Archivo', short: 'Archivo', icon: 'fa-box-archive', badge: 0 },
+  // El Archivo ISM lo ven Capitán, Persona Designada y Gerencia (tabla del cliente, 5-nov-2026).
+  ...(userStore.seesAll ? [{ to: '/archivo', label: 'Archivo', short: 'Archivo', icon: 'fa-box-archive', badge: 0 }] : []),
   ...(userStore.role === 'designada' || userStore.role === 'duena'
     ? [{ to: '/tripulantes', label: 'Tripulantes', short: 'Tripulantes', icon: 'fa-users', badge: 0 }]
     : []),

@@ -39,7 +39,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/archivo',
     name: 'Archive',
     component: () => import('@/views/ArchiveView.vue'),
-    meta: { title: 'Archivo' },
+    meta: { title: 'Archivo', roles: ['duena', 'admin', 'capitan', 'designada'] },
   },
   {
     path: '/registro/:id',

@@ -103,7 +103,8 @@ function openDraft(code: string) {
 }
 
 const tasks = computed(() =>
-  baseTasks.value.map((t) => {
+  // Solo las tareas de los R que llena esta cuenta.
+  baseTasks.value.filter((t) => catalog.byCode.get(t.code)?.canCreate !== false).map((t) => {
     const d = t.guided ? openDraft(t.code) : null
     if (!d) return { ...t, extra: '' }
     const progress = d.flags ? ` (${d.flags.answered} de ${d.flags.total})` : ''

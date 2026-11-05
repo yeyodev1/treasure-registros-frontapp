@@ -54,6 +54,8 @@ export interface IsmCatalogItem {
   group: string
   frequency: string
   officeOnly: boolean
+  /** Si esta cuenta lo llena (tabla de accesos del cliente). */
+  canCreate?: boolean
   pages: number
   fieldCount: number
   stages: Record<SignatureStage, number>
