@@ -9,11 +9,11 @@ import PinInput from './PinInput.vue'
 import type { IsmRecord } from '@/types'
 
 /**
- * Firma + clave de 4 números para el paso actual del registro. La primera vez
- * se dibuja con el dedo y queda guardada; después se estampa la guardada con
- * un toque en «Firmar» y la clave (se puede volver a dibujar).
- * La primera vez (clave temporal) pide crear la propia en el mismo paso.
- * Los errores de clave se dicen en el momento y sin cerrar nada.
+ * Firma del paso actual del registro. La firma registrada (la recoge la
+ * Persona Designada en Tripulantes, o la primera que se dibuja) se pone con un
+ * toque en «Firmar». Desde la propia cuenta no se vuelve a pedir la clave: ya
+ * se puso al entrar (pedido del cliente, 5-nov-2026). En la tablet con la
+ * sesión de otra persona se pide la clave de 4 números de quien firma.
  */
 const props = defineProps<{
   recordId: string
@@ -35,9 +35,12 @@ const hasInk = shallowRef(false)
 const saved = shallowRef('')
 const redraw = shallowRef(false)
 const useSaved = computed(() => Boolean(saved.value) && !redraw.value)
+const userStore = useUserStore()
+/** Firma desde su propia cuenta: sin clave. */
+const ownSession = computed(() => !props.signer || props.signer === userStore.user?.id)
 
 onMounted(async () => {
-  const id = props.signer || useUserStore().user?.id
+  const id = props.signer || userStore.user?.id
   if (!id) return
   try {
     saved.value = await apiCrewSignature(id)
@@ -57,14 +60,14 @@ const mismatch = computed(() => firstTime.value && newPin2.value.length === 4 &&
 const ready = computed(
   () =>
     (useSaved.value || hasInk.value) &&
-    pin.value.length === 4 &&
+    (ownSession.value || pin.value.length === 4) &&
     !locked.value &&
     (!firstTime.value || (newPin.value.length === 4 && newPin.value === newPin2.value)),
 )
 
 const missingHint = computed(() => {
   if (!useSaved.value && !hasInk.value) return 'Falta tu firma en el recuadro.'
-  if (pin.value.length < 4) return 'Falta tu clave de 4 números.'
+  if (!ownSession.value && pin.value.length < 4) return 'Falta tu clave de 4 números.'
   if (firstTime.value && (newPin.value.length < 4 || newPin.value !== newPin2.value)) return 'Crea y repite tu clave nueva.'
   return ''
 })
@@ -77,7 +80,7 @@ async function sign() {
     await props.beforeSign?.()
     const record = await apiSignStep(props.recordId, {
       ...(useSaved.value ? {} : { image: pad.value!.image() }),
-      pin: pin.value,
+      ...(ownSession.value ? {} : { pin: pin.value }),
       ...(firstTime.value ? { newPin: newPin.value } : {}),
       ...(props.signer ? { signer: props.signer } : {}),
       // Hora de la tablet al firmar (el servidor guarda también la suya).
@@ -115,11 +118,11 @@ async function sign() {
       </div>
       <template v-else>
         <InlineSignaturePad ref="pad" :placeholder="padPlaceholder" @change="hasInk = $event" />
-        <p class="ssf-small">{{ saved ? 'La nueva queda guardada para tus próximas firmas.' : 'Queda guardada: la próxima vez solo tocas «Firmar» y pones tu clave.' }}</p>
+        <p class="ssf-small">{{ saved ? 'La nueva queda guardada para tus próximas firmas.' : 'Queda guardada: la próxima vez solo tocas «Firmar».' }}</p>
       </template>
     </div>
 
-    <div class="ssf-block">
+    <div v-if="!ownSession" class="ssf-block">
       <p class="ssf-label">{{ firstTime ? 'Tu clave temporal' : 'Tu clave de 4 números' }}</p>
       <div class="ssf-pin">
         <PinInput v-model="pin" :invalid="Boolean(error) && !locked" />

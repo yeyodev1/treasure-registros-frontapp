@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, ref, shallowRef, useTemplateRef } from 'vue'
 import { useCatalogStore } from '@/stores/catalog'
 import { useConfirmStore } from '@/stores/confirm'
 import { useToastStore } from '@/stores/toast'
 import { useCrewStore } from '@/stores/crew'
 import { useUserStore } from '@/stores/user'
-import { apiCreateCrew, apiCrew, apiTemporaryPin, apiUpdateCrew } from '@/services/api'
+import { apiCreateCrew, apiCrew, apiSetCrewSignature, apiTemporaryPin, apiUpdateCrew } from '@/services/api'
 import { apiErrorMessage } from '@/services/httpBase'
 import { formatHour } from '@/utils/ism'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import InlineSignaturePad from '@/components/sign/InlineSignaturePad.vue'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
 import type { CrewMember } from '@/types'
 
 /**
  * Lista de tripulantes (la mantiene la Persona Designada): nombre, cargo y
  * si está a bordo; la clave temporal de 4 números se da aquí y se muestra
- * una sola vez. El tripulante la cambia en su primera firma.
+ * una sola vez. El tripulante la cambia en su primera firma. Aquí también se
+ * recoge la firma de cada uno (5-nov-2026): queda asignada a su usuario y,
+ * desde su cuenta, «Firmar» la pone con un toque.
  */
 const catalog = useCatalogStore()
 const confirmStore = useConfirmStore()
@@ -25,6 +28,11 @@ const crewStore = useCrewStore()
 const userStore = useUserStore()
 /** La clave temporal solo la da la Persona Designada (ni Gerencia). */
 const canGivePin = computed(() => userStore.role === 'designada')
+/** Recoger firmas: Persona Designada y Gerencia (igual que el servidor). */
+const canCollectSignature = computed(() => userStore.role === 'designada' || userStore.role === 'duena')
+const signing = shallowRef<CrewMember | null>(null)
+const sigInk = shallowRef(false)
+const sigPad = useTemplateRef<InstanceType<typeof InlineSignaturePad>>('sigPad')
 
 const members = shallowRef<CrewMember[]>([])
 const loading = shallowRef(true)
@@ -128,6 +136,27 @@ async function givePin(m: CrewMember) {
     const res = await apiTemporaryPin(m.id)
     shownPin.value = { name: res.name, pin: res.pin }
     replace({ ...m, hasPin: true, pinTemporary: true, lockedUntil: null })
+  } catch (err) {
+    toast.error(apiErrorMessage(err))
+  } finally {
+    busy.value = ''
+  }
+}
+
+function openSignature(m: CrewMember) {
+  sigInk.value = false
+  signing.value = m
+}
+
+async function saveSignature() {
+  const m = signing.value
+  if (!m || !sigPad.value || !sigInk.value) return
+  busy.value = 'sig'
+  try {
+    await apiSetCrewSignature(m.id, sigPad.value.image())
+    replace({ ...m, hasSignature: true })
+    signing.value = null
+    toast.success(`Firma de ${m.name} registrada`)
   } catch (err) {
     toast.error(apiErrorMessage(err))
   } finally {
@@ -250,7 +279,7 @@ function pinState(m: CrewMember): { text: string; tone: string } {
                 <i class="fa-solid" :class="m.lockedUntil ? 'fa-lock' : 'fa-key'" aria-hidden="true" /> {{ pinState(m).text }}
               </span>
               <span class="pill" :class="m.hasSignature ? 'pin--ok' : 'pin--muted'">
-                <i class="fa-solid fa-signature" aria-hidden="true" /> {{ m.hasSignature ? 'Firma guardada' : 'Sin firma guardada' }}
+                <i class="fa-solid fa-signature" aria-hidden="true" /> {{ m.hasSignature ? 'Firma registrada' : 'Sin firma registrada' }}
               </span>
               </span>
             </div>
@@ -269,6 +298,9 @@ function pinState(m: CrewMember): { text: string; tone: string } {
               </button>
               <button v-if="canGivePin" type="button" class="btn btn-ghost" :disabled="busy === m.id" @click="givePin(m)">
                 <i class="fa-solid fa-key" aria-hidden="true" /> Clave temporal
+              </button>
+              <button v-if="canCollectSignature" type="button" class="btn btn-ghost" @click="openSignature(m)">
+                <i class="fa-solid fa-signature" aria-hidden="true" /> {{ m.hasSignature ? 'Cambiar firma' : 'Registrar firma' }}
               </button>
               <button type="button" class="btn btn-ghost" @click="openEdit(m)">
                 <i class="fa-solid fa-pen" aria-hidden="true" /> Editar
@@ -382,6 +414,17 @@ function pinState(m: CrewMember): { text: string; tone: string } {
             <p class="hint">Tiene cuenta propia: su rol y su acceso los maneja Gerencia.</p>
           </template>
         </div>
+      </div>
+    </BaseModal>
+
+    <BaseModal v-if="signing" :title="`Firma · ${signing.name}`" @close="signing = null">
+      <div class="form">
+        <p>Que <strong>{{ signing.name }}</strong> firme con el dedo. Queda asignada a su usuario: al firmar un registro desde su cuenta, solo toca «Firmar».</p>
+        <InlineSignaturePad ref="sigPad" :placeholder="`Firma de ${signing.name}`" @change="sigInk = $event" />
+        <p v-if="signing.hasSignature" class="hint">Reemplaza la firma que tenía. Los registros ya firmados no cambian.</p>
+        <button type="button" class="btn btn-primary btn-lg" :disabled="!sigInk || busy === 'sig'" @click="saveSignature">
+          <i class="fa-solid" :class="busy === 'sig' ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true" /> Guardar firma
+        </button>
       </div>
     </BaseModal>
 

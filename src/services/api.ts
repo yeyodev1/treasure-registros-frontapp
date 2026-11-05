@@ -217,8 +217,8 @@ export async function apiUploadPhoto(file: File) {
 /** Firma el paso actual con el dedo y la clave de 4 números (y lo pasa al siguiente). */
 export async function apiSignStep(
   id: string,
-  /** Sin `image` se estampa la firma guardada de quien firma. */
-  payload: { image?: string; pin: string; newPin?: string; signer?: string; deviceAt?: string },
+  /** Sin `image` se estampa la firma guardada; sin `pin` firma desde su propia cuenta. */
+  payload: { image?: string; pin?: string; newPin?: string; signer?: string; deviceAt?: string },
 ) {
   const { data } = await http.post<{ record: IsmRecord }>(`/ism/records/${id}/sign-step`, payload)
   return data.record
@@ -261,6 +261,11 @@ export async function apiUpdateCrew(
 export async function apiCrewSignature(id: string) {
   const { data } = await http.get<{ image: string }>(`/ism/crew/${id}/signature`)
   return data.image
+}
+
+/** La Persona Designada registra la firma de un tripulante (queda asignada a su usuario). */
+export async function apiSetCrewSignature(id: string, image: string) {
+  await http.put(`/ism/crew/${id}/signature`, { image })
 }
 
 /** Clave temporal de un solo uso: se muestra una sola vez. */
