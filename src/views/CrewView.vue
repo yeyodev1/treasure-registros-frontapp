@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, shallowRef } from 'vue'
+import { computed, onMounted, ref, shallowRef } from 'vue'
 import { useCatalogStore } from '@/stores/catalog'
 import { useConfirmStore } from '@/stores/confirm'
 import { useToastStore } from '@/stores/toast'
@@ -30,10 +30,11 @@ const members = shallowRef<CrewMember[]>([])
 const loading = shallowRef(true)
 const busy = shallowRef('')
 const adding = shallowRef(false)
-const draft = shallowRef({ name: '', position: '', onboard: true })
+// ref (no shallowRef): v-model escribe campo por campo y el selector debe ver el cargo elegido.
+const draft = ref({ name: '', position: '', onboard: true })
 const shownPin = shallowRef<{ name: string; pin: string } | null>(null)
 const editing = shallowRef<CrewMember | null>(null)
-const editDraft = shallowRef({ name: '', position: '' })
+const editDraft = ref({ name: '', position: '' })
 
 const ROLE_TEXT: Record<string, string> = { tripulante: 'Tripulante', capitan: 'Capitán', designada: 'Persona Designada' }
 
