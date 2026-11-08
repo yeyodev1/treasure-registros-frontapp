@@ -294,16 +294,22 @@ async function load() {
     fillGuide.value = rec.schemaVersion ? null : ((await GUIDES[`../guides/${rec.code}.json`]?.()) ?? null)
     record.value = rec
     view.value = rec.schemaVersion ? 'resumen' : fillGuide.value && editable.value ? 'pasos' : 'hoja'
-    // Registro recién creado: nombre, fecha, barco y departamento no se piden (ISM 2.0, AUTO-X01).
+    // Borrador propio: nombre, fecha, barco y departamento no se piden (ISM 2.0, AUTO-X01).
+    // Se ponen donde la hoja está vacía o solo tiene el texto impreso del formato.
     if (fillGuide.value && editable.value && rec.status === 'borrador' && creatorId(rec) === userStore.user?.id) {
-      const known = autoFillValues(fillGuide.value, {
-        me: userStore.user?.name ?? '',
-        today: new Date(new Date(rec.recordDate).getTime() - 6 * 3600e3).toISOString().slice(0, 10),
-        vessel: catalogStore.vessel,
-      })
-      // Solo si ninguno está puesto: si alguien borró uno a propósito, no vuelve.
-      if (Object.keys(known).every((f) => !hasValue(values.value[f]))) {
-        for (const [f, v] of Object.entries(known)) onChange(f, v)
+      const printed = Object.fromEntries(def.fields.filter((f) => typeof f.default === 'string' && f.default).map((f) => [f.name, f.default as string]))
+      const known = autoFillValues(
+        fillGuide.value,
+        {
+          me: userStore.user?.name ?? '',
+          today: new Date(new Date(rec.recordDate).getTime() - 6 * 3600e3).toISOString().slice(0, 10),
+          vessel: catalogStore.vessel,
+        },
+        printed,
+      )
+      for (const [f, v] of Object.entries(known)) {
+        const current = values.value[f]
+        if (!hasValue(current) || current === printed[f]) onChange(f, v)
       }
     }
     if (autosave.hasPending()) autosave.flush().catch(() => undefined)
@@ -718,6 +724,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
               :can-sign="canSign"
               :images="images"
               :user-name="userStore.user?.name ?? ''"
+              :compact="record.status === 'borrador' && creatorId(record) === userStore.user?.id && !form.officeOnly"
               @change="onChange"
               @sign="openSign"
               @photo="openPhoto"

@@ -42,3 +42,9 @@ assert.equal(r06['Text Field 12'], undefined, 'la fecha del Capitán no se pone 
 assert.equal(r06['Text Field 19'], 'Treasure of Galápagos')
 assert.equal(autoFillValues(guide('R-23'), known)['Text Field 1013'], undefined, 'el marino puede ser otro')
 console.log('datos conocidos OK')
+
+// El texto impreso del formato se conserva junto al nombre; el O/R lo pone el sistema.
+const { systemFields } = await import('../src/utils/fillGuide.ts')
+assert.equal(autoFillValues(guide('R-18_Hoteleria'), known, { 'Text Field 35': 'Director(a) de crucero' })['Text Field 35'], 'Lucía Gómez · Director(a) de crucero')
+assert.deepEqual([...systemFields(guide('R-18_Hoteleria'))].sort(), ['Text Field 1', 'Text Field 2', 'Text Field 3', 'Text Field 35', 'Text Field 36'])
+console.log('lo que pone el sistema OK')

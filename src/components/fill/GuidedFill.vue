@@ -3,7 +3,7 @@ import { computed, nextTick, reactive, shallowRef, useTemplateRef } from 'vue'
 import BaseDatePicker from '@/components/ui/BaseDatePicker.vue'
 import BaseTimePicker from '@/components/ui/BaseTimePicker.vue'
 import { useDictation, appendSaid } from '@/composables/useDictation'
-import { fromSheetDate, hasValue, itemDone, splitPhrases, toSheetDate, togglePhrase, type FillGuide, type GuideFill, type GuideItem } from '@/utils/fillGuide'
+import { LATER_STEP, systemFields, fromSheetDate, hasValue, itemDone, splitPhrases, toSheetDate, togglePhrase, type FillGuide, type GuideFill, type GuideItem } from '@/utils/fillGuide'
 import type { IsmField, IsmForm, IsmSignature } from '@/types'
 
 /**
@@ -19,6 +19,11 @@ const props = defineProps<{
   canSign: (field: IsmField) => boolean
   images: Map<string, string>
   userName: string
+  /**
+   * Quien crea el registro, en borrador (ISM 2.0): lo que pone el sistema no se
+   * pregunta (se resume arriba) y los pasos de otras personas no se muestran.
+   */
+  compact?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -30,14 +35,32 @@ const emit = defineEmits<{
 
 const top = useTemplateRef<HTMLElement>('top')
 const step = shallowRef(0)
-const lastStep = computed(() => props.guide.steps.length)
+/** «Corregir»: muestra también lo que puso el sistema. */
+const showAll = shallowRef(false)
+const sysFields = computed(() => systemFields(props.guide))
+const isKnown = (item: GuideItem) =>
+  item.kind === 'text' && sysFields.value.has(item.field) && hasValue(props.values[item.field])
+/** Datos que puso el sistema, para el resumen de arriba. */
+const knownItems = computed(() =>
+  props.compact
+    ? props.guide.steps.flatMap((st) => st.items).filter(isKnown).map((i) => ({ label: (i as { label: string }).label, value: text((i as { field: string }).field) }))
+    : [],
+)
+const steps = computed(() => {
+  if (!props.compact || showAll.value) return props.guide.steps
+  const mine = props.guide.steps.filter((st) => !(st.hint && LATER_STEP.test(st.hint)))
+  return (mine.length ? mine : props.guide.steps)
+    .map((st) => ({ ...st, items: st.items.filter((i) => !isKnown(i)) }))
+    .filter((st) => st.items.length)
+})
+const lastStep = computed(() => steps.value.length)
 const fields = computed(() => new Map(props.form.fields.map((f) => [f.name, f])))
 const signed = computed(() => new Set(props.signatures.filter((s) => s.valid !== false).map((s) => s.field)))
 const signatureOf = (name: string) => props.signatures.find((s) => s.field === name)
 
 const counted = (items: GuideItem[]) => items.filter((i) => i.kind !== 'info')
 const progress = computed(() =>
-  props.guide.steps.map((s) => {
+  steps.value.map((s) => {
     const items = counted(s.items)
     return { done: items.filter((i) => itemDone(i, props.values, signed.value)).length, total: items.length }
   }),
@@ -178,7 +201,7 @@ function photoUrl(name: string) {
       <p class="gf-count">{{ totals.done }} de {{ totals.total }} respondidos</p>
       <nav class="gf-steps" aria-label="Pasos">
         <button
-          v-for="(s, i) in guide.steps"
+          v-for="(s, i) in steps"
           :key="s.title"
           type="button"
           class="gf-step"
@@ -203,11 +226,21 @@ function photoUrl(name: string) {
       <section v-if="step < lastStep" :key="step" class="gf-body">
         <header>
           <p v-if="step === 0 && guide.intro" class="gf-intro">{{ guide.intro }}</p>
-          <h2 class="gf-title">{{ guide.steps[step]!.title }}</h2>
-          <p v-if="guide.steps[step]!.hint" class="gf-hint">{{ guide.steps[step]!.hint }}</p>
+          <div v-if="step === 0 && knownItems.length && !showAll" class="gf-known">
+            <p class="gf-known-title"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true" /> Esto ya lo puso el sistema</p>
+            <dl>
+              <div v-for="k in knownItems" :key="k.label">
+                <dt>{{ k.label }}</dt>
+                <dd>{{ k.value }}</dd>
+              </div>
+            </dl>
+            <button v-if="editable" type="button" class="gf-known-edit" @click="showAll = true">Corregir algo de esto</button>
+          </div>
+          <h2 class="gf-title">{{ steps[step]!.title }}</h2>
+          <p v-if="steps[step]!.hint" class="gf-hint">{{ steps[step]!.hint }}</p>
         </header>
 
-        <div v-for="(item, ii) in guide.steps[step]!.items" :key="ii" class="gf-item card field" :class="{ 'gf-item--info': item.kind === 'info' }">
+        <div v-for="(item, ii) in steps[step]!.items" :key="ii" class="gf-item card field" :class="{ 'gf-item--info': item.kind === 'info' }">
           <p v-if="item.kind === 'info'" class="gf-info"><i class="fa-solid fa-circle-info" aria-hidden="true" /> {{ item.text }}</p>
 
           <template v-else>
@@ -455,7 +488,7 @@ function photoUrl(name: string) {
           <p class="gf-hint">Todo lo que respondiste ya está en la hoja oficial. Revísala antes de enviar.</p>
         </header>
         <ul class="gf-review card">
-          <li v-for="(s, i) in guide.steps" :key="s.title">
+          <li v-for="(s, i) in steps" :key="s.title">
             <button type="button" @click="go(i)">
               <span class="gf-dot" :class="`st-${stateOf(i)}`">
                 <i v-if="stateOf(i) === 'done'" class="fa-solid fa-check" aria-hidden="true" />
@@ -588,6 +621,49 @@ function photoUrl(name: string) {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+}
+
+.gf-known {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--success-100);
+
+  dl {
+    margin: 0.4rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.4rem 1rem;
+  }
+
+  dt {
+    font-size: 0.82rem;
+    color: var(--ink-600);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    color: var(--ink-900);
+  }
+}
+
+.gf-known-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.gf-known-edit {
+  margin-top: 0.6rem;
+  min-height: 44px;
+  padding: 0 0.2rem;
+  border: 0;
+  background: transparent;
+  color: var(--navy-700);
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
 }
 
 .gf-intro {

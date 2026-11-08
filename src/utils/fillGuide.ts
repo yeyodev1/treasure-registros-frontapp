@@ -102,7 +102,7 @@ export function itemDone(item: GuideItem, values: Record<string, string | boolea
 }
 
 /** Pasos que llena otra persona después («Lo llena Administración», «Se llena cuando llega…»). */
-const LATER_STEP = /lo (llena|completa)|se llena cuando/i
+export const LATER_STEP = /lo (llena|completa)|se llena cuando/i
 /** «Soy yo» solo donde la hoja pide a quien crea el registro, no a otro tripulante. */
 const CREATOR_LABEL = /reporta|pide|saliente|eval[uú]a|expositor|familiariza|encargado/i
 
@@ -112,7 +112,12 @@ const CREATOR_LABEL = /reporta|pide|saliente|eval[uú]a|expositor|familiariza|en
  * en los pasos de quien crea, su nombre donde la hoja pide a quien crea, y el
  * departamento si la guía solo admite uno. Siguen siendo editables.
  */
-export function autoFillValues(guide: FillGuide, known: { me: string; today: string; vessel: string }): Record<string, string> {
+export function autoFillValues(
+  guide: FillGuide,
+  known: { me: string; today: string; vessel: string },
+  /** Texto impreso del formato (R-18: «Director(a) de crucero»): se conserva junto al nombre. */
+  defaults: Record<string, string> = {},
+): Record<string, string> {
   const out: Record<string, string> = {}
   for (const step of guide.steps) {
     if (step.hint && LATER_STEP.test(step.hint)) continue
@@ -122,11 +127,20 @@ export function autoFillValues(guide: FillGuide, known: { me: string; today: str
       const value =
         item.fill === 'today' ? toSheetDate(known.today)
         : item.fill === 'vessel' ? known.vessel
-        : item.fill === 'me' && CREATOR_LABEL.test(item.label) ? known.me
+        : item.fill === 'me' && CREATOR_LABEL.test(item.label) ? [known.me, defaults[item.field]].filter(Boolean).join(' · ')
         : /^departamento$/i.test(item.label) ? only
         : ''
       if (value) out[item.field] = value
     }
+  }
+  return out
+}
+
+/** Campos que pone el sistema: datos conocidos y el número de orden (O/R). */
+export function systemFields(guide: FillGuide): Set<string> {
+  const out = new Set(Object.keys(autoFillValues(guide, { me: 'x', today: '2000-01-01', vessel: 'x' })))
+  for (const step of guide.steps) {
+    for (const item of step.items) if (item.kind === 'text' && /número de orden/i.test(item.label)) out.add(item.field)
   }
   return out
 }
