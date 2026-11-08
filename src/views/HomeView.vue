@@ -9,6 +9,7 @@ import { recordWhen, recordWho, statusLabel, todayGalapagos } from '@/utils/ism'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
 import SkeletonBlock from '@/components/ui/SkeletonBlock.vue'
 import SignTrail from '@/components/sign/SignTrail.vue'
+import QuickCapture from '@/components/capture/QuickCapture.vue'
 import type { IsmRecord, IsmSummary } from '@/types'
 
 const userStore = useUserStore()
@@ -216,6 +217,9 @@ onMounted(load)
       </button>
     </div>
 
+    <!-- ISM 2.0: se dice lo que se necesita o se vio; el sistema arma y envía el registro. -->
+    <QuickCapture @sent="load" />
+
     <!-- Capitán y Persona Designada: primero lo que espera su firma. -->
     <section v-if="awaiting.length" class="block" aria-labelledby="h-awaiting">
       <div class="panel-head">
@@ -278,7 +282,7 @@ onMounted(load)
 
     <section class="block" aria-labelledby="h-tasks">
       <div class="panel-head">
-        <h2 id="h-tasks">¿Qué vas a hacer?</h2>
+        <h2 id="h-tasks">Otros registros</h2>
       </div>
       <TransitionGroup tag="div" name="list" appear class="tasks">
         <RouterLink v-for="t in tasks" :key="t.key" :to="t.to" class="task" :class="{ 'task--guided': t.guided }">
@@ -346,7 +350,7 @@ onMounted(load)
         <SkeletonList v-if="loading" :rows="5" />
         <p v-else-if="!recent.length" class="empty-state">
           <i class="fa-regular fa-folder-open" aria-hidden="true" />
-          <span><strong>Aún no hay registros.</strong> Empieza con «¿Qué vas a hacer?».</span>
+          <span><strong>Aún no hay registros.</strong> Empieza con «¿Qué necesitas hacer?».</span>
         </p>
         <TransitionGroup v-else tag="ul" name="list" appear class="recent-list">
           <li v-for="r in recent" :key="r._id">

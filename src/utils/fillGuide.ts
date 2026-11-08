@@ -101,6 +101,36 @@ export function itemDone(item: GuideItem, values: Record<string, string | boolea
   return itemFields(item).some((f) => hasValue(values[f]) || signed.has(f))
 }
 
+/** Pasos que llena otra persona después («Lo llena Administración», «Se llena cuando llega…»). */
+const LATER_STEP = /lo (llena|completa)|se llena cuando/i
+/** «Soy yo» solo donde la hoja pide a quien crea el registro, no a otro tripulante. */
+const CREATOR_LABEL = /reporta|pide|saliente|eval[uú]a|expositor|familiariza|encargado/i
+
+/**
+ * Datos conocidos que se ponen solos al crear (TREASURE ISM 2.0, AUTO-X01: no
+ * volver a pedir persona, fecha, barco ni departamento): fecha de hoy y barco
+ * en los pasos de quien crea, su nombre donde la hoja pide a quien crea, y el
+ * departamento si la guía solo admite uno. Siguen siendo editables.
+ */
+export function autoFillValues(guide: FillGuide, known: { me: string; today: string; vessel: string }): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const step of guide.steps) {
+    if (step.hint && LATER_STEP.test(step.hint)) continue
+    for (const item of step.items) {
+      if (item.kind !== 'text') continue
+      const only = item.suggestions?.length === 1 && typeof item.suggestions[0] === 'string' ? item.suggestions[0] : ''
+      const value =
+        item.fill === 'today' ? toSheetDate(known.today)
+        : item.fill === 'vessel' ? known.vessel
+        : item.fill === 'me' && CREATOR_LABEL.test(item.label) ? known.me
+        : /^departamento$/i.test(item.label) ? only
+        : ''
+      if (value) out[item.field] = value
+    }
+  }
+  return out
+}
+
 /** 'AAAA-MM-DD' → 'DD/MM/AAAA', como se escribe en la hoja. */
 export function toSheetDate(key: string): string {
   const m = key.match(/^(\d{4})-(\d{2})-(\d{2})$/)

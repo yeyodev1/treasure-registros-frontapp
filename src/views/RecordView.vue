@@ -31,6 +31,7 @@ import {
   STATUS_LABELS,
   canEditRecord,
   canSignSlot,
+  creatorId,
   formatHour,
   formatStamp,
   recordWhen,
@@ -43,7 +44,7 @@ import SkeletonList from '@/components/ui/SkeletonList.vue'
 import GuidedWizard from '@/components/guided/GuidedWizard.vue'
 import GuidedSummary from '@/components/guided/GuidedSummary.vue'
 import GuidedFill from '@/components/fill/GuidedFill.vue'
-import type { FillGuide } from '@/utils/fillGuide'
+import { autoFillValues, hasValue, type FillGuide } from '@/utils/fillGuide'
 import type { ContextDraft } from '@/components/guided/GuidedContextForm.vue'
 import CrewSign from '@/components/sign/CrewSign.vue'
 import SentPanel from '@/components/sign/SentPanel.vue'
@@ -293,6 +294,18 @@ async function load() {
     fillGuide.value = rec.schemaVersion ? null : ((await GUIDES[`../guides/${rec.code}.json`]?.()) ?? null)
     record.value = rec
     view.value = rec.schemaVersion ? 'resumen' : fillGuide.value && editable.value ? 'pasos' : 'hoja'
+    // Registro recién creado: nombre, fecha, barco y departamento no se piden (ISM 2.0, AUTO-X01).
+    if (fillGuide.value && editable.value && rec.status === 'borrador' && creatorId(rec) === userStore.user?.id) {
+      const known = autoFillValues(fillGuide.value, {
+        me: userStore.user?.name ?? '',
+        today: new Date(new Date(rec.recordDate).getTime() - 6 * 3600e3).toISOString().slice(0, 10),
+        vessel: catalogStore.vessel,
+      })
+      // Solo si ninguno está puesto: si alguien borró uno a propósito, no vuelve.
+      if (Object.keys(known).every((f) => !hasValue(values.value[f]))) {
+        for (const [f, v] of Object.entries(known)) onChange(f, v)
+      }
+    }
     if (autosave.hasPending()) autosave.flush().catch(() => undefined)
   } catch (err) {
     const status = axios.isAxiosError(err) ? err.response?.status : undefined

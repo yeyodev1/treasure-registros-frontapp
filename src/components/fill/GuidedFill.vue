@@ -2,6 +2,7 @@
 import { computed, nextTick, reactive, shallowRef, useTemplateRef } from 'vue'
 import BaseDatePicker from '@/components/ui/BaseDatePicker.vue'
 import BaseTimePicker from '@/components/ui/BaseTimePicker.vue'
+import { useDictation, appendSaid } from '@/composables/useDictation'
 import { fromSheetDate, hasValue, itemDone, splitPhrases, toSheetDate, togglePhrase, type FillGuide, type GuideFill, type GuideItem } from '@/utils/fillGuide'
 import type { IsmField, IsmForm, IsmSignature } from '@/types'
 
@@ -93,30 +94,9 @@ function quickOf(item: Extract<GuideItem, { kind: 'text' }>): string[] {
 }
 const phraseOn = (name: string, phrase: string) => splitPhrases(text(name)).includes(phrase)
 
-// ---- Dictado por voz (Chrome en Android lo trae; si no, no se muestra) ----
-type Recognition = { lang: string; interimResults: boolean; start(): void; stop(): void; onresult: ((e: any) => void) | null; onend: (() => void) | null; onerror: (() => void) | null }
-const Speech = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
-const canDictate = Boolean(Speech)
-const listening = shallowRef('')
-let recognition: Recognition | null = null
-function dictate(name: string) {
-  if (listening.value) {
-    recognition?.stop()
-    return
-  }
-  recognition = new Speech() as Recognition
-  recognition.lang = 'es-EC'
-  recognition.interimResults = false
-  recognition.onresult = (e) => {
-    const said = Array.from(e.results as ArrayLike<any>).map((r) => r[0].transcript).join(' ').trim()
-    if (!said) return
-    const current = text(name).trim()
-    set(name, current ? `${current.replace(/\.?$/, '.')} ${said.charAt(0).toUpperCase()}${said.slice(1)}` : said.charAt(0).toUpperCase() + said.slice(1))
-  }
-  recognition.onend = recognition.onerror = () => (listening.value = '')
-  listening.value = name
-  recognition.start()
-}
+// ---- Dictado por voz ----
+const { canDictate, listening, dictate: listen } = useDictation()
+const dictate = (name: string) => listen(name, (said) => set(name, appendSaid(text(name), said)))
 
 const suggestionOf = (s: string | { value: string; label: string }) => (typeof s === 'string' ? { value: s, label: s } : s)
 
