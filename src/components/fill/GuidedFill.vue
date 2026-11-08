@@ -2,7 +2,7 @@
 import { computed, nextTick, reactive, shallowRef, useTemplateRef } from 'vue'
 import BaseDatePicker from '@/components/ui/BaseDatePicker.vue'
 import BaseTimePicker from '@/components/ui/BaseTimePicker.vue'
-import { fromSheetDate, hasValue, itemDone, toSheetDate, type FillGuide, type GuideFill, type GuideItem } from '@/utils/fillGuide'
+import { fromSheetDate, hasValue, itemDone, splitPhrases, toSheetDate, togglePhrase, type FillGuide, type GuideFill, type GuideItem } from '@/utils/fillGuide'
 import type { IsmField, IsmForm, IsmSignature } from '@/types'
 
 /**
@@ -83,6 +83,39 @@ function fillValue(fill: GuideFill): string {
 
 function fillLabel(fill: GuideFill): string {
   return { me: `Soy yo · ${props.userName}`, today: 'Hoy', now: 'Ahora', vessel: 'Treasure of Galápagos I' }[fill]
+}
+
+/** Frases de un toque: las de la guía y "Sin novedad" en observaciones. */
+function quickOf(item: Extract<GuideItem, { kind: 'text' }>): string[] {
+  const list = [...(item.quick ?? [])]
+  if (item.input === 'textarea' && /observ|novedad|coment/i.test(item.label) && !list.includes('Sin novedad')) list.unshift('Sin novedad')
+  return list
+}
+const phraseOn = (name: string, phrase: string) => splitPhrases(text(name)).includes(phrase)
+
+// ---- Dictado por voz (Chrome en Android lo trae; si no, no se muestra) ----
+type Recognition = { lang: string; interimResults: boolean; start(): void; stop(): void; onresult: ((e: any) => void) | null; onend: (() => void) | null; onerror: (() => void) | null }
+const Speech = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
+const canDictate = Boolean(Speech)
+const listening = shallowRef('')
+let recognition: Recognition | null = null
+function dictate(name: string) {
+  if (listening.value) {
+    recognition?.stop()
+    return
+  }
+  recognition = new Speech() as Recognition
+  recognition.lang = 'es-EC'
+  recognition.interimResults = false
+  recognition.onresult = (e) => {
+    const said = Array.from(e.results as ArrayLike<any>).map((r) => r[0].transcript).join(' ').trim()
+    if (!said) return
+    const current = text(name).trim()
+    set(name, current ? `${current.replace(/\.?$/, '.')} ${said.charAt(0).toUpperCase()}${said.slice(1)}` : said.charAt(0).toUpperCase() + said.slice(1))
+  }
+  recognition.onend = recognition.onerror = () => (listening.value = '')
+  listening.value = name
+  recognition.start()
 }
 
 const suggestionOf = (s: string | { value: string; label: string }) => (typeof s === 'string' ? { value: s, label: s } : s)
@@ -221,6 +254,19 @@ function photoUrl(name: string) {
                   {{ s.label }}
                 </button>
               </div>
+              <div v-if="editable && quickOf(item).length" class="gf-chips">
+                <button
+                  v-for="q in quickOf(item)"
+                  :key="q"
+                  type="button"
+                  class="gf-chip"
+                  :class="{ on: phraseOn(item.field, q) }"
+                  :aria-pressed="phraseOn(item.field, q)"
+                  @click="set(item.field, togglePhrase(text(item.field), q))"
+                >
+                  <i class="fa-solid" :class="phraseOn(item.field, q) ? 'fa-check' : 'fa-plus'" aria-hidden="true" /> {{ q }}
+                </button>
+              </div>
               <template v-if="!(item.suggestions?.length && typeof item.suggestions[0] !== 'string')">
                 <BaseDatePicker
                   v-if="item.input === 'date' && editable"
@@ -228,14 +274,25 @@ function photoUrl(name: string) {
                   @update:model-value="dateModel(item.field).set($event)"
                 />
                 <BaseTimePicker v-else-if="item.input === 'time' && editable" :model-value="text(item.field)" @update:model-value="set(item.field, $event)" />
+                <div v-else-if="item.input === 'textarea'" class="gf-long">
                 <textarea
-                  v-else-if="item.input === 'textarea'"
                   rows="3"
                   :value="text(item.field)"
                   :readonly="!editable"
                   :placeholder="fields.get(item.field)?.reference ? `Ref.: ${fields.get(item.field)!.reference}` : ''"
                   @input="set(item.field, ($event.target as HTMLTextAreaElement).value)"
                 />
+                <button
+                  v-if="editable && canDictate"
+                  type="button"
+                  class="btn btn-ghost gf-mic"
+                  :class="{ on: listening === item.field }"
+                  @click="dictate(item.field)"
+                >
+                  <i class="fa-solid" :class="listening === item.field ? 'fa-stop' : 'fa-microphone'" aria-hidden="true" />
+                  {{ listening === item.field ? 'Escuchando… toca para terminar' : 'Dictar' }}
+                </button>
+                </div>
                 <input
                   v-else
                   :type="'text'"
@@ -652,6 +709,22 @@ textarea {
     border-style: dashed;
     color: var(--navy-700);
     font-weight: 600;
+  }
+}
+
+.gf-long {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gf-mic {
+  align-self: flex-start;
+
+  &.on {
+    background: var(--danger-100);
+    border-color: var(--danger);
+    color: var(--danger);
   }
 }
 

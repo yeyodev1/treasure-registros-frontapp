@@ -5,36 +5,143 @@
     {
       "title": "Datos de la entrega",
       "items": [
-        { "kind": "text", "field": "Text Field 19", "label": "Fecha de la entrega", "input": "date", "fill": "today" },
-        { "kind": "text", "field": "Text Field 63", "label": "Cargo que se entrega" },
-        { "kind": "text", "field": "Text Field 64", "label": "Lugar", "suggestions": ["Puerto Ayora", "Puerto Baquerizo Moreno", "Puerto Villamil", "A bordo"] }
+        {
+          "kind": "text",
+          "field": "Text Field 19",
+          "label": "Fecha de la entrega",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 63",
+          "label": "Cargo que se entrega"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 64",
+          "label": "Lugar",
+          "suggestions": [
+            "Puerto Ayora",
+            "Puerto Baquerizo Moreno",
+            "Puerto Villamil",
+            "A bordo"
+          ]
+        }
       ]
     },
     {
       "title": "Condiciones de la entrega",
       "items": [
-        { "kind": "text", "field": "Text Field 17", "label": "Condiciones generales", "hint": "Quién entra y quién sale, el motivo y las obligaciones del cargo.", "input": "textarea" },
-        { "kind": "text", "field": "Text Field 68", "label": "Condiciones operativas", "hint": "Estado de los equipos y maquinaria a cargo, inventarios.", "input": "textarea" },
-        { "kind": "text", "field": "Text Field 69", "label": "Condiciones administrativas", "hint": "Documentos, bitácoras, órdenes de trabajo y registros del SGS.", "input": "textarea" },
-        { "kind": "text", "field": "Text Field 70", "label": "Novedades, inventarios y trabajos pendientes", "hint": "Órdenes de trabajo y requisiciones pendientes, incumplimientos.", "input": "textarea" }
-      ]
+        {
+          "kind": "text",
+          "field": "Text Field 17",
+          "label": "Condiciones generales",
+          "hint": "Quién entra y quién sale, el motivo y las obligaciones del cargo. Toca lo que aplica y agrega lo que falte.",
+          "input": "textarea",
+          "quick": [
+            "Cambio de turno programado",
+            "Salida por vacaciones",
+            "Fin de contrato",
+            "Relevo por enfermedad",
+            "Se explicaron las obligaciones del cargo",
+            "Se entregaron llaves y accesos"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 68",
+          "label": "Condiciones operativas",
+          "hint": "Estado de los equipos y maquinaria a cargo, inventarios. Toca lo que aplica y agrega lo que falte.",
+          "input": "textarea",
+          "quick": [
+            "Equipos y maquinaria operativos",
+            "Inventario completo",
+            "Herramientas completas y en buen estado",
+            "Equipo con novedad (se detalla abajo)",
+            "Inventario con faltantes (se detalla abajo)"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 69",
+          "label": "Condiciones administrativas",
+          "hint": "Documentos, bitácoras, órdenes de trabajo y registros del SGS. Toca lo que aplica y agrega lo que falte.",
+          "input": "textarea",
+          "quick": [
+            "Documentos y certificados al día",
+            "Bitácoras al día",
+            "Registros del SGS al día",
+            "Órdenes de trabajo entregadas",
+            "Documentos pendientes (se detalla abajo)"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 70",
+          "label": "Novedades, inventarios y trabajos pendientes",
+          "hint": "Órdenes de trabajo y requisiciones pendientes, incumplimientos. Toca lo que aplica y agrega lo que falte.",
+          "input": "textarea",
+          "quick": [
+            "Sin trabajos pendientes",
+            "Órdenes de trabajo pendientes",
+            "Requisiciones pendientes",
+            "Incumplimientos reportados"
+          ]
+        }
+      ],
+      "hint": "Toca las frases que aplican; si algo tiene novedad, escríbelo o díctalo."
     },
     {
       "title": "Saliente y entrante",
       "items": [
-        { "kind": "text", "field": "Apellido", "label": "Cargo y nombre del saliente" },
-        { "kind": "signature", "field": "Signature Field 8", "label": "Firma del saliente" },
-        { "kind": "text", "field": "Text Field 66", "label": "Cargo y nombre del entrante" },
-        { "kind": "signature", "field": "Signature Field 9", "label": "Firma del entrante" }
+        {
+          "kind": "text",
+          "field": "Apellido",
+          "label": "Cargo y nombre del saliente",
+          "fill": "me"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 8",
+          "label": "Firma del saliente"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 66",
+          "label": "Cargo y nombre del entrante"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 9",
+          "label": "Firma del entrante"
+        }
       ]
     },
     {
       "title": "Capitán y oficina",
       "items": [
-        { "kind": "text", "field": "Text Field 21", "label": "Nombre del Capitán" },
-        { "kind": "signature", "field": "Signature Field 10", "label": "Firma del Capitán" },
-        { "kind": "text", "field": "Text Field 67", "label": "Fecha de entrega en oficina", "input": "date" },
-        { "kind": "signature", "field": "Signature Field 11", "label": "Firma de la Persona Designada" }
+        {
+          "kind": "text",
+          "field": "Text Field 21",
+          "label": "Nombre del Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 10",
+          "label": "Firma del Capitán"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 67",
+          "label": "Fecha de entrega en oficina",
+          "input": "date"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 11",
+          "label": "Firma de la Persona Designada"
+        }
       ]
     }
   ]

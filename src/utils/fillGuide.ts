@@ -21,8 +21,25 @@ export interface GuideColumn {
   input?: GuideInput
 }
 
+/**
+ * Frases de un toque para textos largos (7-nov-2026: "nunca van a llenar
+ * esto"): cada una se agrega o se quita del texto, que sigue siendo editable.
+ */
+export function togglePhrase(text: string, phrase: string): string {
+  const parts = splitPhrases(text)
+  const next = parts.includes(phrase) ? parts.filter((p) => p !== phrase) : [...parts, phrase]
+  return next.join('. ')
+}
+
+export function splitPhrases(text: string): string[] {
+  return text
+    .split(/\.\s+|\n+/)
+    .map((p) => p.trim().replace(/\.$/, ''))
+    .filter(Boolean)
+}
+
 export type GuideItem =
-  | { kind: 'text'; field: string; label: string; hint?: string; input?: GuideInput; fill?: GuideFill; suggestions?: Array<string | { value: string; label: string }> }
+  | { kind: 'text'; field: string; label: string; hint?: string; input?: GuideInput; fill?: GuideFill; suggestions?: Array<string | { value: string; label: string }>; quick?: string[] }
   /** Una sola casilla entre varias (marque con X según corresponda). */
   | { kind: 'choice'; label: string; hint?: string; options: GuideOption[] }
   /** Varias casillas independientes. */
