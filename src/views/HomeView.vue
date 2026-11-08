@@ -145,7 +145,8 @@ const cards = computed(() => {
     { key: 'misBorradores', label: 'Mis borradores', value: c.misBorradores, to: '/por-firmar?tab=borradores' },
     { key: 'por_capitan', label: 'Por firmar · Capitán', value: c.por_capitan, to: '/por-firmar?tab=capitan' },
     { key: 'por_oficina', label: 'Por firmar · Persona Designada', value: c.por_oficina, to: '/por-firmar?tab=oficina' },
-    { key: 'archivado', label: 'Archivados', value: c.archivado, to: '/archivo' },
+    // El Archivo ISM solo lo ven Capitán, Persona Designada y Gerencia.
+    ...(userStore.seesAll ? [{ key: 'archivado', label: 'Archivados', value: c.archivado, to: '/archivo' }] : []),
   ]
 })
 
@@ -612,8 +613,11 @@ onMounted(load)
   padding: 0;
   overflow: hidden;
 
+  // Sin Archivo ISM son tres cifras: una columna por cifra, sin hueco.
   @include tablet {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
   }
 }
 
@@ -655,6 +659,10 @@ onMounted(load)
   border-left: none;
 }
 
+.counts .count:last-child:nth-child(odd) {
+  grid-column: span 2;
+}
+
 @include tablet {
   .counts .count {
     border-top: none;
@@ -663,6 +671,10 @@ onMounted(load)
 
   .counts .count:first-child {
     border-left: none;
+  }
+
+  .counts .count:last-child:nth-child(odd) {
+    grid-column: auto;
   }
 }
 
