@@ -1,0 +1,877 @@
+{
+  "code": "R-28",
+  "intro": "Revisa cada equipo de seguridad y contra incendio del barco una vez al mes, cubierta por cubierta.",
+  "steps": [
+    {
+      "title": "Datos generales",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1090",
+          "label": "Mes",
+          "suggestions": [
+            "Enero",
+            "Febrero",
+            "Marzo",
+            "Abril",
+            "Mayo",
+            "Junio",
+            "Julio",
+            "Agosto",
+            "Septiembre",
+            "Octubre",
+            "Noviembre",
+            "Diciembre"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1091",
+          "label": "Fecha de la revisión",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1092",
+          "label": "Responsable",
+          "fill": "me"
+        }
+      ]
+    },
+    {
+      "title": "Cubierta principal (1 de 2)",
+      "hint": "Ítems 01 a 22: extintores, CO2, estaciones C/I y detectores de humo.",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Equipos de la cubierta principal",
+          "hint": "Marca «Probado» si el equipo está bien. La caducidad conocida aparece de guía; corrígela si cambió.",
+          "columns": [
+            {
+              "label": "Probado"
+            },
+            {
+              "label": "Caducidad"
+            },
+            {
+              "label": "Observación"
+            }
+          ],
+          "rows": [
+            [
+              "Check Box 120",
+              "Text Field 1094",
+              "Text Field 1095"
+            ],
+            [
+              "Check Box 121",
+              "Text Field 1096",
+              "Text Field 1097"
+            ],
+            [
+              "Check Box 122",
+              "Text Field 1098",
+              "Text Field 1099"
+            ],
+            [
+              "Check Box 123",
+              "Text Field 10100",
+              "Text Field 10101"
+            ],
+            [
+              "Check Box 124",
+              "Text Field 10102",
+              "Text Field 10103"
+            ],
+            [
+              "Check Box 125",
+              "Text Field 10104",
+              "Text Field 10105"
+            ],
+            [
+              "Check Box 126",
+              "Text Field 10106",
+              "Text Field 10107"
+            ],
+            [
+              "Check Box 127",
+              "Text Field 10108",
+              "Text Field 10109"
+            ],
+            [
+              "Check Box 128",
+              "Text Field 101010",
+              "Text Field 101011"
+            ],
+            [
+              "Check Box 129",
+              "Text Field 101012",
+              "Text Field 101013"
+            ],
+            [
+              "Check Box 130",
+              "Text Field 101014",
+              "Text Field 101015"
+            ],
+            [
+              "Check Box 131",
+              "Text Field 101016",
+              "Text Field 101017"
+            ],
+            [
+              "Check Box 132",
+              "Text Field 101018",
+              "Text Field 101019"
+            ],
+            [
+              "Check Box 133",
+              "Text Field 101020",
+              "Text Field 101021"
+            ],
+            [
+              "Check Box 134",
+              "Text Field 101022",
+              "Text Field 101023"
+            ],
+            [
+              "Check Box 135",
+              "Text Field 101024",
+              "Text Field 101025"
+            ],
+            [
+              "Check Box 136",
+              "Text Field 101026",
+              "Text Field 101027"
+            ],
+            [
+              "Check Box 137",
+              "Text Field 101028",
+              "Text Field 101029"
+            ],
+            [
+              "Check Box 138",
+              "Text Field 101030",
+              "Text Field 101031"
+            ],
+            [
+              "Check Box 139",
+              "Text Field 101032",
+              "Text Field 101033"
+            ],
+            [
+              "Check Box 140",
+              "Text Field 101034",
+              "Text Field 101035"
+            ],
+            [
+              "Check Box 141",
+              "Text Field 101036",
+              "Text Field 101037"
+            ]
+          ],
+          "rowLabels": [
+            "01 · Extintor de PQS 10 lbs — Salón principal (02)",
+            "02 · Extintor de PQS 10 lbs — Cubierta principal popa (02)",
+            "03 · Extintor de PQS 5 lbs — Cabina 1 (01)",
+            "04 · Extintor de PQS 5 lbs — Cabina 2 (01)",
+            "05 · Extintor de PQS 5 lbs — Cabina 3 (01)",
+            "06 · Extintor de PQS 5 lbs — Cabina 4 (01)",
+            "07 · Extintor de PQS 5 lbs — Cabina 5 (01)",
+            "08 · Botellas fijas CO2 50 lbs — Entrada máq. Bb (02)",
+            "09 · Botellas fijas CO2 50 lbs — Entrada máq. Eb (02)",
+            "10 · Estación C/I proa — Proa Eb (01)",
+            "11 · Manguera C/I y pitón — Proa Bb (01)",
+            "12 · Estación C/I popa — Popa Eb (01)",
+            "13 · Manguera C/I y pitón — Popa Eb (01)",
+            "14 · Bomba C/I portátil — Popa Bb (01)",
+            "15 · Detector de humo — Cabina 1 (02)",
+            "16 · Detector de humo — Cabina 2 (01)",
+            "17 · Detector de humo — Cabina 3 (01)",
+            "18 · Detector de humo — Cabina 4 (01)",
+            "19 · Detector de humo — Cabina 5 (01)",
+            "20 · Detector de humo — Salón principal (01)",
+            "21 · Detector de humo — Comedor pax (01)",
+            "22 · Rociador — Cabina 1 (02)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cubierta principal (2 de 2)",
+      "hint": "Ítems 23 a 39: rociadores, chalecos, hacha y aros salvavidas.",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Equipos de la cubierta principal",
+          "hint": "Marca «Probado» si el equipo está bien. La caducidad conocida aparece de guía; corrígela si cambió.",
+          "columns": [
+            {
+              "label": "Probado"
+            },
+            {
+              "label": "Caducidad"
+            },
+            {
+              "label": "Observación"
+            }
+          ],
+          "rows": [
+            [
+              "Check Box 142",
+              "Text Field 101038",
+              "Text Field 101039"
+            ],
+            [
+              "Check Box 143",
+              "Text Field 101040",
+              "Text Field 101041"
+            ],
+            [
+              "Check Box 144",
+              "Text Field 101042",
+              "Text Field 101043"
+            ],
+            [
+              "Check Box 145",
+              "Text Field 101044",
+              "Text Field 101045"
+            ],
+            [
+              "Check Box 146",
+              "Text Field 101046",
+              "Text Field 101047"
+            ],
+            [
+              "Check Box 147",
+              "Text Field 101048",
+              "Text Field 101049"
+            ],
+            [
+              "Check Box 148",
+              "Text Field 101050",
+              "Text Field 101051"
+            ],
+            [
+              "Check Box 149",
+              "Text Field 101052",
+              "Text Field 101053"
+            ],
+            [
+              "Check Box 150",
+              "Text Field 101054",
+              "Text Field 101055"
+            ],
+            [
+              "Check Box 151",
+              "Text Field 101056",
+              "Text Field 101057"
+            ],
+            [
+              "Check Box 152",
+              "Text Field 101058",
+              "Text Field 101059"
+            ],
+            [
+              "Check Box 153",
+              "Text Field 101060",
+              "Text Field 101061"
+            ],
+            [
+              "Check Box 223",
+              "Text Field 101066",
+              "Text Field 101067"
+            ],
+            [
+              "Check Box 155",
+              "Text Field 101064",
+              "Text Field 101065"
+            ],
+            [
+              "Check Box 224",
+              "Text Field 101068",
+              "Text Field 101069"
+            ],
+            [
+              "Check Box 225",
+              "Text Field 101070",
+              "Text Field 101071"
+            ],
+            [
+              "Check Box 226",
+              "Text Field 101072",
+              "Text Field 101073"
+            ]
+          ],
+          "rowLabels": [
+            "23 · Rociador — Cabina 2 (02)",
+            "24 · Rociador — Cabina 3 (01)",
+            "25 · Rociador — Cabina 4 (01)",
+            "26 · Rociador — Cabina 5 (01)",
+            "27 · Rociador — Pasillo cabinas (02)",
+            "28 · Rociador — Salón comedor (03)",
+            "29 · Chaleco salvavidas luz y pito — Cabina 1 (02)",
+            "30 · Chaleco salvavidas luz y pito — Cabina 2 (02)",
+            "31 · Chaleco salvavidas luz y pito — Cabina 3 (02)",
+            "32 · Chaleco salvavidas luz y pito — Cabina 4 (02)",
+            "33 · Chaleco salvavidas luz y pito — Cabina 5 (02)",
+            "34 · Hacha contra incendio — Proa (01)",
+            "35 · Chalecos salvavidas desembarco — Popa (18)",
+            "36 · Aro salvavida con luz y rabiza — Popa Bb (01)",
+            "37 · Aro salvavidas con luz y rabiza — Popa Eb (01)",
+            "38 · Aro salvavidas con rabiza — Proa Bb (01)",
+            "39 · Aro salvavidas con rabiza — Proa Eb (01)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cubierta 200 (1 de 2)",
+      "hint": "Ítems 40 a 66: cocina, sala de máquinas, cabinas de tripulación y equipos del puente.",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Equipos de la cubierta 200",
+          "hint": "Marca «Probado» si el equipo está bien. La caducidad conocida aparece de guía; corrígela si cambió.",
+          "columns": [
+            {
+              "label": "Probado"
+            },
+            {
+              "label": "Caducidad"
+            },
+            {
+              "label": "Observación"
+            }
+          ],
+          "rows": [
+            [
+              "Check Box 227",
+              "Text Field 101074",
+              "Text Field 101075"
+            ],
+            [
+              "Check Box 228",
+              "Text Field 101076",
+              "Text Field 101077"
+            ],
+            [
+              "Check Box 229",
+              "Text Field 101078",
+              "Text Field 101079"
+            ],
+            [
+              "Check Box 230",
+              "Text Field 101080",
+              "Text Field 101081"
+            ],
+            [
+              "Check Box 231",
+              "Text Field 101082",
+              "Text Field 101083"
+            ],
+            [
+              "Check Box 232",
+              "Text Field 101084",
+              "Text Field 101085"
+            ],
+            [
+              "Check Box 233",
+              "Text Field 101086",
+              "Text Field 101087"
+            ],
+            [
+              "Check Box 234",
+              "Text Field 101088",
+              "Text Field 101089"
+            ],
+            [
+              "Check Box 235",
+              "Text Field 101090",
+              "Text Field 101091"
+            ],
+            [
+              "Check Box 236",
+              "Text Field 101092",
+              "Text Field 101093"
+            ],
+            [
+              "Check Box 237",
+              "Text Field 101094",
+              "Text Field 101095"
+            ],
+            [
+              "Check Box 238",
+              "Text Field 101096",
+              "Text Field 101097"
+            ],
+            [
+              "Check Box 239",
+              "Text Field 101098",
+              "Text Field 101099"
+            ],
+            [
+              "Check Box 240",
+              "Text Field 1010100",
+              "Text Field 1010101"
+            ],
+            [
+              "Check Box 241",
+              "Text Field 1010102",
+              "Text Field 1010103"
+            ],
+            [
+              "Check Box 242",
+              "Text Field 1010104",
+              "Text Field 1010105"
+            ],
+            [
+              "Check Box 243",
+              "Text Field 1010106",
+              "Text Field 1010107"
+            ],
+            [
+              "Check Box 244",
+              "Text Field 1010108",
+              "Text Field 1010109"
+            ],
+            [
+              "Check Box 245",
+              "Text Field 10101010",
+              "Text Field 10101011"
+            ],
+            [
+              "Check Box 246",
+              "Text Field 10101012",
+              "Text Field 10101013"
+            ],
+            [
+              "Check Box 247",
+              "Text Field 10101014",
+              "Text Field 10101015"
+            ],
+            [
+              "Check Box 248",
+              "Text Field 10101016",
+              "Text Field 10101017"
+            ],
+            [
+              "Check Box 249",
+              "Text Field 10101018",
+              "Text Field 10101019"
+            ],
+            [
+              "Check Box 250",
+              "Text Field 10101020",
+              "Text Field 10101021"
+            ],
+            [
+              "Check Box 251",
+              "Text Field 10101022",
+              "Text Field 10101023"
+            ],
+            [
+              "Check Box 252",
+              "Text Field 10101024",
+              "Text Field 10101025"
+            ],
+            [
+              "Check Box 253",
+              "Text Field 10101026",
+              "Text Field 10101027"
+            ]
+          ],
+          "rowLabels": [
+            "40 · Extintor de CO2 10 lbs — Cocina (01)",
+            "41 · Extintor de PQS 10 lbs — Comedor tripulación (01)",
+            "42 · Extintor CO2 10 lbs — Cabinas tripulación Eb (lavandería) (01)",
+            "43 · Extintor CO2 10 lbs — Sala máquinas Bb (01)",
+            "44 · Extintor FOAM 10 lbs — Sala máquinas Bb (01)",
+            "45 · Extintor CO2 10 lbs — Sala máquinas Eb (01)",
+            "46 · Extintor FOAM 10 lbs — Sala máquinas Eb (01)",
+            "47 · Bomba C/I fija — Sala máquinas Eb (01)",
+            "48 · Sirenas /licuadoras — Salas de máquinas (02)",
+            "49 · Equipo EEBD — Sala máquinas Bb (01)",
+            "50 · Equipo EEBD — Sala máquinas Eb (01)",
+            "51 · Manta antifuego — Cocina Eb (01)",
+            "52 · Detector de humo — Cabina tripulación cuadra Eb (01)",
+            "53 · Detector de humo — Sala tableros eléctricos (01)",
+            "54 · Rociador — Cocina (02)",
+            "55 · Rociador — Comedor tripulación (01)",
+            "56 · Rociador — Cabinas tripulación proa Eb (01)",
+            "57 · Rociador — Cabinas tripulación cuadra Eb (01)",
+            "58 · Chaleco salvavidas luz y pito — Cabinas tripulación Bb (02)",
+            "59 · Chalecos salvavidas luz y pito — Cabinas tripulación proa Eb (01)",
+            "60 · Chalecos salvavidas luz y pito — Cabinas tripulación máquinas (02)",
+            "61 · Traje de bombero — Puente de gobierno (01)",
+            "62 · Línea de vida y arnés — Puente de gobierno (01)",
+            "63 · Equipo de respiración autónoma — Puente de gobierno (01)",
+            "64 · Máscara y cilindro principal — Puente de gobierno (01)",
+            "65 · Cilindro de respeto — Puente de gobierno (01)",
+            "66 · Luces de bengala tipo paracaídas — Puente de gobierno (06)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cubierta 200 (2 de 2)",
+      "hint": "Ítems 67 a 107: puente de gobierno, cabinas 6 a 9 y cubierta 01 popa.",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Equipos de la cubierta 200",
+          "hint": "Marca «Probado» si el equipo está bien. La caducidad conocida aparece de guía; corrígela si cambió.",
+          "columns": [
+            {
+              "label": "Probado"
+            },
+            {
+              "label": "Caducidad"
+            },
+            {
+              "label": "Observación"
+            }
+          ],
+          "rows": [
+            [
+              "Check Box 254",
+              "Text Field 10101028",
+              "Text Field 10101030"
+            ],
+            [
+              "Check Box 255",
+              "Text Field 10101029",
+              "Text Field 10101031"
+            ],
+            [
+              "Check Box 256",
+              "Text Field 10101032",
+              "Text Field 10101034"
+            ],
+            [
+              "Check Box 257",
+              "Text Field 10101033",
+              "Text Field 10101035"
+            ],
+            [
+              "Check Box 258",
+              "Text Field 10101036",
+              "Text Field 10101038"
+            ],
+            [
+              "Check Box 259",
+              "Text Field 10101037",
+              "Text Field 10101039"
+            ],
+            [
+              "Check Box 260",
+              "Text Field 10101040",
+              "Text Field 10101041"
+            ],
+            [
+              "Check Box 261",
+              "Text Field 10101042",
+              "Text Field 10101043"
+            ],
+            [
+              "Check Box 262",
+              "Text Field 10101044",
+              "Text Field 10101045"
+            ],
+            [
+              "Check Box 263",
+              "Text Field 10101046",
+              "Text Field 10101047"
+            ],
+            [
+              "Check Box 264",
+              "Text Field 10101048",
+              "Text Field 10101049"
+            ],
+            [
+              "Check Box 265",
+              "Text Field 10101050",
+              "Text Field 10101051"
+            ],
+            [
+              "Check Box 266",
+              "Text Field 10101052",
+              "Text Field 10101053"
+            ],
+            [
+              "Check Box 267",
+              "Text Field 10101054",
+              "Text Field 10101055"
+            ],
+            [
+              "Check Box 268",
+              "Text Field 10101056",
+              "Text Field 10101057"
+            ],
+            [
+              "Check Box 269",
+              "Text Field 10101058",
+              "Text Field 10101059"
+            ],
+            [
+              "Check Box 270",
+              "Text Field 10101060",
+              "Text Field 10101061"
+            ],
+            [
+              "Check Box 271",
+              "Text Field 10101062",
+              "Text Field 10101063"
+            ],
+            [
+              "Check Box 272",
+              "Text Field 10101064",
+              "Text Field 10101065"
+            ],
+            [
+              "Check Box 273",
+              "Text Field 10101066",
+              "Text Field 10101067"
+            ],
+            [
+              "Check Box 274",
+              "Text Field 10101068",
+              "Text Field 10101069"
+            ],
+            [
+              "Check Box 275",
+              "Text Field 10101070",
+              "Text Field 10101071"
+            ],
+            [
+              "Check Box 276",
+              "Text Field 10101072",
+              "Text Field 10101073"
+            ],
+            [
+              "Check Box 277",
+              "Text Field 10101074",
+              "Text Field 10101075"
+            ],
+            [
+              "Check Box 278",
+              "Text Field 10101076",
+              "Text Field 10101077"
+            ],
+            [
+              "Check Box 279",
+              "Text Field 10101078",
+              "Text Field 10101079"
+            ],
+            [
+              "Check Box 280",
+              "Text Field 10101080",
+              "Text Field 10101081"
+            ],
+            [
+              "Check Box 281",
+              "Text Field 10101082",
+              "Text Field 10101083"
+            ],
+            [
+              "Check Box 282",
+              "Text Field 10101084",
+              "Text Field 10101085"
+            ],
+            [
+              "Check Box 283",
+              "Text Field 10101086",
+              "Text Field 10101087"
+            ],
+            [
+              "Check Box 284",
+              "Text Field 10101088",
+              "Text Field 10101089"
+            ],
+            [
+              "Check Box 285",
+              "Text Field 10101090",
+              "Text Field 10101091"
+            ],
+            [
+              "Check Box 286",
+              "Text Field 10101092",
+              "Text Field 10101093"
+            ],
+            [
+              "Check Box 287",
+              "Text Field 10101094",
+              "Text Field 10101095"
+            ],
+            [
+              "Check Box 288",
+              "Text Field 10101096",
+              "Text Field 10101097"
+            ],
+            [
+              "Check Box 289",
+              "Text Field 10101098",
+              "Text Field 10101099"
+            ],
+            [
+              "Check Box 290",
+              "Text Field 101010100",
+              "Text Field 101010101"
+            ],
+            [
+              "Check Box 291",
+              "Text Field 101010102",
+              "Text Field 101010103"
+            ],
+            [
+              "Check Box 292",
+              "Text Field 101010104",
+              "Text Field 101010105"
+            ],
+            [
+              "Check Box 293",
+              "Text Field 101010106",
+              "Text Field 101010107"
+            ],
+            [
+              "Check Box 294",
+              "Text Field 101010108",
+              "Text Field 101010109"
+            ]
+          ],
+          "rowLabels": [
+            "67 · Señales fumígenas — Puente de gobierno (06)",
+            "68 · Extintor CO2 10 lbs — Puente de gobierno (01)",
+            "69 · Extintor PQS 10 lbs — Puente de gobierno (01)",
+            "70 · Extintor de PQS 10 lbs — Cubierta 01 popa (01)",
+            "71 · Extintor PQS 5 lbs — Cabina 6 (01)",
+            "72 · Extintor PQS 5 lbs — Cabina 7 (01)",
+            "73 · Extintor PQS 5 lbs — Cabina 8 (01)",
+            "74 · Extintor PQS 5 lbs — Cabina 9 (01)",
+            "75 · Detector de humo — Cabina 6 (01)",
+            "76 · Detector de humo — Cabina 7 (01)",
+            "77 · Detector de humo — Cabina 8 (01)",
+            "78 · Detector de humo — Cabina 9 (01)",
+            "79 · Detector de humo — Puente de gobierno (01)",
+            "80 · Detector de humo — Cabina capitán (01)",
+            "81 · Detector de humo — Cabina guía (01)",
+            "82 · Rociador — Cabina 6 (01)",
+            "83 · Rociador — Cabina 7 (01)",
+            "84 · Rociador — Cabina 8 (01)",
+            "85 · Rociador — Cabina 9 (01)",
+            "86 · Rociador — Puente de gobierno (02)",
+            "87 · Rociador — Cabina capitán (01)",
+            "88 · Rociador — Cabina guía (01)",
+            "89 · Rociador — Pasillo cabinas (02)",
+            "90 · Parlamenta bote de rescate — Cubierta 01 popa (01)",
+            "91 · Chalecos salvavidas luz y pito — Cabina 6 (02)",
+            "92 · Chalecos salvavidas luz y pito — Cabina 7 (02)",
+            "93 · Chalecos salvavidas luz y pito — Cabina 8 (02)",
+            "94 · Chalecos salvavidas luz y pito — Cabina 9 (02)",
+            "95 · Chalecos salvavidas luz y pito — Puente de gobierno (02)",
+            "96 · Chalecos salvavidas luz y pito para niños — Puente de gobierno (04)",
+            "97 · Chalecos salvavidas luz y pito — Cabina capitán (01)",
+            "98 · Chalecos salvavidas luz y pito — Cabina guía (01)",
+            "99 · Hacha contra incendio — Cubierta 01 popa (01)",
+            "100 · Aro salvavidas simple — Cubierta 01 popa (01)",
+            "101 · Aro salvavida simple — Cubierta 01 popa (01)",
+            "102 · Aro salvavidas con luz y rabiza — Puente de gobierno Bb (01)",
+            "103 · Aro salvavidas con luz y rabiza — Puente de gobierno Eb (01)",
+            "104 · SART batería — Puente de gobierno (01)",
+            "105 · Radio bidireccional # 1 batería — Puente de gobierno (01)",
+            "106 · Radio bidireccional # 2 batería — Puente de gobierno (01)",
+            "107 · Lámpara Aldis — Puente de gobierno (01)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cubierta 300 (de sol)",
+      "hint": "Ítems 108 a 114: EPIRB, balsas salvavidas y extintor.",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Equipos de la cubierta de sol",
+          "hint": "Marca «Probado» si el equipo está bien. La caducidad conocida aparece de guía; corrígela si cambió.",
+          "columns": [
+            {
+              "label": "Probado"
+            },
+            {
+              "label": "Caducidad"
+            },
+            {
+              "label": "Observación"
+            }
+          ],
+          "rows": [
+            [
+              "Check Box 295",
+              "Text Field 1010101010",
+              "Text Field 1010101011"
+            ],
+            [
+              "Check Box 296",
+              "Text Field 1010101012",
+              "Text Field 1010101013"
+            ],
+            [
+              "Check Box 297",
+              "Text Field 1010101014",
+              "Text Field 1010101015"
+            ],
+            [
+              "Check Box 298",
+              "Text Field 1010101016",
+              "Text Field 1010101017"
+            ],
+            [
+              "Check Box 299",
+              "Text Field 1010101018",
+              "Text Field 1010101019"
+            ],
+            [
+              "Check Box 300",
+              "Text Field 1010101020",
+              "Text Field 1010101021"
+            ],
+            [
+              "Check Box 301",
+              "Text Field 1010101022",
+              "Text Field 1010101023"
+            ]
+          ],
+          "rowLabels": [
+            "108 · EPIRB batería — Cubierta de sol (01)",
+            "109 · Candado hidrostático EPIRB — Cubierta de sol (01)",
+            "110 · Balsa salvavidas 01 — Cubierta de sol Eb (01)",
+            "111 · Candado hidrostático — Cubierta de sol Eb (01)",
+            "112 · Balsa salvavidas 02 — Cubierta de sol Bb (01)",
+            "113 · Candado hidrostático — Cubierta de sol Bb (01)",
+            "114 · Extintor PQS 10 lbs — Cubierta de sol (01)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 40",
+          "label": "Marinero de primera de puente"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 43",
+          "label": "Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 44",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

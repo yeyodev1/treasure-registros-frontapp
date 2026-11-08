@@ -1,0 +1,208 @@
+{
+  "code": "R-19",
+  "intro": "Reporte de los zafarranchos de la semana. Lo llena el Capitán.",
+  "steps": [
+    {
+      "title": "Zafarrancho 1: abandono y contra incendio",
+      "hint": "Obligatorio todas las semanas.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1083",
+          "label": "Fecha",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1082",
+          "label": "Lugar"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10101",
+          "label": "Latitud"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10100",
+          "label": "Longitud"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10103",
+          "label": "Hora de inicio",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10102",
+          "label": "Hora de fin",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10105",
+          "label": "Número de pasajeros",
+          "input": "number"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10104",
+          "label": "Número de tripulantes",
+          "input": "number"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10106",
+          "label": "Fecha del crucero"
+        },
+        {
+          "kind": "choice",
+          "label": "Evaluación del ejercicio",
+          "options": [
+            {
+              "field": "Check Box 110",
+              "label": "Óptimo"
+            },
+            {
+              "field": "Check Box 113",
+              "label": "Bueno"
+            },
+            {
+              "field": "Check Box 114",
+              "label": "Regular"
+            }
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101025",
+          "label": "Observaciones y novedades",
+          "input": "textarea"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101022",
+          "label": "Recomendaciones",
+          "hint": "Sugerencias de mejora, entrenamiento y capacitación.",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Zafarrancho 2",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1086",
+          "label": "¿Qué zafarrancho fue?",
+          "suggestions": [
+            "Hombre al agua",
+            "Contra incendio",
+            "Abandono",
+            "Derrame de hidrocarburos",
+            "Colisión o varada"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1085",
+          "label": "Fecha",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1084",
+          "label": "Lugar"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101010",
+          "label": "Latitud"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10107",
+          "label": "Longitud"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101011",
+          "label": "Hora de inicio",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10108",
+          "label": "Hora de fin",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101012",
+          "label": "Número de pasajeros",
+          "input": "number"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 10109",
+          "label": "Número de tripulantes",
+          "input": "number"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101013",
+          "label": "Fecha del crucero"
+        },
+        {
+          "kind": "choice",
+          "label": "Evaluación del ejercicio",
+          "options": [
+            {
+              "field": "Check Box 115",
+              "label": "Óptimo"
+            },
+            {
+              "field": "Check Box 116",
+              "label": "Bueno"
+            },
+            {
+              "field": "Check Box 117",
+              "label": "Regular"
+            }
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101015",
+          "label": "Observaciones y novedades",
+          "input": "textarea"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101018",
+          "label": "Recomendaciones",
+          "hint": "Sugerencias de mejora, entrenamiento y capacitación.",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 28",
+          "label": "Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 27",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "code": "R-20",
+  "intro": "Anota cada medicina que se entrega a bordo. Quien la recibe firma en su fila.",
+  "steps": [
+    {
+      "title": "Entregas de medicinas",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Medicinas entregadas",
+          "hint": "Una fila por entrega.",
+          "columns": [
+            {
+              "label": "Fecha",
+              "input": "date"
+            },
+            {
+              "label": "¿Quién la recibe?"
+            },
+            {
+              "label": "Síntoma"
+            },
+            {
+              "label": "Medicamento"
+            },
+            {
+              "label": "Cantidad",
+              "input": "number"
+            },
+            {
+              "label": "Firma de quien recibe"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 41",
+              "Text Field 46",
+              "Text Field 47",
+              "Text Field 48",
+              "Text Field 49",
+              "Signature Field 4"
+            ],
+            [
+              "Text Field 51",
+              "Text Field 52",
+              "Text Field 53",
+              "Text Field 54",
+              "Text Field 55",
+              "Signature Field 5"
+            ],
+            [
+              "Text Field 56",
+              "Text Field 57",
+              "Text Field 58",
+              "Text Field 59",
+              "Text Field 60",
+              "Signature Field 6"
+            ],
+            [
+              "Text Field 61",
+              "Text Field 62",
+              "Text Field 63",
+              "Text Field 64",
+              "Text Field 65",
+              "Signature Field 7"
+            ],
+            [
+              "Text Field 66",
+              "Text Field 67",
+              "Text Field 68",
+              "Text Field 69",
+              "Text Field 70",
+              "Signature Field 8"
+            ],
+            [
+              "Text Field 71",
+              "Text Field 72",
+              "Text Field 73",
+              "Text Field 74",
+              "Text Field 75",
+              "Signature Field 9"
+            ],
+            [
+              "Text Field 76",
+              "Text Field 77",
+              "Text Field 78",
+              "Text Field 79",
+              "Text Field 80",
+              "Signature Field 10"
+            ],
+            [
+              "Text Field 81",
+              "Text Field 82",
+              "Text Field 83",
+              "Text Field 84",
+              "Text Field 85",
+              "Signature Field 11"
+            ],
+            [
+              "Text Field 86",
+              "Text Field 87",
+              "Text Field 88",
+              "Text Field 89",
+              "Text Field 90",
+              "Signature Field 12"
+            ],
+            [
+              "Text Field 91",
+              "Text Field 92",
+              "Text Field 93",
+              "Text Field 94",
+              "Text Field 95",
+              "Signature Field 13"
+            ],
+            [
+              "Text Field 96",
+              "Text Field 97",
+              "Text Field 98",
+              "Text Field 99",
+              "Text Field 100",
+              "Signature Field 14"
+            ],
+            [
+              "Text Field 101",
+              "Text Field 102",
+              "Text Field 103",
+              "Text Field 104",
+              "Text Field 105",
+              "Signature Field 15"
+            ],
+            [
+              "Text Field 106",
+              "Text Field 107",
+              "Text Field 108",
+              "Text Field 109",
+              "Text Field 1010",
+              "Signature Field 16"
+            ],
+            [
+              "Text Field 1011",
+              "Text Field 1012",
+              "Text Field 1013",
+              "Text Field 1014",
+              "Text Field 1015",
+              "Signature Field 17"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 1",
+          "label": "Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 3",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

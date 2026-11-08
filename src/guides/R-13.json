@@ -1,0 +1,207 @@
+{
+  "code": "R-13",
+  "intro": "Lista para cargar combustible. La realiza el Marinero de Primera de Máquinas y la firma el Capitán.",
+  "steps": [
+    {
+      "title": "Datos generales",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1069",
+          "label": "Fecha",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1070",
+          "label": "Lugar",
+          "suggestions": [
+            "Puerto Ayora",
+            "Puerto Baquerizo Moreno"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Antes de recibir combustible",
+      "items": [
+        {
+          "kind": "yesno",
+          "label": "¿Se anunció a bordo la maniobra de abastecimiento de combustible?",
+          "si": "Check Box 63",
+          "no": "Check Box 64"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se acordó con el terminal o la barcaza cómo comunicarse durante la maniobra?",
+          "si": "Check Box 65",
+          "no": "Check Box 66"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El yate está bien asegurado y con la bandera BRAVO izada por la banda de la maniobra?",
+          "si": "Check Box 67",
+          "no": "Check Box 68"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Hay barreras y material absorbente cerca de la toma?",
+          "si": "Check Box 69",
+          "no": "Check Box 70",
+          "hint": "Baldes, paños absorbentes, escobas, aserrín, trapos y detergente."
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Hay un extintor de espuma (Foam) listo cerca?",
+          "si": "Check Box 71",
+          "no": "Check Box 72"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se sondearon los tanques que van a recibir combustible?",
+          "si": "Check Box 73",
+          "no": "Check Box 74"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El Marinero de Primera de Máquinas está en la toma y el resto del personal en su puesto?",
+          "si": "Check Box 75",
+          "no": "Check Box 76"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Es buena la comunicación entre el Maquinista a cargo y el personal del terminal o barcaza?",
+          "si": "Check Box 77",
+          "no": "Check Box 78"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿La manguera está en buen estado y bien conectada a la toma?",
+          "si": "Check Box 79",
+          "no": "Check Box 80"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Las válvulas del circuito están abiertas?",
+          "si": "Check Box 81",
+          "no": "Check Box 82"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Hay suficiente personal a bordo para atender un posible derrame?",
+          "si": "Check Box 83",
+          "no": "Check Box 84"
+        }
+      ]
+    },
+    {
+      "title": "Durante la recepción",
+      "items": [
+        {
+          "kind": "yesno",
+          "label": "¿Se sondean todo el tiempo los tanques llenos y vacíos para evitar que reboce?",
+          "si": "Check Box 86",
+          "no": "Check Box 85"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El Marinero de Primera de Máquinas sigue vigilando en la toma?",
+          "si": "Check Box 87",
+          "no": "Check Box 88"
+        }
+      ]
+    },
+    {
+      "title": "Al terminar",
+      "items": [
+        {
+          "kind": "yesno",
+          "label": "¿Se verificó que no quede combustible en la pistola y se le puso la tapa?",
+          "si": "Check Box 90",
+          "no": "Check Box 89"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Las válvulas del circuito quedaron en su posición normal de operación?",
+          "si": "Check Box 91",
+          "no": "Check Box 92"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se recibieron todos los documentos de la recepción de combustible?",
+          "si": "Check Box 94",
+          "no": "Check Box 93"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se registró la recepción en las bitácoras y se informó al Capitán?",
+          "si": "Check Box 95",
+          "no": "Check Box 96",
+          "hint": "Bitácora de Máquinas y Libro Registro de Hidrocarburos."
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se avisó a todo el personal que terminó la maniobra?",
+          "si": "Check Box 98",
+          "no": "Check Box 97"
+        }
+      ]
+    },
+    {
+      "title": "Horas y cantidad",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1066",
+          "label": "Hora del chequeo",
+          "input": "time",
+          "fill": "now"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1065",
+          "label": "Hora de inicio de la maniobra",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1068",
+          "label": "Hora de fin de la maniobra",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1067",
+          "label": "Cantidad recibida",
+          "hint": "Con la unidad, por ejemplo 500 gal."
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1058",
+          "label": "Nombre del Jefe de Máquinas"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1064",
+          "label": "Nombre del Capitán"
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 24",
+          "label": "Marinero de Primera de Máquinas"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 25",
+          "label": "Capitán"
+        }
+      ]
+    }
+  ]
+}

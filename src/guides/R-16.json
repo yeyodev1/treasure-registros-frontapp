@@ -1,0 +1,265 @@
+{
+  "code": "R-16",
+  "intro": "Registro de los mantenimientos de un equipo. Una hoja por equipo.",
+  "steps": [
+    {
+      "title": "Equipo",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 41",
+          "label": "Equipo o maquinaria"
+        },
+        {
+          "kind": "text",
+          "field": "Marca",
+          "label": "Marca"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 40",
+          "label": "Marca (segunda casilla)",
+          "hint": "La hoja tiene dos casillas encimadas para la marca: déjala vacía si ya pusiste la marca en la pregunta anterior."
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 42",
+          "label": "Modelo"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 43",
+          "label": "Serie"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 44",
+          "label": "Nombre del encargado",
+          "fill": "me"
+        }
+      ]
+    },
+    {
+      "title": "Mantenimientos",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Trabajos realizados",
+          "hint": "Marca si fue preventivo o correctivo y cada cuánto se hace (S semanal, M mensual, SM semestral, A anual, B bianual).",
+          "columns": [
+            {
+              "label": "Fecha",
+              "input": "date"
+            },
+            {
+              "label": "Preventivo"
+            },
+            {
+              "label": "Correctivo"
+            },
+            {
+              "label": "S"
+            },
+            {
+              "label": "M"
+            },
+            {
+              "label": "SM"
+            },
+            {
+              "label": "A"
+            },
+            {
+              "label": "B"
+            },
+            {
+              "label": "Trabajo realizado",
+              "input": "textarea"
+            },
+            {
+              "label": "Horas del equipo / obs."
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 1",
+              "Check Box 2",
+              "Check Box 1",
+              "Check Box 3",
+              "Check Box 4",
+              "Check Box 5",
+              "Check Box 6",
+              "Check Box 7",
+              "Text Field 2",
+              "Text Field 3"
+            ],
+            [
+              "Text Field 4",
+              "Check Box 8",
+              "Check Box 9",
+              "Check Box 10",
+              "Check Box 11",
+              "Check Box 12",
+              "Check Box 13",
+              "Check Box 14",
+              "Text Field 5",
+              "Text Field 6"
+            ],
+            [
+              "Text Field 7",
+              "Check Box 15",
+              "Check Box 16",
+              "Check Box 17",
+              "Check Box 18",
+              "Check Box 19",
+              "Check Box 20",
+              "Check Box 21",
+              "Text Field 8",
+              "Text Field 9"
+            ],
+            [
+              "Text Field 10",
+              "Check Box 22",
+              "Check Box 23",
+              "Check Box 24",
+              "Check Box 25",
+              "Check Box 26",
+              "Check Box 27",
+              "Check Box 28",
+              "Text Field 11",
+              "Text Field 12"
+            ],
+            [
+              "Text Field 13",
+              "Check Box 29",
+              "Check Box 30",
+              "Check Box 31",
+              "Check Box 32",
+              "Check Box 33",
+              "Check Box 34",
+              "Check Box 35",
+              "Text Field 14",
+              "Text Field 15"
+            ],
+            [
+              "Text Field 16",
+              "Check Box 36",
+              "Check Box 37",
+              "Check Box 38",
+              "Check Box 39",
+              "Check Box 40",
+              "Check Box 41",
+              "Check Box 42",
+              "Text Field 17",
+              "Text Field 18"
+            ],
+            [
+              "Text Field 19",
+              "Check Box 43",
+              "Check Box 44",
+              "Check Box 45",
+              "Check Box 46",
+              "Check Box 47",
+              "Check Box 48",
+              "Check Box 49",
+              "Text Field 20",
+              "Text Field 21"
+            ],
+            [
+              "Text Field 22",
+              "Check Box 50",
+              "Check Box 51",
+              "Check Box 52",
+              "Check Box 53",
+              "Check Box 54",
+              "Check Box 55",
+              "Check Box 56",
+              "Text Field 23",
+              "Text Field 24"
+            ],
+            [
+              "Text Field 25",
+              "Check Box 57",
+              "Check Box 58",
+              "Check Box 59",
+              "Check Box 60",
+              "Check Box 61",
+              "Check Box 62",
+              "Check Box 63",
+              "Text Field 26",
+              "Text Field 27"
+            ],
+            [
+              "Text Field 28",
+              "Check Box 64",
+              "Check Box 65",
+              "Check Box 66",
+              "Check Box 67",
+              "Check Box 68",
+              "Check Box 69",
+              "Check Box 70",
+              "Text Field 29",
+              "Text Field 30"
+            ],
+            [
+              "Text Field 31",
+              "Check Box 71",
+              "Check Box 72",
+              "Check Box 73",
+              "Check Box 74",
+              "Check Box 75",
+              "Check Box 76",
+              "Check Box 77",
+              "Text Field 32",
+              "Text Field 33"
+            ],
+            [
+              "Text Field 34",
+              "Check Box 78",
+              "Check Box 79",
+              "Check Box 80",
+              "Check Box 81",
+              "Check Box 82",
+              "Check Box 83",
+              "Check Box 84",
+              "Text Field 35",
+              "Text Field 36"
+            ],
+            [
+              "Text Field 37",
+              "Check Box 85",
+              "Check Box 86",
+              "Check Box 87",
+              "Check Box 88",
+              "Check Box 89",
+              "Check Box 90",
+              "Check Box 91",
+              "Text Field 38",
+              "Text Field 39"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 2",
+          "label": "Encargado del equipo"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 1",
+          "label": "Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 3",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

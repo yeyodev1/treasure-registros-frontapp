@@ -42,6 +42,8 @@ import SignaturePad from '@/components/registros/SignaturePad.vue'
 import SkeletonList from '@/components/ui/SkeletonList.vue'
 import GuidedWizard from '@/components/guided/GuidedWizard.vue'
 import GuidedSummary from '@/components/guided/GuidedSummary.vue'
+import GuidedFill from '@/components/fill/GuidedFill.vue'
+import type { FillGuide } from '@/utils/fillGuide'
 import type { ContextDraft } from '@/components/guided/GuidedContextForm.vue'
 import CrewSign from '@/components/sign/CrewSign.vue'
 import SentPanel from '@/components/sign/SentPanel.vue'
@@ -76,8 +78,11 @@ const zoom = shallowRef(1)
 const signing = shallowRef<IsmField | null>(null)
 const photoTarget = shallowRef<IsmField | null>(null)
 const photoInput = useTemplateRef<HTMLInputElement>('photoInput')
-/** Registros guiados en revisión: resumen o la hoja oficial. */
-const view = shallowRef<'resumen' | 'hoja'>('resumen')
+/** Registros guiados en revisión: resumen o la hoja oficial; los demás, paso a paso o la hoja. */
+const view = shallowRef<'resumen' | 'pasos' | 'hoja'>('resumen')
+/** Guía para llenar paso a paso los formatos sin esquema (7-nov-2026). */
+const fillGuide = shallowRef<FillGuide | null>(null)
+const GUIDES = import.meta.glob<FillGuide>('../guides/*.json', { import: 'default' })
 /** Recorrido del tripulante: llenar → firmar (pantalla 2) → enviado (pantalla 3). */
 const phase = shallowRef<'fill' | 'sign' | 'sent'>('fill')
 /** Se vuelve a montar el asistente para abrir el paso de contexto ("No soy yo"). */
@@ -285,8 +290,9 @@ async function load() {
       ...draft,
       ...Object.fromEntries(Object.entries(local.context).filter(([k]) => k in draft)),
     } as ContextDraft
+    fillGuide.value = rec.schemaVersion ? null : ((await GUIDES[`../guides/${rec.code}.json`]?.()) ?? null)
     record.value = rec
-    view.value = 'resumen'
+    view.value = rec.schemaVersion ? 'resumen' : fillGuide.value && editable.value ? 'pasos' : 'hoja'
     if (autosave.hasPending()) autosave.flush().catch(() => undefined)
   } catch (err) {
     const status = axios.isAxiosError(err) ? err.response?.status : undefined
@@ -596,7 +602,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
       </p>
 
       <div v-if="!focused" class="toolbar">
-        <div v-if="!guided || view === 'hoja'" class="zoom">
+        <div v-if="(!guided && !fillGuide) || view === 'hoja'" class="zoom">
           <button type="button" aria-label="Alejar" :disabled="zoom <= 1" @click="zoom = Math.max(1, zoom - 0.5)">
             <i class="fa-solid fa-magnifying-glass-minus" aria-hidden="true" />
           </button>
@@ -605,9 +611,12 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             <i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true" />
           </button>
         </div>
-        <div v-if="guided" class="views" role="tablist">
-          <button type="button" role="tab" :aria-selected="view === 'resumen'" :class="{ on: view === 'resumen' }" @click="view = 'resumen'">
+        <div v-if="guided || fillGuide" class="views" role="tablist">
+          <button v-if="guided" type="button" role="tab" :aria-selected="view === 'resumen'" :class="{ on: view === 'resumen' }" @click="view = 'resumen'">
             <i class="fa-solid fa-list-check" aria-hidden="true" /> Resumen
+          </button>
+          <button v-else type="button" role="tab" :aria-selected="view === 'pasos'" :class="{ on: view === 'pasos' }" @click="view = 'pasos'">
+            <i class="fa-solid fa-list-check" aria-hidden="true" /> Paso a paso
           </button>
           <button type="button" role="tab" :aria-selected="view === 'hoja'" :class="{ on: view === 'hoja' }" @click="view = 'hoja'">
             <i class="fa-regular fa-file-lines" aria-hidden="true" /> Hoja oficial
@@ -685,6 +694,22 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
                 :position-label="positionLabel"
               />
             </div>
+            <GuidedFill
+              v-else-if="fillGuide && view === 'pasos'"
+              key="steps"
+              :guide="fillGuide"
+              :form="form!"
+              :values="values"
+              :signatures="record.signatures"
+              :editable="editable"
+              :can-sign="canSign"
+              :images="images"
+              :user-name="userStore.user?.name ?? ''"
+              @change="onChange"
+              @sign="openSign"
+              @photo="openPhoto"
+              @sheet="view = 'hoja'"
+            />
             <FormCanvas
               v-else
               key="sheet"

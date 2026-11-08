@@ -1,0 +1,176 @@
+{
+  "code": "R-17",
+  "intro": "Pide un trabajo de mantenimiento. El Capitán lo aprueba y la oficina lo cierra.",
+  "steps": [
+    {
+      "title": "Datos de la orden",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1080",
+          "label": "Departamento",
+          "suggestions": [
+            "Cubierta",
+            "Máquinas",
+            "Hotelería"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1082",
+          "label": "Fecha",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1083",
+          "label": "Número de O/T"
+        },
+        {
+          "kind": "choice",
+          "label": "Tipo de mantenimiento",
+          "options": [
+            {
+              "field": "Check Box 110",
+              "label": "Preventivo"
+            },
+            {
+              "field": "Check Box 111",
+              "label": "Correctivo"
+            },
+            {
+              "field": "Check Box 112",
+              "label": "Provisional"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trabajos solicitados",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Trabajos",
+          "hint": "Detalla la novedad que presenta y qué trabajo se necesita.",
+          "columns": [
+            {
+              "label": "Equipo, maquinaria o sistema"
+            },
+            {
+              "label": "Trabajo solicitado",
+              "input": "textarea"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 1077",
+              "Text Field 1078"
+            ],
+            [
+              "Text Field 1079",
+              "Text Field 1081"
+            ],
+            [
+              "Text Field 1084",
+              "Text Field 1085"
+            ],
+            [
+              "Text Field 1086",
+              "Text Field 1087"
+            ],
+            [
+              "Text Field 1088",
+              "Text Field 1089"
+            ],
+            [
+              "Text Field 1090",
+              "Text Field 1091"
+            ],
+            [
+              "Text Field 1092",
+              "Text Field 1093"
+            ],
+            [
+              "Text Field 1094",
+              "Text Field 1095"
+            ],
+            [
+              "Text Field 1096",
+              "Text Field 1097"
+            ],
+            [
+              "Text Field 1098",
+              "Text Field 1099"
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1073",
+          "label": "Información adicional",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Aprobación",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 29",
+          "label": "Solicita (Encargado a bordo)"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 30",
+          "label": "Aprueba (Capitán)"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 31",
+          "label": "Responsable de oficina (Jefe de Operaciones)"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1072",
+          "label": "Taller encargado"
+        }
+      ]
+    },
+    {
+      "title": "Cierre de la orden",
+      "hint": "Se llena cuando el trabajo se entrega a bordo.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1075",
+          "label": "Fecha de entrega a bordo",
+          "input": "date"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1076",
+          "label": "¿Quién recibe a bordo?"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1074",
+          "label": "Fecha de cierre de la orden",
+          "input": "date"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 28",
+          "label": "Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 27",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

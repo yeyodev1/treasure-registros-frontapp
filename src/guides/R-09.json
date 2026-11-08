@@ -1,0 +1,68 @@
+{
+  "code": "R-09",
+  "intro": "Cuenta qué pasó con tus palabras. El Capitán completa la causa y la acción correctiva.",
+  "steps": [
+    {
+      "title": "Qué pasó",
+      "items": [
+        { "kind": "text", "field": "Nombre_Reporta", "label": "¿Quién reporta?", "fill": "me" },
+        { "kind": "text", "field": "Fecha_Reporte", "label": "Fecha del reporte", "input": "date", "fill": "today" },
+        {
+          "kind": "choice",
+          "label": "¿Qué fue?",
+          "options": [
+            { "field": "Check Box 60", "label": "Accidente" },
+            { "field": "Check Box 61", "label": "Cuasi accidente" },
+            { "field": "Check Box 62", "label": "Condición peligrosa" }
+          ]
+        },
+        { "kind": "text", "field": "Text Field 72", "label": "¿Qué elemento, equipo o sistema se vio afectado?", "input": "textarea" },
+        { "kind": "text", "field": "Text Field 68", "label": "¿Qué se vio? Evidencia objetiva", "hint": "Describe lo que pasó, dónde y a qué hora.", "input": "textarea" }
+      ]
+    },
+    {
+      "title": "Análisis de la causa",
+      "hint": "Lo completa el Capitán.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 77",
+          "label": "Causa u origen",
+          "hint": "Elige el número de la lista.",
+          "suggestions": [
+            { "value": "1", "label": "1 · Falla en los procedimientos de seguridad" },
+            { "value": "2", "label": "2 · Incumplimiento de los procedimientos" },
+            { "value": "3", "label": "3 · Procedimiento incompleto o errado" },
+            { "value": "4", "label": "4 · Falla en los equipos" },
+            { "value": "5", "label": "5 · Error humano" },
+            { "value": "6", "label": "6 · Recursos no oportunos" },
+            { "value": "7", "label": "7 · Falta de mantenimiento" },
+            { "value": "8", "label": "8 · Falta de capacitación" },
+            { "value": "9", "label": "9 · Falta de entrenamiento" },
+            { "value": "10", "label": "10 · No usar los equipos de seguridad" },
+            { "value": "11", "label": "11 · Mantenimiento no realizado" },
+            { "value": "12", "label": "12 · Otros (especifique en el detalle)" }
+          ]
+        },
+        { "kind": "text", "field": "Text Field 76", "label": "Detalle de la causa" },
+        { "kind": "signature", "field": "Signature Field 8", "label": "Firma del Capitán (análisis de la causa)" }
+      ]
+    },
+    {
+      "title": "Acción correctiva",
+      "items": [
+        { "kind": "text", "field": "Text Field 73", "label": "Responsable" },
+        { "kind": "text", "field": "Fecha_Recepcion", "label": "Fecha de recepción", "input": "date" },
+        { "kind": "text", "field": "Text Field 75", "label": "Fecha máxima de la acción correctiva", "input": "date" },
+        { "kind": "text", "field": "Text Field 65", "label": "Acción correctiva dispuesta", "input": "textarea" }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        { "kind": "signature", "field": "Signature Field 11", "label": "Capitán" },
+        { "kind": "signature", "field": "Signature Field 10", "label": "Persona Designada" }
+      ]
+    }
+  ]
+}

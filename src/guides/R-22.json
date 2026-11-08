@@ -1,0 +1,269 @@
+{
+  "code": "R-22",
+  "intro": "Pon una nota de 1 a 10 en cada punto. Al final se saca la suma y el promedio.",
+  "steps": [
+    {
+      "title": "Datos de la evaluación",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1083",
+          "label": "Nombre del tripulante"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1084",
+          "label": "Cargo"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1086",
+          "label": "Departamento",
+          "suggestions": [
+            "Cubierta",
+            "Máquinas",
+            "Hotelería"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1085",
+          "label": "Fecha de la evaluación",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1087",
+          "label": "¿Quién evalúa?",
+          "fill": "me"
+        }
+      ]
+    },
+    {
+      "title": "Aspectos morales",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Puntuación",
+          "hint": "De 1 a 10: 10 excepcional · 8-9 altamente efectivo · 6-7 eficiente · 4-5 debajo de lo esperado · menos de 4 insatisfactorio.",
+          "columns": [
+            {
+              "label": "Puntuación",
+              "input": "number"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 1088"
+            ],
+            [
+              "Text Field 1089"
+            ],
+            [
+              "Text Field 1090"
+            ],
+            [
+              "Text Field 10109"
+            ],
+            [
+              "Text Field 101010"
+            ],
+            [
+              "Text Field 101011"
+            ],
+            [
+              "Text Field 101012"
+            ]
+          ],
+          "rowLabels": [
+            "Responsabilidad",
+            "Compromiso",
+            "Liderazgo",
+            "Actitud",
+            "Compañerismo",
+            "Lealtad",
+            "Sobriedad"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1093",
+          "label": "Comentarios sobre aspectos morales",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Aspectos profesionales",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Puntuación",
+          "hint": "De 1 a 10: 10 excepcional · 8-9 altamente efectivo · 6-7 eficiente · 4-5 debajo de lo esperado · menos de 4 insatisfactorio.",
+          "columns": [
+            {
+              "label": "Puntuación",
+              "input": "number"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 101013"
+            ],
+            [
+              "Text Field 101014"
+            ],
+            [
+              "Text Field 101015"
+            ],
+            [
+              "Text Field 101016"
+            ],
+            [
+              "Text Field 101017"
+            ],
+            [
+              "Text Field 101018"
+            ],
+            [
+              "Text Field 101019"
+            ]
+          ],
+          "rowLabels": [
+            "Conocimiento y uso de los equipos a su cargo",
+            "Calidad en el trabajo",
+            "Disciplina",
+            "Puntualidad",
+            "Iniciativa",
+            "Uso de uniformes",
+            "Adaptación a bordo"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1095",
+          "label": "Comentarios sobre aspectos profesionales",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Sistema de gestión de seguridad",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Puntuación",
+          "hint": "De 1 a 10: 10 excepcional · 8-9 altamente efectivo · 6-7 eficiente · 4-5 debajo de lo esperado · menos de 4 insatisfactorio.",
+          "columns": [
+            {
+              "label": "Puntuación",
+              "input": "number"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 101020"
+            ],
+            [
+              "Text Field 101021"
+            ],
+            [
+              "Text Field 101022"
+            ],
+            [
+              "Text Field 101023"
+            ],
+            [
+              "Text Field 101024"
+            ]
+          ],
+          "rowLabels": [
+            "Conocimiento del sistema de gestión de seguridad",
+            "Puesto y función en zafarrancho",
+            "Uso de equipos de protección personal",
+            "Uso de equipos de seguridad y salvamento",
+            "Capacidad de mejora continua"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1096",
+          "label": "Comentarios sobre seguridad",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Resultado",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 101025",
+          "label": "Suma total",
+          "input": "number"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101026",
+          "label": "Promedio",
+          "hint": "Aprueba con más de 7. No aprueba con menos de 6.",
+          "input": "number"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101030",
+          "label": "Recomendaciones",
+          "input": "textarea"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Requiere acción correctiva?",
+          "si": "Check Box 118",
+          "no": "Check Box 119"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101027",
+          "label": "Acción correctiva propuesta",
+          "input": "textarea"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101028",
+          "label": "Responsable de la acción"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 101029",
+          "label": "Tiempo para cumplirla",
+          "suggestions": [
+            "1 semana",
+            "15 días",
+            "1 mes"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 33",
+          "label": "Evaluado"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 34",
+          "label": "Evaluador"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 35",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "code": "R-08",
+  "intro": "Reporta algo que no se cumplió. El Capitán analiza la causa y la Persona Designada dispone la medida correctiva.",
+  "steps": [
+    {
+      "title": "Qué no se cumplió",
+      "items": [
+        { "kind": "text", "field": "Text Field 17", "label": "¿Quién reporta?", "fill": "me" },
+        { "kind": "text", "field": "Text Field 71", "label": "Fecha del reporte", "input": "date", "fill": "today" },
+        { "kind": "text", "field": "Text Field 72", "label": "¿Qué elemento, equipo o sistema se vulneró?", "input": "textarea" },
+        { "kind": "text", "field": "Text Field 68", "label": "¿Qué se vio? Evidencia objetiva", "hint": "Describe lo que pasó, dónde y cuándo.", "input": "textarea" }
+      ]
+    },
+    {
+      "title": "Análisis de la causa",
+      "hint": "Lo completa el Capitán.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 77",
+          "label": "Causa u origen",
+          "hint": "Elige el número de la lista.",
+          "suggestions": [
+            { "value": "1", "label": "1 · No cumple con las competencias" },
+            { "value": "2", "label": "2 · Falta de capacitación" },
+            { "value": "3", "label": "3 · Falta de entrenamiento" },
+            { "value": "4", "label": "4 · Recursos insuficientes" },
+            { "value": "5", "label": "5 · Recursos no oportunos" },
+            { "value": "6", "label": "6 · Falta de procedimientos o registros" },
+            { "value": "7", "label": "7 · Falla en el procedimiento" },
+            { "value": "8", "label": "8 · Plan de mantenimiento incompleto" },
+            { "value": "9", "label": "9 · Mantenimiento no realizado" },
+            { "value": "10", "label": "10 · Otros (especifique en el detalle)" }
+          ]
+        },
+        { "kind": "text", "field": "Text Field 76", "label": "Detalle de la causa", "input": "textarea" },
+        { "kind": "signature", "field": "Signature Field 8", "label": "Firma del Capitán (análisis de la causa)" }
+      ]
+    },
+    {
+      "title": "Medidas correctivas",
+      "hint": "Lo llena la Persona Designada.",
+      "items": [
+        { "kind": "text", "field": "Text Field 73", "label": "Responsable" },
+        { "kind": "text", "field": "Fecha_Recepcion", "label": "Fecha de recepción", "input": "date" },
+        { "kind": "text", "field": "Text Field 75", "label": "Fecha máxima de la acción correctiva", "input": "date" },
+        { "kind": "text", "field": "Text Field 65", "label": "Acción correctiva dispuesta", "input": "textarea" },
+        {
+          "kind": "choice",
+          "label": "¿Es un incumplimiento grave?",
+          "hint": "Grave = no hay medidas correctivas adecuadas.",
+          "options": [
+            { "field": "Check Box 57", "label": "Sí" },
+            { "field": "Check Box 58", "label": "No" },
+            { "field": "Check Box 59", "label": "N/A" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        { "kind": "signature", "field": "Signature Field 10", "label": "Persona Designada" },
+        { "kind": "signature", "field": "Signature Field 11", "label": "Capitán" }
+      ]
+    }
+  ]
+}

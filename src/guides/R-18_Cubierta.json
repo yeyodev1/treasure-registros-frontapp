@@ -1,0 +1,256 @@
+{
+  "code": "R-18_Cubierta",
+  "intro": "Anota lo que necesitas, cuánto y para qué. Al llegar el pedido, quien lo recibe confirma si llegó bien.",
+  "steps": [
+    {
+      "title": "Datos del pedido",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 92",
+          "label": "Departamento",
+          "suggestions": [
+            "Cubierta"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 111",
+          "label": "Fecha del pedido",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 112",
+          "label": "Número de orden (O/R)"
+        }
+      ]
+    },
+    {
+      "title": "Qué se pide",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Lista del pedido",
+          "hint": "Una fila por cada cosa que se pide.",
+          "columns": [
+            {
+              "label": "Cantidad",
+              "input": "number"
+            },
+            {
+              "label": "Descripción o detalle"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 113",
+              "Text Field 93"
+            ],
+            [
+              "Text Field 94",
+              "Text Field 95"
+            ],
+            [
+              "Text Field 96",
+              "Text Field 97"
+            ],
+            [
+              "Text Field 98",
+              "Text Field 99"
+            ],
+            [
+              "Text Field 100",
+              "Text Field 101"
+            ],
+            [
+              "Text Field 102",
+              "Text Field 103"
+            ],
+            [
+              "Text Field 104",
+              "Text Field 105"
+            ],
+            [
+              "Text Field 106",
+              "Text Field 107"
+            ],
+            [
+              "Text Field 108",
+              "Text Field 109"
+            ],
+            [
+              "Text Field 1010",
+              "Text Field 1011"
+            ],
+            [
+              "Text Field 1012",
+              "Text Field 1013"
+            ],
+            [
+              "Text Field 1014",
+              "Text Field 1015"
+            ],
+            [
+              "Text Field 1016",
+              "Text Field 1017"
+            ],
+            [
+              "Text Field 1018",
+              "Text Field 1019"
+            ],
+            [
+              "Text Field 1020",
+              "Text Field 1021"
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1022",
+          "label": "Información adicional",
+          "hint": "Números de parte u otros datos que ayuden a comprar lo correcto.",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Fotos del pedido",
+      "hint": "Opcional: fotos de lo que se pide para que no haya confusión.",
+      "items": [
+        {
+          "kind": "photo",
+          "field": "Signature Field 23",
+          "label": "Foto 1"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1023",
+          "label": "Descripción de la foto 1",
+          "input": "textarea"
+        },
+        {
+          "kind": "photo",
+          "field": "Signature Field 24",
+          "label": "Foto 2"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1024",
+          "label": "Descripción de la foto 2",
+          "input": "textarea"
+        },
+        {
+          "kind": "photo",
+          "field": "Signature Field 26",
+          "label": "Foto 3"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1026",
+          "label": "Descripción de la foto 3",
+          "input": "textarea"
+        },
+        {
+          "kind": "photo",
+          "field": "Signature Field 25",
+          "label": "Foto 4"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1025",
+          "label": "Descripción de la foto 4",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Solicitante",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1028",
+          "label": "¿Quién pide?",
+          "fill": "me"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1029",
+          "label": "Fecha de la solicitud",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 29",
+          "label": "Firma del Capitán (solicitante)"
+        }
+      ]
+    },
+    {
+      "title": "Despacho de suministros",
+      "hint": "Lo llena la Persona Designada.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1030",
+          "label": "¿Quién despacha?"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1031",
+          "label": "Fecha de despacho",
+          "input": "date"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 28",
+          "label": "Firma de quien despacha"
+        }
+      ]
+    },
+    {
+      "title": "Recepción del pedido",
+      "hint": "Se llena cuando el pedido llega a bordo.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1032",
+          "label": "¿Quién recibe?"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1033",
+          "label": "Fecha de recepción",
+          "input": "date"
+        },
+        {
+          "kind": "choice",
+          "label": "¿Cómo llegó el pedido?",
+          "options": [
+            {
+              "field": "Check Box 68",
+              "label": "Conforme"
+            },
+            {
+              "field": "Check Box 70",
+              "label": "No conforme"
+            }
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1027",
+          "label": "Si no está conforme, ¿qué faltó o llegó mal?",
+          "input": "textarea"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 21",
+          "label": "Firma de quien recibe"
+        }
+      ]
+    }
+  ]
+}

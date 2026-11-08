@@ -1,0 +1,49 @@
+{
+  "code": "R-10",
+  "intro": "Acta de la reunión del Comité de Seguridad de a bordo.",
+  "steps": [
+    {
+      "title": "Datos del acta",
+      "items": [
+        { "kind": "text", "field": "Text Field 72", "label": "Fecha", "input": "date", "fill": "today" },
+        { "kind": "text", "field": "Text Field 91", "label": "Hora de inicio", "input": "time" },
+        { "kind": "text", "field": "Text Field 92", "label": "Acta No." }
+      ]
+    },
+    {
+      "title": "Participantes",
+      "items": [
+        { "kind": "text", "field": "Text Field 89", "label": "Capitán" },
+        { "kind": "text", "field": "Text Field 93", "label": "Marinero de Primera de Puente" },
+        { "kind": "text", "field": "Text Field 94", "label": "Marinero de Primera de Máquinas" },
+        { "kind": "text", "field": "Text Field 95", "label": "Director de Crucero" }
+      ]
+    },
+    {
+      "title": "Análisis de cada tema",
+      "items": [
+        { "kind": "info", "text": "Puntos a tratar: 1) novedades de la última acta; 2) observaciones a operaciones, inspecciones y trabajo a bordo; 3) entrenamientos; 4) mantenimientos, órdenes de trabajo y requisiciones pendientes; 5) recursos materiales y humanos y matriz de competencias; 6) revisión del SGS por el Capitán; 7) auditorías e inspecciones; 8) incumplimientos, situaciones peligrosas, accidentes y cuasi accidentes; 9) acciones correctivas; 10) capacitaciones y evaluaciones; 11) revisión final y recomendaciones." },
+        { "kind": "text", "field": "Analisis_Temas", "label": "Análisis de cada tema", "hint": "Escribe por número de punto.", "input": "textarea" }
+      ]
+    },
+    {
+      "title": "Cierre y firmas",
+      "items": [
+        { "kind": "text", "field": "Text Field 96", "label": "Hora de cierre del acta", "input": "time" },
+        { "kind": "text", "field": "Text Field 97", "label": "Día del cierre", "input": "date", "fill": "today" },
+        { "kind": "signature", "field": "Signature Field 12", "label": "Marinero de Primera de Puente" },
+        { "kind": "signature", "field": "Signature Field 20", "label": "Marinero de Primera de Máquinas" },
+        { "kind": "signature", "field": "Signature Field 21", "label": "Director de Crucero" },
+        { "kind": "signature", "field": "Signature Field 22", "label": "Capitán" }
+      ]
+    },
+    {
+      "title": "Oficina",
+      "hint": "Lo completa la Persona Designada.",
+      "items": [
+        { "kind": "text", "field": "Text Field 98", "label": "Fecha de recepción", "input": "date" },
+        { "kind": "signature", "field": "Signature Field 23", "label": "Persona Designada" }
+      ]
+    }
+  ]
+}

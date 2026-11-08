@@ -1,0 +1,34 @@
+{
+  "code": "R-11",
+  "intro": "Acta de la reunión de revisión gerencial. La llena la oficina.",
+  "steps": [
+    {
+      "title": "Datos del acta",
+      "hint": "Lo llena la oficina.",
+      "items": [
+        { "kind": "text", "field": "Text Field 72", "label": "Lugar" },
+        { "kind": "text", "field": "Text Field 89", "label": "Fecha del acta", "input": "date", "fill": "today" },
+        { "kind": "text", "field": "Text Field 90", "label": "Número de acta de revisión gerencial" }
+      ]
+    },
+    {
+      "title": "Análisis de cada tema",
+      "items": [
+        {
+          "kind": "info",
+          "text": "Puntos a tratar: 1) Novedades y resoluciones de la última acta. 2) Actualizaciones y cambios del Sistema de Gestión de Seguridad. 3) Actas del Comité de Seguridad del buque. 4) Auditorías internas y externas. 5) Incumplimientos, situaciones peligrosas, accidentes y cuasi accidentes. 6) Recursos para mantener el sistema (capacitación y entrenamiento). 7) Gestión de la empresa y actualización de políticas. 8) Disposiciones finales y recomendaciones."
+        },
+        { "kind": "text", "field": "Text Field 75", "label": "Análisis de cada tema", "hint": "Escribe el número del punto y lo que se resolvió.", "input": "textarea" }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        { "kind": "signature", "field": "Signature Field 12", "label": "Gerente de Operaciones" },
+        { "kind": "signature", "field": "Signature Field 17", "label": "Gerente General" },
+        { "kind": "signature", "field": "Signature Field 18", "label": "Logística y Mantenimiento" },
+        { "kind": "signature", "field": "Signature Field 19", "label": "Persona Designada" }
+      ]
+    }
+  ]
+}

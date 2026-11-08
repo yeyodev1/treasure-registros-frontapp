@@ -1,0 +1,75 @@
+{
+  "code": "R-06",
+  "intro": "Registra la capacitación y pide la firma de cada asistente.",
+  "steps": [
+    {
+      "title": "Datos de la capacitación",
+      "items": [
+        { "kind": "text", "field": "Text Field 16", "label": "Fecha", "input": "date", "fill": "today" },
+        { "kind": "text", "field": "Text Field 19", "label": "Lugar", "fill": "vessel" },
+        {
+          "kind": "choice",
+          "label": "Capacitación de",
+          "options": [
+            { "field": "Check Box 48", "label": "SGS (gestión de seguridad)" },
+            { "field": "Check Box 55", "label": "AMB (ambiente)" },
+            { "field": "Check Box 56", "label": "SSO (seguridad y salud ocupacional)" }
+          ]
+        },
+        { "kind": "text", "field": "Text Field 17", "label": "Tema de la capacitación" },
+        { "kind": "text", "field": "Text Field 18", "label": "Nombre del expositor", "fill": "me" }
+      ]
+    },
+    {
+      "title": "Desarrollo del tema",
+      "items": [
+        { "kind": "text", "field": "Text Field 24", "label": "Breve desarrollo del tema tratado", "input": "textarea" },
+        { "kind": "signature", "field": "Signature Field 8", "label": "Firma del expositor" }
+      ]
+    },
+    {
+      "title": "Asistentes",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Personas que asistieron",
+          "hint": "Agrega una fila por asistente; cada uno firma en su fila.",
+          "columns": [{ "label": "Grado / Nombre" }, { "label": "Firma" }],
+          "rows": [
+            ["Text Field 25", "Signature Field 20"],
+            ["Text Field 27", "Signature Field 19"],
+            ["Text Field 29", "Signature Field 18"],
+            ["Text Field 31", "Signature Field 17"],
+            ["Text Field 47", "Signature Field 16"],
+            ["Text Field 48", "Signature Field 15"],
+            ["Text Field 49", "Signature Field 14"],
+            ["Text Field 50", "Signature Field 13"],
+            ["Text Field 51", "Signature Field 12"],
+            ["Text Field 52", "Signature Field 11"],
+            ["Text Field 53", "Signature Field 10"],
+            ["Text Field 54", "Signature Field 9"]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Capitán",
+      "hint": "Lo completa el Capitán.",
+      "items": [
+        { "kind": "text", "field": "Text Field 22", "label": "Nombre del Capitán" },
+        { "kind": "text", "field": "Text Field 12", "label": "Fecha", "input": "date", "fill": "today" },
+        { "kind": "signature", "field": "Signature Field 4", "label": "Firma del Capitán" }
+      ]
+    },
+    {
+      "title": "Oficina",
+      "hint": "Lo completa la Persona Designada en la oficina.",
+      "items": [
+        { "kind": "text", "field": "Text Field 21", "label": "¿Quién recibe en la oficina?" },
+        { "kind": "text", "field": "Text Field 20", "label": "Fecha de recepción", "input": "date" },
+        { "kind": "signature", "field": "Signature Field 7", "label": "Persona Designada" },
+        { "kind": "text", "field": "Text Field 23", "label": "Acción tomada / conclusiones", "input": "textarea" }
+      ]
+    }
+  ]
+}

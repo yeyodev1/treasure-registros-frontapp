@@ -1,0 +1,178 @@
+{
+  "code": "R-27",
+  "intro": "Anota cada riesgo de la actividad y cómo se controla.",
+  "steps": [
+    {
+      "title": "Riesgos",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Matriz de riesgos",
+          "hint": "Marca P, C o F según corresponda en cada riesgo.",
+          "columns": [
+            {
+              "label": "Ítem"
+            },
+            {
+              "label": "Actividad o proceso"
+            },
+            {
+              "label": "Descripción del riesgo"
+            },
+            {
+              "label": "Probabilidad y consecuencias: P"
+            },
+            {
+              "label": "Probabilidad y consecuencias: C"
+            },
+            {
+              "label": "Probabilidad y consecuencias: F"
+            },
+            {
+              "label": "Prioridad"
+            },
+            {
+              "label": "Control operacional (cómo se minimiza)"
+            },
+            {
+              "label": "Controlado: P"
+            },
+            {
+              "label": "Controlado: C"
+            },
+            {
+              "label": "Controlado: F"
+            },
+            {
+              "label": "Persona que efectúa la acción"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 105",
+              "Text Field 1015",
+              "Text Field 1016",
+              "Check Box 1010",
+              "Check Box 1020",
+              "Check Box 1021",
+              "Text Field 1017",
+              "Text Field 1018",
+              "Check Box 1014",
+              "Check Box 1022",
+              "Check Box 1023",
+              "Text Field 1019"
+            ],
+            [
+              "Text Field 106",
+              "Text Field 1020",
+              "Text Field 1021",
+              "Check Box 1011",
+              "Check Box 1026",
+              "Check Box 1027",
+              "Text Field 1022",
+              "Text Field 1023",
+              "Check Box 1015",
+              "Check Box 1024",
+              "Check Box 1025",
+              "Text Field 1024"
+            ],
+            [
+              "Text Field 107",
+              "Text Field 1025",
+              "Text Field 1026",
+              "Check Box 1012",
+              "Check Box 1030",
+              "Check Box 1031",
+              "Text Field 1027",
+              "Text Field 1028",
+              "Check Box 1016",
+              "Check Box 1028",
+              "Check Box 1029",
+              "Text Field 1029"
+            ],
+            [
+              "Text Field 108",
+              "Text Field 1030",
+              "Text Field 1031",
+              "Check Box 1013",
+              "Check Box 1034",
+              "Check Box 1035",
+              "Text Field 1032",
+              "Text Field 1033",
+              "Check Box 1017",
+              "Check Box 1032",
+              "Check Box 1033",
+              "Text Field 1034"
+            ],
+            [
+              "Text Field 109",
+              "Text Field 1035",
+              "Text Field 1036",
+              "Check Box 1018",
+              "Check Box 1038",
+              "Check Box 1039",
+              "Text Field 1037",
+              "Text Field 1038",
+              "Check Box 1019",
+              "Check Box 1036",
+              "Check Box 1037",
+              "Text Field 1039"
+            ],
+            [
+              "Text Field 1010",
+              "Text Field 1040",
+              "Text Field 1041",
+              "Check Box 1040",
+              "Check Box 1044",
+              "Check Box 1045",
+              "Text Field 1042",
+              "Text Field 1043",
+              "Check Box 1041",
+              "Check Box 1042",
+              "Check Box 1043",
+              "Text Field 1044"
+            ],
+            [
+              "Text Field 1011",
+              "Text Field 1045",
+              "Text Field 1046",
+              "Check Box 1046",
+              "Check Box 1050",
+              "Check Box 1051",
+              "Text Field 1047",
+              "Text Field 1048",
+              "Check Box 1047",
+              "Check Box 1048",
+              "Check Box 1049",
+              "Text Field 1049"
+            ],
+            [
+              "Text Field 1012",
+              "Text Field 1050",
+              "Text Field 1051",
+              "Check Box 1052",
+              "Check Box 1056",
+              "Check Box 1057",
+              "Text Field 1052",
+              "Text Field 1053",
+              "Check Box 1053",
+              "Check Box 1054",
+              "Check Box 1055",
+              "Text Field 1054"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firma",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 18",
+          "label": "Evaluador de riesgos"
+        }
+      ]
+    }
+  ]
+}

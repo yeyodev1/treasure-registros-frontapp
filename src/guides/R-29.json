@@ -1,0 +1,31 @@
+{
+  "code": "R-29",
+  "intro": "Escribe tu informe con tus palabras. Luego lo firman el Capitán y la Persona Designada.",
+  "steps": [
+    {
+      "title": "Datos generales",
+      "items": [
+        { "kind": "text", "field": "Text Field 1090", "label": "Nombre del tripulante", "fill": "me" },
+        { "kind": "text", "field": "Text Field 1089", "label": "Cargo" },
+        { "kind": "text", "field": "Text Field 1091", "label": "Departamento", "suggestions": ["Cubierta", "Máquinas", "Hotelería"] },
+        { "kind": "text", "field": "Text Field 1094", "label": "Número de informe" },
+        { "kind": "text", "field": "Text Field 1093", "label": "Fecha", "input": "date", "fill": "today" }
+      ]
+    },
+    {
+      "title": "Informe",
+      "items": [
+        { "kind": "text", "field": "Text Field 1092", "label": "Tema" },
+        { "kind": "text", "field": "Text Field 10105", "label": "Descripción del informe", "input": "textarea" }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        { "kind": "signature", "field": "Signature Field 37", "label": "Responsable del informe" },
+        { "kind": "signature", "field": "Signature Field 38", "label": "Capitán" },
+        { "kind": "signature", "field": "Signature Field 39", "label": "Persona Designada" }
+      ]
+    }
+  ]
+}

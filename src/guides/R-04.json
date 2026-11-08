@@ -1,0 +1,46 @@
+{
+  "code": "R-04",
+  "intro": "La Persona Designada familiariza al tripulante antes de embarcar. Responde cada pregunta con Sí o No.",
+  "steps": [
+    {
+      "title": "Datos del tripulante",
+      "items": [
+        { "kind": "text", "field": "Text Field 4", "label": "Nombre del tripulante", "fill": "me" },
+        { "kind": "text", "field": "Text Field 5", "label": "Cargo a desempeñar" },
+        { "kind": "text", "field": "Text Field 7", "label": "Fecha", "input": "date", "fill": "today" }
+      ]
+    },
+    {
+      "title": "Sistema de Gestión de Seguridad",
+      "items": [
+        { "kind": "yesno", "label": "¿Recibió la inducción al Sistema de Gestión de Seguridad y al Manual de la compañía?", "si": "Check Box 48", "no": "Check Box 49" },
+        { "kind": "yesno", "label": "¿Conoce los objetivos del Sistema de Gestión de Seguridad de la compañía?", "si": "Check Box 46", "no": "Check Box 47" },
+        { "kind": "yesno", "label": "¿Leyó y entendió la Política de Seguridad y prevención de la contaminación?", "si": "Check Box 44", "no": "Check Box 45" },
+        { "kind": "yesno", "label": "¿Entiende y se compromete a cumplir la política de cero tolerancia al alcohol y drogas?", "si": "Check Box 42", "no": "Check Box 43" },
+        { "kind": "yesno", "label": "¿Conoce el organigrama de la compañía y sabe cómo comunicarse con ellos?", "si": "Check Box 40", "no": "Check Box 41" },
+        { "kind": "yesno", "label": "¿Conoce quién es la Persona Designada y su relación laboral con ella?", "si": "Check Box 38", "no": "Check Box 39" }
+      ]
+    },
+    {
+      "title": "Procedimientos de seguridad",
+      "items": [
+        { "kind": "yesno", "label": "¿Está familiarizado con los equipos de seguridad y comunicaciones?", "si": "Check Box 13", "no": "Check Box 15" },
+        { "kind": "yesno", "label": "¿Sabe qué es un incumplimiento y cómo debe reportarlo?", "si": "Check Box 16", "no": "Check Box 17" },
+        { "kind": "yesno", "label": "¿Conoce los procedimientos para actuar en caso de emergencias?", "si": "Check Box 34", "no": "Check Box 35" },
+        { "kind": "yesno", "label": "¿Sabe cuál es su obligación en caso de abandono o incendio de la nave?", "si": "Check Box 36", "no": "Check Box 37" },
+        { "kind": "yesno", "label": "¿Sabe qué es un incidente o condición peligrosa y cómo reportarlo?", "si": "Check Box 26", "no": "Check Box 27" },
+        { "kind": "yesno", "label": "¿Entiende los principios básicos y precauciones de seguridad a bordo?", "si": "Check Box 28", "no": "Check Box 29" },
+        { "kind": "yesno", "label": "¿Conoce las normas de higiene dentro del yate?", "si": "Check Box 30", "no": "Check Box 31" },
+        { "kind": "yesno", "label": "¿Está familiarizado con el equipo de seguridad personal?", "si": "Check Box 32", "no": "Check Box 33" }
+      ]
+    },
+    {
+      "title": "Observaciones y firmas",
+      "items": [
+        { "kind": "text", "field": "Text Field 1", "label": "Observaciones", "input": "textarea" },
+        { "kind": "signature", "field": "Signature Field 2", "label": "Firma del tripulante" },
+        { "kind": "signature", "field": "Signature Field 1", "label": "Persona Designada" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "code": "R-21",
+  "intro": "Constancia de los equipos de protección personal (EPP) y uniformes que recibe el tripulante.",
+  "steps": [
+    {
+      "title": "Datos del empleado",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1083",
+          "label": "Nombre del empleado",
+          "fill": "me"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1087",
+          "label": "Cédula"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1088",
+          "label": "Puesto de trabajo"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1089",
+          "label": "Centro de trabajo",
+          "fill": "vessel"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1090",
+          "label": "Fecha de entrega o recepción",
+          "input": "date",
+          "fill": "today"
+        }
+      ]
+    },
+    {
+      "title": "Equipos entregados",
+      "items": [
+        {
+          "kind": "table",
+          "label": "EPP y uniformes",
+          "columns": [
+            {
+              "label": "Cantidad",
+              "input": "number"
+            },
+            {
+              "label": "Detalle del EPP o uniforme"
+            },
+            {
+              "label": "Certificación"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 1091",
+              "Text Field 1092",
+              "Text Field 1093"
+            ],
+            [
+              "Text Field 1094",
+              "Text Field 1095",
+              "Text Field 1096"
+            ],
+            [
+              "Text Field 1097",
+              "Text Field 1098",
+              "Text Field 1099"
+            ],
+            [
+              "Text Field 10100",
+              "Text Field 10101",
+              "Text Field 10102"
+            ],
+            [
+              "Text Field 10103",
+              "Text Field 10104",
+              "Text Field 10105"
+            ],
+            [
+              "Text Field 10106",
+              "Text Field 10107",
+              "Text Field 10108"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "info",
+          "text": "Al firmar declaras que recibiste estos equipos y uniformes, que entendiste cómo usarlos y cuidarlos, y que los devolverás al terminar tu embarque; si no, la compañía puede descontar su valor."
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 28",
+          "label": "Empleado que recibe"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 32",
+          "label": "Persona Designada (entrega)"
+        }
+      ]
+    }
+  ]
+}

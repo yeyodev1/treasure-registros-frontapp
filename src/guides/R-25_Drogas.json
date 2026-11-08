@@ -1,0 +1,175 @@
+{
+  "code": "R-25_Drogas",
+  "intro": "Registra cada prueba de drogas hecha en el mes, un tripulante por fila, y adjunta las fotos del control.",
+  "steps": [
+    {
+      "title": "Datos generales",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1089",
+          "label": "Capitán",
+          "fill": "me"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1090",
+          "label": "Mes del control",
+          "hint": "Ejemplo: Noviembre 2026."
+        }
+      ]
+    },
+    {
+      "title": "Tripulantes evaluados",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Pruebas de drogas",
+          "hint": "Agrega una fila por cada tripulante evaluado.",
+          "columns": [
+            {
+              "label": "Fecha",
+              "input": "date"
+            },
+            {
+              "label": "Lugar"
+            },
+            {
+              "label": "Nombre del tripulante"
+            },
+            {
+              "label": "% del test"
+            },
+            {
+              "label": "Realizado por"
+            },
+            {
+              "label": "Novedad"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 1083",
+              "Text Field 1084",
+              "Text Field 1085",
+              "Text Field 1086",
+              "Text Field 1087",
+              "Novedad_01"
+            ],
+            [
+              "Text Field 1088",
+              "Text Field 1091",
+              "Text Field 1092",
+              "Text Field 1093",
+              "Text Field 1094",
+              "Novedad_02"
+            ],
+            [
+              "Text Field 1095",
+              "Text Field 1096",
+              "Text Field 1097",
+              "Text Field 1098",
+              "Text Field 1099",
+              "Novedad_03"
+            ],
+            [
+              "Text Field 10100",
+              "Text Field 10101",
+              "Text Field 10102",
+              "Text Field 10103",
+              "Text Field 10104",
+              "Novedad_04"
+            ],
+            [
+              "Text Field 10105",
+              "Text Field 10106",
+              "Text Field 10107",
+              "Text Field 10108",
+              "Text Field 10109",
+              "Novedad_05"
+            ],
+            [
+              "Text Field 101010",
+              "Text Field 101011",
+              "Text Field 101012",
+              "Text Field 101013",
+              "Text Field 101014",
+              "Novedad_06"
+            ],
+            [
+              "Text Field 101015",
+              "Text Field 101016",
+              "Text Field 101017",
+              "Text Field 101018",
+              "Text Field 101019",
+              "Novedad_07"
+            ],
+            [
+              "Text Field 101020",
+              "Text Field 101021",
+              "Text Field 101022",
+              "Text Field 101023",
+              "Text Field 101024",
+              "Novedad_08"
+            ],
+            [
+              "Text Field 101025",
+              "Text Field 101026",
+              "Text Field 101027",
+              "Text Field 101028",
+              "Text Field 101029",
+              "Novedad_09"
+            ],
+            [
+              "Text Field 101030",
+              "Text Field 101031",
+              "Text Field 101032",
+              "Text Field 101033",
+              "Text Field 101034",
+              "Novedad_10"
+            ],
+            [
+              "Text Field 101035",
+              "Text Field 101036",
+              "Text Field 101037",
+              "Text Field 101038",
+              "Text Field 101039",
+              "Novedad_11"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Fotos del control",
+      "items": [
+        {
+          "kind": "photo",
+          "field": "Foto_Control_1",
+          "label": "Foto 1",
+          "hint": "Foto de la prueba de drogas o del resultado."
+        },
+        {
+          "kind": "photo",
+          "field": "Foto_Control_2",
+          "label": "Foto 2"
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 37",
+          "label": "Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 35",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,276 @@
+{
+  "code": "R-15",
+  "intro": "Autorización para trabajos submarinos, en caliente o en altura. Llena solo la lista del trabajo que se va a hacer.",
+  "steps": [
+    {
+      "title": "Datos del trabajo",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1069",
+          "label": "Lugar"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1070",
+          "label": "Fecha",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1071",
+          "label": "Tipo de trabajo a realizar",
+          "suggestions": [
+            "Trabajo submarino",
+            "Trabajo en caliente",
+            "Trabajo en altura y bandas"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1076",
+          "label": "Responsable a bordo"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1077",
+          "label": "Nombre del Capitán"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1078",
+          "label": "Hora de inicio",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1079",
+          "label": "Hora de término",
+          "input": "time"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1080",
+          "label": "Nombre del prestador de servicios"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1081",
+          "label": "Supervisor del prestador de servicios"
+        }
+      ]
+    },
+    {
+      "title": "A. Trabajos submarinos",
+      "hint": "Solo si es trabajo submarino (buceo).",
+      "items": [
+        {
+          "kind": "yesno",
+          "label": "¿Se verificó que el buzo está en buenas condiciones físicas?",
+          "si": "Check Box 63",
+          "no": "Check Box 64"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El buzo está certificado y con matrícula vigente de la Autoridad Marítima?",
+          "si": "Check Box 102",
+          "no": "Check Box 103"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se notificó a la Capitanía de Puerto sobre el trabajo submarino?",
+          "si": "Check Box 104",
+          "no": "Check Box 105"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se izó la bandera ALFA (buzo en el agua)?",
+          "si": "Check Box 106",
+          "no": "Check Box 107"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se revisó el equipo de buceo completo?",
+          "si": "Check Box 108",
+          "no": "Check Box 109",
+          "hint": "Regulador, tanque, guantes, capucha, wetsuit, mascarilla, snorkel, aletas y pesas."
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se informó al Capitán y al tripulante de guardia de la inmersión?",
+          "si": "Check Box 1010",
+          "no": "Check Box 1011"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Hay una panga para asistencia?",
+          "si": "Check Box 1012",
+          "no": "Check Box 1013"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Las máquinas principales están apagadas y sin las llaves de encendido?",
+          "si": "Check Box 1014",
+          "no": "Check Box 1015"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿La visibilidad y las corrientes son favorables?",
+          "si": "Check Box 1016",
+          "no": "Check Box 1017"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El Capitán autoriza la maniobra de buceo?",
+          "si": "Check Box 1018",
+          "no": "Check Box 1019"
+        }
+      ]
+    },
+    {
+      "title": "B. Trabajos en caliente",
+      "hint": "Solo si se va a soldar o cortar.",
+      "items": [
+        {
+          "kind": "yesno",
+          "label": "¿Se inspeccionó que el área a soldar esté libre de gases?",
+          "si": "Check Box 1020",
+          "no": "Check Box 1021"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se verificó que alrededor no haya materiales muy inflamables?",
+          "si": "Check Box 1022",
+          "no": "Check Box 1023"
+        },
+        {
+          "kind": "yesno",
+          "label": "Si se suelda o corta una cañería o recipiente de combustible, ¿se drenó, lavó y desgasificó, igual que las líneas cercanas?",
+          "si": "Check Box 1024",
+          "no": "Check Box 1025"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El personal tiene y usa bien su equipo de protección personal?",
+          "si": "Check Box 1026",
+          "no": "Check Box 1027"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Hay protección adicional contra fuego (extintores, mantas)?",
+          "si": "Check Box 1028",
+          "no": "Check Box 1029"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El equipo está aislado eléctricamente?",
+          "si": "Check Box 1030",
+          "no": "Check Box 1031"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El Capitán autoriza el trabajo?",
+          "si": "Check Box 1032",
+          "no": "Check Box 1033"
+        }
+      ]
+    },
+    {
+      "title": "C. Trabajos en altura y bandas",
+      "hint": "Solo si es trabajo en altura o por las bandas.",
+      "items": [
+        {
+          "kind": "yesno",
+          "label": "¿La nave está fondeada?",
+          "si": "Check Box 1034",
+          "no": "Check Box 1035",
+          "hint": "No se trabaja con la nave en movimiento."
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El radar está en Stand By o apagado?",
+          "si": "Check Box 1036",
+          "no": "Check Box 1037"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿El personal que trabaja usa su equipo de protección personal?",
+          "si": "Check Box 1038",
+          "no": "Check Box 1039"
+        },
+        {
+          "kind": "yesno",
+          "label": "Si el trabajo lo pide, ¿usa chaleco salvavidas y cinturón de seguridad?",
+          "si": "Check Box 1040",
+          "no": "Check Box 1041"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Hay dispositivos de seguridad y condiciones seguras para el trabajo?",
+          "si": "Check Box 1042",
+          "no": "Check Box 1043"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Las herramientas y materiales están asegurados?",
+          "si": "Check Box 1044",
+          "no": "Check Box 1045"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Trabajan en parejas, con uno vigilando?",
+          "si": "Check Box 1046",
+          "no": "Check Box 1047"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Se notificó al Capitán el inicio de los trabajos?",
+          "si": "Check Box 1048",
+          "no": "Check Box 1049"
+        }
+      ]
+    },
+    {
+      "title": "Deslinde de responsabilidad",
+      "hint": "Lo llena el prestador de servicios.",
+      "items": [
+        {
+          "kind": "info",
+          "text": "El prestador declara estar en buenas condiciones físicas y de salud, calificado y capacitado para el trabajo, y deslinda de responsabilidad al Armador y a la tripulación del Y/P «Treasure of Galápagos I»."
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1072",
+          "label": "Nombre de quien firma"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1073",
+          "label": "Número de cédula"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1075",
+          "label": "¿En calidad de qué presta el servicio?",
+          "hint": "Por ejemplo: buzo, soldador."
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1074",
+          "label": "Trabajo que va a realizar"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 26",
+          "label": "Prestador del servicio"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 27",
+          "label": "Capitán"
+        }
+      ]
+    }
+  ]
+}

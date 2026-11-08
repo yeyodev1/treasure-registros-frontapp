@@ -1,0 +1,206 @@
+{
+  "code": "R-18_Hoteleria",
+  "intro": "Anota lo que necesitas, cuánto y para qué. Al llegar el pedido, quien lo recibe confirma si llegó bien.",
+  "steps": [
+    {
+      "title": "Datos del pedido",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1",
+          "label": "Departamento",
+          "suggestions": [
+            "Hotelería"
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 2",
+          "label": "Fecha del pedido",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 3",
+          "label": "Número de orden (O/R)"
+        }
+      ]
+    },
+    {
+      "title": "Qué se pide",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Lista del pedido",
+          "hint": "Una fila por cada cosa que se pide.",
+          "columns": [
+            {
+              "label": "Cantidad",
+              "input": "number"
+            },
+            {
+              "label": "Descripción o detalle"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 4",
+              "Text Field 33"
+            ],
+            [
+              "Text Field 5",
+              "Text Field 32"
+            ],
+            [
+              "Text Field 6",
+              "Text Field 31"
+            ],
+            [
+              "Text Field 7",
+              "Text Field 30"
+            ],
+            [
+              "Text Field 8",
+              "Text Field 29"
+            ],
+            [
+              "Text Field 9",
+              "Text Field 28"
+            ],
+            [
+              "Text Field 10",
+              "Text Field 27"
+            ],
+            [
+              "Text Field 11",
+              "Text Field 26"
+            ],
+            [
+              "Text Field 12",
+              "Text Field 25"
+            ],
+            [
+              "Text Field 13",
+              "Text Field 24"
+            ],
+            [
+              "Text Field 14",
+              "Text Field 23"
+            ],
+            [
+              "Text Field 15",
+              "Text Field 22"
+            ],
+            [
+              "Text Field 16",
+              "Text Field 21"
+            ],
+            [
+              "Text Field 17",
+              "Text Field 20"
+            ],
+            [
+              "Text Field 18",
+              "Text Field 19"
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 34",
+          "label": "Información adicional",
+          "hint": "Números de parte u otros datos que ayuden a comprar lo correcto.",
+          "input": "textarea"
+        }
+      ]
+    },
+    {
+      "title": "Solicitante",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 35",
+          "label": "¿Quién pide?",
+          "fill": "me"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 36",
+          "label": "Fecha de la solicitud",
+          "input": "date",
+          "fill": "today"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 1",
+          "label": "Firma de la Directora de crucero (solicitante)"
+        }
+      ]
+    },
+    {
+      "title": "Despacho de suministros",
+      "hint": "Lo llena Administración.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 37",
+          "label": "¿Quién despacha?"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 38",
+          "label": "Fecha de despacho",
+          "input": "date"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 2",
+          "label": "Firma de quien despacha"
+        }
+      ]
+    },
+    {
+      "title": "Recepción del pedido",
+      "hint": "Se llena cuando el pedido llega a bordo.",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 39",
+          "label": "¿Quién recibe?"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 40",
+          "label": "Fecha de recepción",
+          "input": "date"
+        },
+        {
+          "kind": "choice",
+          "label": "¿Cómo llegó el pedido?",
+          "options": [
+            {
+              "field": "Check Box 2",
+              "label": "Conforme"
+            },
+            {
+              "field": "Check Box 1",
+              "label": "No conforme"
+            }
+          ]
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 44",
+          "label": "Si no está conforme, ¿qué faltó o llegó mal?",
+          "input": "textarea"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 3",
+          "label": "Firma de quien recibe"
+        }
+      ]
+    }
+  ]
+}

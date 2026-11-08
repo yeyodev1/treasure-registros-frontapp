@@ -1,0 +1,1317 @@
+{
+  "code": "R-23",
+  "intro": "Marca cada hora en que descansaste. Lo que es \"no para uso del tripulante\" lo llena el Capitán.",
+  "steps": [
+    {
+      "title": "Datos generales",
+      "items": [
+        {
+          "kind": "text",
+          "field": "Text Field 1013",
+          "label": "Marino (nombre completo)",
+          "fill": "me"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1012",
+          "label": "Puesto y grado"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1010",
+          "label": "Mes y año",
+          "hint": "Por ejemplo: noviembre 2026"
+        },
+        {
+          "kind": "yesno",
+          "label": "¿Haces guardia?",
+          "si": "Check Box 1018",
+          "no": "Check Box 1019"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1011",
+          "label": "Número IMO"
+        },
+        {
+          "kind": "text",
+          "field": "Text Field 1014",
+          "label": "Embarcación",
+          "fill": "vessel"
+        }
+      ]
+    },
+    {
+      "title": "Horas de descanso",
+      "items": [
+        {
+          "kind": "grid",
+          "label": "Horas de descanso de cada día",
+          "hint": "Toca cada hora en que descansaste.",
+          "columns": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23"
+          ],
+          "rows": [
+            {
+              "label": "Día 01",
+              "cells": [
+                "Check Box 94",
+                "Check Box 95",
+                "Check Box 96",
+                "Check Box 97",
+                "Check Box 98",
+                "Check Box 99",
+                "Check Box 100",
+                "Check Box 101",
+                "Check Box 102",
+                "Check Box 103",
+                "Check Box 104",
+                "Check Box 105",
+                "Check Box 106",
+                "Check Box 107",
+                "Check Box 108",
+                "Check Box 109",
+                "Check Box 1010",
+                "Check Box 1011",
+                "Check Box 1012",
+                "Check Box 1013",
+                "Check Box 1014",
+                "Check Box 1015",
+                "Check Box 1016",
+                "Check Box 1017"
+              ]
+            },
+            {
+              "label": "Día 02",
+              "cells": [
+                "Check Box 110",
+                "Check Box 111",
+                "Check Box 112",
+                "Check Box 113",
+                "Check Box 114",
+                "Check Box 115",
+                "Check Box 1020",
+                "Check Box 1021",
+                "Check Box 1022",
+                "Check Box 1023",
+                "Check Box 1024",
+                "Check Box 1025",
+                "Check Box 1026",
+                "Check Box 1027",
+                "Check Box 1028",
+                "Check Box 1029",
+                "Check Box 1030",
+                "Check Box 1031",
+                "Check Box 1032",
+                "Check Box 1033",
+                "Check Box 1034",
+                "Check Box 1035",
+                "Check Box 1036",
+                "Check Box 1037"
+              ]
+            },
+            {
+              "label": "Día 03",
+              "cells": [
+                "Check Box 116",
+                "Check Box 117",
+                "Check Box 118",
+                "Check Box 119",
+                "Check Box 120",
+                "Check Box 121",
+                "Check Box 1038",
+                "Check Box 1039",
+                "Check Box 1040",
+                "Check Box 1041",
+                "Check Box 1042",
+                "Check Box 1043",
+                "Check Box 1044",
+                "Check Box 1045",
+                "Check Box 1046",
+                "Check Box 1047",
+                "Check Box 1048",
+                "Check Box 1049",
+                "Check Box 1050",
+                "Check Box 1051",
+                "Check Box 1052",
+                "Check Box 1053",
+                "Check Box 1054",
+                "Check Box 1055"
+              ]
+            },
+            {
+              "label": "Día 04",
+              "cells": [
+                "Check Box 122",
+                "Check Box 123",
+                "Check Box 124",
+                "Check Box 125",
+                "Check Box 126",
+                "Check Box 127",
+                "Check Box 1056",
+                "Check Box 1057",
+                "Check Box 1058",
+                "Check Box 1059",
+                "Check Box 1060",
+                "Check Box 1061",
+                "Check Box 1062",
+                "Check Box 1063",
+                "Check Box 1064",
+                "Check Box 1065",
+                "Check Box 1066",
+                "Check Box 1067",
+                "Check Box 1068",
+                "Check Box 1069",
+                "Check Box 1070",
+                "Check Box 1071",
+                "Check Box 1072",
+                "Check Box 1073"
+              ]
+            },
+            {
+              "label": "Día 05",
+              "cells": [
+                "Check Box 128",
+                "Check Box 129",
+                "Check Box 130",
+                "Check Box 131",
+                "Check Box 132",
+                "Check Box 133",
+                "Check Box 1074",
+                "Check Box 1075",
+                "Check Box 1076",
+                "Check Box 1077",
+                "Check Box 1078",
+                "Check Box 1079",
+                "Check Box 1080",
+                "Check Box 1081",
+                "Check Box 1082",
+                "Check Box 1083",
+                "Check Box 1084",
+                "Check Box 1085",
+                "Check Box 1086",
+                "Check Box 1087",
+                "Check Box 1088",
+                "Check Box 1089",
+                "Check Box 1090",
+                "Check Box 1091"
+              ]
+            },
+            {
+              "label": "Día 06",
+              "cells": [
+                "Check Box 134",
+                "Check Box 135",
+                "Check Box 136",
+                "Check Box 137",
+                "Check Box 138",
+                "Check Box 139",
+                "Check Box 1092",
+                "Check Box 1093",
+                "Check Box 1094",
+                "Check Box 1095",
+                "Check Box 1096",
+                "Check Box 1097",
+                "Check Box 1098",
+                "Check Box 1099",
+                "Check Box 10100",
+                "Check Box 10101",
+                "Check Box 10102",
+                "Check Box 10103",
+                "Check Box 10104",
+                "Check Box 10105",
+                "Check Box 10106",
+                "Check Box 10107",
+                "Check Box 10108",
+                "Check Box 10109"
+              ]
+            },
+            {
+              "label": "Día 07",
+              "cells": [
+                "Check Box 140",
+                "Check Box 141",
+                "Check Box 142",
+                "Check Box 143",
+                "Check Box 144",
+                "Check Box 145",
+                "Check Box 10110",
+                "Check Box 10111",
+                "Check Box 10112",
+                "Check Box 10113",
+                "Check Box 10114",
+                "Check Box 10115",
+                "Check Box 10116",
+                "Check Box 10117",
+                "Check Box 101010",
+                "Check Box 101011",
+                "Check Box 101012",
+                "Check Box 101013",
+                "Check Box 101014",
+                "Check Box 101015",
+                "Check Box 101016",
+                "Check Box 101017",
+                "Check Box 101018",
+                "Check Box 101019"
+              ]
+            },
+            {
+              "label": "Día 08",
+              "cells": [
+                "Check Box 146",
+                "Check Box 147",
+                "Check Box 148",
+                "Check Box 149",
+                "Check Box 150",
+                "Check Box 151",
+                "Check Box 10118",
+                "Check Box 10119",
+                "Check Box 10120",
+                "Check Box 10121",
+                "Check Box 10122",
+                "Check Box 10123",
+                "Check Box 10124",
+                "Check Box 10125",
+                "Check Box 101020",
+                "Check Box 101021",
+                "Check Box 101022",
+                "Check Box 101023",
+                "Check Box 101024",
+                "Check Box 101025",
+                "Check Box 101026",
+                "Check Box 101027",
+                "Check Box 101028",
+                "Check Box 101029"
+              ]
+            },
+            {
+              "label": "Día 09",
+              "cells": [
+                "Check Box 152",
+                "Check Box 153",
+                "Check Box 154",
+                "Check Box 155",
+                "Check Box 156",
+                "Check Box 157",
+                "Check Box 10126",
+                "Check Box 10127",
+                "Check Box 10128",
+                "Check Box 10129",
+                "Check Box 10130",
+                "Check Box 10131",
+                "Check Box 10132",
+                "Check Box 10133",
+                "Check Box 101030",
+                "Check Box 101031",
+                "Check Box 101032",
+                "Check Box 101033",
+                "Check Box 101034",
+                "Check Box 101035",
+                "Check Box 101036",
+                "Check Box 101037",
+                "Check Box 101038",
+                "Check Box 101039"
+              ]
+            },
+            {
+              "label": "Día 10",
+              "cells": [
+                "Check Box 158",
+                "Check Box 159",
+                "Check Box 160",
+                "Check Box 161",
+                "Check Box 162",
+                "Check Box 163",
+                "Check Box 10134",
+                "Check Box 10135",
+                "Check Box 10136",
+                "Check Box 10137",
+                "Check Box 10138",
+                "Check Box 10139",
+                "Check Box 10140",
+                "Check Box 10141",
+                "Check Box 101040",
+                "Check Box 101041",
+                "Check Box 101042",
+                "Check Box 101043",
+                "Check Box 101044",
+                "Check Box 101045",
+                "Check Box 101046",
+                "Check Box 101047",
+                "Check Box 101048",
+                "Check Box 101049"
+              ]
+            },
+            {
+              "label": "Día 11",
+              "cells": [
+                "Check Box 164",
+                "Check Box 165",
+                "Check Box 166",
+                "Check Box 167",
+                "Check Box 168",
+                "Check Box 169",
+                "Check Box 10142",
+                "Check Box 10143",
+                "Check Box 10144",
+                "Check Box 10145",
+                "Check Box 10146",
+                "Check Box 10147",
+                "Check Box 10148",
+                "Check Box 10149",
+                "Check Box 101050",
+                "Check Box 101051",
+                "Check Box 101052",
+                "Check Box 101053",
+                "Check Box 101054",
+                "Check Box 101055",
+                "Check Box 101056",
+                "Check Box 101057",
+                "Check Box 101058",
+                "Check Box 101059"
+              ]
+            },
+            {
+              "label": "Día 12",
+              "cells": [
+                "Check Box 170",
+                "Check Box 171",
+                "Check Box 172",
+                "Check Box 173",
+                "Check Box 174",
+                "Check Box 175",
+                "Check Box 10150",
+                "Check Box 10151",
+                "Check Box 10152",
+                "Check Box 10153",
+                "Check Box 10154",
+                "Check Box 10155",
+                "Check Box 10156",
+                "Check Box 10157",
+                "Check Box 101060",
+                "Check Box 101061",
+                "Check Box 101062",
+                "Check Box 101063",
+                "Check Box 101064",
+                "Check Box 101065",
+                "Check Box 101066",
+                "Check Box 101067",
+                "Check Box 101068",
+                "Check Box 101069"
+              ]
+            },
+            {
+              "label": "Día 13",
+              "cells": [
+                "Check Box 176",
+                "Check Box 177",
+                "Check Box 178",
+                "Check Box 179",
+                "Check Box 180",
+                "Check Box 181",
+                "Check Box 10158",
+                "Check Box 10159",
+                "Check Box 10160",
+                "Check Box 10161",
+                "Check Box 10162",
+                "Check Box 10163",
+                "Check Box 10164",
+                "Check Box 10165",
+                "Check Box 101070",
+                "Check Box 101071",
+                "Check Box 101072",
+                "Check Box 101073",
+                "Check Box 101074",
+                "Check Box 101075",
+                "Check Box 101076",
+                "Check Box 101077",
+                "Check Box 101078",
+                "Check Box 101079"
+              ]
+            },
+            {
+              "label": "Día 14",
+              "cells": [
+                "Check Box 182",
+                "Check Box 183",
+                "Check Box 184",
+                "Check Box 185",
+                "Check Box 186",
+                "Check Box 187",
+                "Check Box 10166",
+                "Check Box 10167",
+                "Check Box 10168",
+                "Check Box 10169",
+                "Check Box 10170",
+                "Check Box 10171",
+                "Check Box 10172",
+                "Check Box 10173",
+                "Check Box 101080",
+                "Check Box 101081",
+                "Check Box 101082",
+                "Check Box 101083",
+                "Check Box 101084",
+                "Check Box 101085",
+                "Check Box 101086",
+                "Check Box 101087",
+                "Check Box 101088",
+                "Check Box 101089"
+              ]
+            },
+            {
+              "label": "Día 15",
+              "cells": [
+                "Check Box 188",
+                "Check Box 189",
+                "Check Box 190",
+                "Check Box 191",
+                "Check Box 192",
+                "Check Box 193",
+                "Check Box 10174",
+                "Check Box 10175",
+                "Check Box 10176",
+                "Check Box 10177",
+                "Check Box 10178",
+                "Check Box 10179",
+                "Check Box 10180",
+                "Check Box 10181",
+                "Check Box 101090",
+                "Check Box 101091",
+                "Check Box 101092",
+                "Check Box 101093",
+                "Check Box 101094",
+                "Check Box 101095",
+                "Check Box 101096",
+                "Check Box 101097",
+                "Check Box 101098",
+                "Check Box 101099"
+              ]
+            },
+            {
+              "label": "Día 16",
+              "cells": [
+                "Check Box 194",
+                "Check Box 195",
+                "Check Box 196",
+                "Check Box 197",
+                "Check Box 198",
+                "Check Box 199",
+                "Check Box 10182",
+                "Check Box 10183",
+                "Check Box 10184",
+                "Check Box 10185",
+                "Check Box 10186",
+                "Check Box 10187",
+                "Check Box 10188",
+                "Check Box 10189",
+                "Check Box 1010100",
+                "Check Box 1010101",
+                "Check Box 1010102",
+                "Check Box 1010103",
+                "Check Box 1010104",
+                "Check Box 1010105",
+                "Check Box 1010106",
+                "Check Box 1010107",
+                "Check Box 1010108",
+                "Check Box 1010109"
+              ]
+            },
+            {
+              "label": "Día 17",
+              "cells": [
+                "Check Box 200",
+                "Check Box 201",
+                "Check Box 202",
+                "Check Box 203",
+                "Check Box 204",
+                "Check Box 205",
+                "Check Box 10190",
+                "Check Box 10191",
+                "Check Box 10192",
+                "Check Box 10193",
+                "Check Box 10194",
+                "Check Box 10195",
+                "Check Box 10196",
+                "Check Box 10197",
+                "Check Box 10101010",
+                "Check Box 10101011",
+                "Check Box 10101012",
+                "Check Box 10101013",
+                "Check Box 10101014",
+                "Check Box 10101015",
+                "Check Box 10101016",
+                "Check Box 10101017",
+                "Check Box 10101018",
+                "Check Box 10101019"
+              ]
+            },
+            {
+              "label": "Día 18",
+              "cells": [
+                "Check Box 206",
+                "Check Box 207",
+                "Check Box 208",
+                "Check Box 209",
+                "Check Box 2010",
+                "Check Box 2011",
+                "Check Box 10198",
+                "Check Box 10199",
+                "Check Box 10200",
+                "Check Box 10201",
+                "Check Box 10202",
+                "Check Box 10203",
+                "Check Box 10204",
+                "Check Box 10205",
+                "Check Box 10101020",
+                "Check Box 10101021",
+                "Check Box 10101022",
+                "Check Box 10101023",
+                "Check Box 10101024",
+                "Check Box 10101025",
+                "Check Box 10101026",
+                "Check Box 10101027",
+                "Check Box 10101028",
+                "Check Box 10101029"
+              ]
+            },
+            {
+              "label": "Día 19",
+              "cells": [
+                "Check Box 2012",
+                "Check Box 2013",
+                "Check Box 2014",
+                "Check Box 2015",
+                "Check Box 2016",
+                "Check Box 2017",
+                "Check Box 10206",
+                "Check Box 10207",
+                "Check Box 10208",
+                "Check Box 10209",
+                "Check Box 102010",
+                "Check Box 102011",
+                "Check Box 102012",
+                "Check Box 102013",
+                "Check Box 10101030",
+                "Check Box 10101031",
+                "Check Box 10101032",
+                "Check Box 10101033",
+                "Check Box 10101034",
+                "Check Box 10101035",
+                "Check Box 10101036",
+                "Check Box 10101037",
+                "Check Box 10101038",
+                "Check Box 10101039"
+              ]
+            },
+            {
+              "label": "Día 20",
+              "cells": [
+                "Check Box 2018",
+                "Check Box 2019",
+                "Check Box 2020",
+                "Check Box 2021",
+                "Check Box 2022",
+                "Check Box 2023",
+                "Check Box 102014",
+                "Check Box 102015",
+                "Check Box 102016",
+                "Check Box 102017",
+                "Check Box 102018",
+                "Check Box 102019",
+                "Check Box 102020",
+                "Check Box 102021",
+                "Check Box 10101040",
+                "Check Box 10101041",
+                "Check Box 10101042",
+                "Check Box 10101043",
+                "Check Box 10101044",
+                "Check Box 10101045",
+                "Check Box 10101046",
+                "Check Box 10101047",
+                "Check Box 10101048",
+                "Check Box 10101049"
+              ]
+            },
+            {
+              "label": "Día 21",
+              "cells": [
+                "Check Box 2024",
+                "Check Box 2025",
+                "Check Box 2026",
+                "Check Box 2027",
+                "Check Box 2028",
+                "Check Box 2029",
+                "Check Box 102022",
+                "Check Box 102023",
+                "Check Box 102024",
+                "Check Box 102025",
+                "Check Box 102026",
+                "Check Box 102027",
+                "Check Box 102028",
+                "Check Box 102029",
+                "Check Box 10101050",
+                "Check Box 10101051",
+                "Check Box 10101052",
+                "Check Box 10101053",
+                "Check Box 10101054",
+                "Check Box 10101055",
+                "Check Box 10101056",
+                "Check Box 10101057",
+                "Check Box 10101058",
+                "Check Box 10101059"
+              ]
+            },
+            {
+              "label": "Día 22",
+              "cells": [
+                "Check Box 2030",
+                "Check Box 2031",
+                "Check Box 2032",
+                "Check Box 2033",
+                "Check Box 2034",
+                "Check Box 2035",
+                "Check Box 102030",
+                "Check Box 102031",
+                "Check Box 102032",
+                "Check Box 102033",
+                "Check Box 102034",
+                "Check Box 102035",
+                "Check Box 102036",
+                "Check Box 102037",
+                "Check Box 10101060",
+                "Check Box 10101061",
+                "Check Box 10101062",
+                "Check Box 10101063",
+                "Check Box 10101064",
+                "Check Box 10101065",
+                "Check Box 10101066",
+                "Check Box 10101067",
+                "Check Box 10101068",
+                "Check Box 10101069"
+              ]
+            },
+            {
+              "label": "Día 23",
+              "cells": [
+                "Check Box 2036",
+                "Check Box 2037",
+                "Check Box 2038",
+                "Check Box 2039",
+                "Check Box 2040",
+                "Check Box 2041",
+                "Check Box 102038",
+                "Check Box 102039",
+                "Check Box 102040",
+                "Check Box 102041",
+                "Check Box 102042",
+                "Check Box 102043",
+                "Check Box 102044",
+                "Check Box 102045",
+                "Check Box 10101070",
+                "Check Box 10101071",
+                "Check Box 10101072",
+                "Check Box 10101073",
+                "Check Box 10101074",
+                "Check Box 10101075",
+                "Check Box 10101076",
+                "Check Box 10101077",
+                "Check Box 10101078",
+                "Check Box 10101079"
+              ]
+            },
+            {
+              "label": "Día 24",
+              "cells": [
+                "Check Box 2042",
+                "Check Box 2043",
+                "Check Box 2044",
+                "Check Box 2045",
+                "Check Box 2046",
+                "Check Box 2047",
+                "Check Box 102046",
+                "Check Box 102047",
+                "Check Box 102048",
+                "Check Box 102049",
+                "Check Box 102050",
+                "Check Box 102051",
+                "Check Box 102052",
+                "Check Box 102053",
+                "Check Box 10101080",
+                "Check Box 10101081",
+                "Check Box 10101082",
+                "Check Box 10101083",
+                "Check Box 10101084",
+                "Check Box 10101085",
+                "Check Box 10101086",
+                "Check Box 10101087",
+                "Check Box 10101088",
+                "Check Box 10101089"
+              ]
+            },
+            {
+              "label": "Día 25",
+              "cells": [
+                "Check Box 2048",
+                "Check Box 2049",
+                "Check Box 2050",
+                "Check Box 2051",
+                "Check Box 2052",
+                "Check Box 2053",
+                "Check Box 102054",
+                "Check Box 102055",
+                "Check Box 102056",
+                "Check Box 102057",
+                "Check Box 102058",
+                "Check Box 102059",
+                "Check Box 102060",
+                "Check Box 102061",
+                "Check Box 10101090",
+                "Check Box 10101091",
+                "Check Box 10101092",
+                "Check Box 10101093",
+                "Check Box 10101094",
+                "Check Box 10101095",
+                "Check Box 10101096",
+                "Check Box 10101097",
+                "Check Box 10101098",
+                "Check Box 10101099"
+              ]
+            },
+            {
+              "label": "Día 26",
+              "cells": [
+                "Check Box 2054",
+                "Check Box 2055",
+                "Check Box 2056",
+                "Check Box 2057",
+                "Check Box 2058",
+                "Check Box 2059",
+                "Check Box 102062",
+                "Check Box 102063",
+                "Check Box 102064",
+                "Check Box 102065",
+                "Check Box 102066",
+                "Check Box 102067",
+                "Check Box 102068",
+                "Check Box 102069",
+                "Check Box 101010100",
+                "Check Box 101010101",
+                "Check Box 101010102",
+                "Check Box 101010103",
+                "Check Box 101010104",
+                "Check Box 101010105",
+                "Check Box 101010106",
+                "Check Box 101010107",
+                "Check Box 101010108",
+                "Check Box 101010109"
+              ]
+            },
+            {
+              "label": "Día 27",
+              "cells": [
+                "Check Box 2060",
+                "Check Box 2061",
+                "Check Box 2062",
+                "Check Box 2063",
+                "Check Box 2064",
+                "Check Box 2065",
+                "Check Box 102070",
+                "Check Box 102071",
+                "Check Box 102072",
+                "Check Box 102073",
+                "Check Box 102074",
+                "Check Box 102075",
+                "Check Box 102076",
+                "Check Box 102077",
+                "Check Box 1010101010",
+                "Check Box 1010101011",
+                "Check Box 1010101012",
+                "Check Box 1010101013",
+                "Check Box 1010101014",
+                "Check Box 1010101015",
+                "Check Box 1010101016",
+                "Check Box 1010101017",
+                "Check Box 1010101018",
+                "Check Box 1010101019"
+              ]
+            },
+            {
+              "label": "Día 28",
+              "cells": [
+                "Check Box 2066",
+                "Check Box 2067",
+                "Check Box 2068",
+                "Check Box 2069",
+                "Check Box 2070",
+                "Check Box 2071",
+                "Check Box 102078",
+                "Check Box 102079",
+                "Check Box 102080",
+                "Check Box 102081",
+                "Check Box 102082",
+                "Check Box 102083",
+                "Check Box 102084",
+                "Check Box 102085",
+                "Check Box 1010101020",
+                "Check Box 1010101021",
+                "Check Box 1010101022",
+                "Check Box 1010101023",
+                "Check Box 1010101024",
+                "Check Box 1010101025",
+                "Check Box 1010101026",
+                "Check Box 1010101027",
+                "Check Box 1010101028",
+                "Check Box 1010101029"
+              ]
+            },
+            {
+              "label": "Día 29",
+              "cells": [
+                "Check Box 2072",
+                "Check Box 2073",
+                "Check Box 2074",
+                "Check Box 2075",
+                "Check Box 2076",
+                "Check Box 2077",
+                "Check Box 102086",
+                "Check Box 102087",
+                "Check Box 102088",
+                "Check Box 102089",
+                "Check Box 102090",
+                "Check Box 102091",
+                "Check Box 102092",
+                "Check Box 102093",
+                "Check Box 1010101030",
+                "Check Box 1010101031",
+                "Check Box 1010101032",
+                "Check Box 1010101033",
+                "Check Box 1010101034",
+                "Check Box 1010101035",
+                "Check Box 1010101036",
+                "Check Box 1010101037",
+                "Check Box 1010101038",
+                "Check Box 1010101039"
+              ]
+            },
+            {
+              "label": "Día 30",
+              "cells": [
+                "Check Box 2078",
+                "Check Box 2079",
+                "Check Box 2080",
+                "Check Box 2081",
+                "Check Box 2082",
+                "Check Box 2083",
+                "Check Box 102094",
+                "Check Box 102095",
+                "Check Box 102096",
+                "Check Box 102097",
+                "Check Box 102098",
+                "Check Box 102099",
+                "Check Box 1020100",
+                "Check Box 1020101",
+                "Check Box 1010101040",
+                "Check Box 1010101041",
+                "Check Box 1010101042",
+                "Check Box 1010101043",
+                "Check Box 1010101044",
+                "Check Box 1010101045",
+                "Check Box 1010101046",
+                "Check Box 1010101047",
+                "Check Box 1010101048",
+                "Check Box 1010101049"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Resumen por día",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Total y observaciones de cada día",
+          "columns": [
+            {
+              "label": "Horas de descanso en 24 h",
+              "input": "number"
+            },
+            {
+              "label": "Observaciones"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 106",
+              "Text Field 107"
+            ],
+            [
+              "Text Field 1016",
+              "Text Field 1017"
+            ],
+            [
+              "Text Field 1021",
+              "Text Field 1022"
+            ],
+            [
+              "Text Field 1026",
+              "Text Field 1027"
+            ],
+            [
+              "Text Field 1031",
+              "Text Field 1032"
+            ],
+            [
+              "Text Field 1036",
+              "Text Field 1037"
+            ],
+            [
+              "Text Field 1041",
+              "Text Field 1042"
+            ],
+            [
+              "Text Field 1046",
+              "Text Field 1047"
+            ],
+            [
+              "Text Field 1051",
+              "Text Field 1052"
+            ],
+            [
+              "Text Field 1056",
+              "Text Field 1057"
+            ],
+            [
+              "Text Field 1061",
+              "Text Field 1062"
+            ],
+            [
+              "Text Field 1066",
+              "Text Field 1067"
+            ],
+            [
+              "Text Field 1071",
+              "Text Field 1072"
+            ],
+            [
+              "Text Field 1076",
+              "Text Field 1077"
+            ],
+            [
+              "Text Field 1081",
+              "Text Field 1082"
+            ],
+            [
+              "Text Field 1086",
+              "Text Field 1087"
+            ],
+            [
+              "Text Field 1091",
+              "Text Field 1092"
+            ],
+            [
+              "Text Field 1096",
+              "Text Field 1097"
+            ],
+            [
+              "Text Field 10101",
+              "Text Field 10102"
+            ],
+            [
+              "Text Field 10106",
+              "Text Field 10107"
+            ],
+            [
+              "Text Field 101011",
+              "Text Field 101012"
+            ],
+            [
+              "Text Field 101016",
+              "Text Field 101017"
+            ],
+            [
+              "Text Field 101021",
+              "Text Field 101022"
+            ],
+            [
+              "Text Field 101026",
+              "Text Field 101027"
+            ],
+            [
+              "Text Field 101031",
+              "Text Field 101032"
+            ],
+            [
+              "Text Field 101036",
+              "Text Field 101037"
+            ],
+            [
+              "Text Field 101041",
+              "Text Field 101042"
+            ],
+            [
+              "Text Field 101046",
+              "Text Field 101047"
+            ],
+            [
+              "Text Field 101051",
+              "Text Field 101052"
+            ],
+            [
+              "Text Field 101056",
+              "Text Field 101057"
+            ]
+          ],
+          "rowLabels": [
+            "Día 01",
+            "Día 02",
+            "Día 03",
+            "Día 04",
+            "Día 05",
+            "Día 06",
+            "Día 07",
+            "Día 08",
+            "Día 09",
+            "Día 10",
+            "Día 11",
+            "Día 12",
+            "Día 13",
+            "Día 14",
+            "Día 15",
+            "Día 16",
+            "Día 17",
+            "Día 18",
+            "Día 19",
+            "Día 20",
+            "Día 21",
+            "Día 22",
+            "Día 23",
+            "Día 24",
+            "Día 25",
+            "Día 26",
+            "Día 27",
+            "Día 28",
+            "Día 29",
+            "Día 30"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Control del Capitán",
+      "hint": "No para uso del tripulante: lo llena el Capitán o la oficina.",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Horas de trabajo o descanso",
+          "columns": [
+            {
+              "label": "En cada periodo de 24 h"
+            },
+            {
+              "label": "En cada periodo de 7 días"
+            }
+          ],
+          "rows": [
+            [
+              "Text Field 108",
+              "Text Field 109"
+            ],
+            [
+              "Text Field 1018",
+              "Text Field 1019"
+            ],
+            [
+              "Text Field 1023",
+              "Text Field 1024"
+            ],
+            [
+              "Text Field 1028",
+              "Text Field 1029"
+            ],
+            [
+              "Text Field 1033",
+              "Text Field 1034"
+            ],
+            [
+              "Text Field 1038",
+              "Text Field 1039"
+            ],
+            [
+              "Text Field 1043",
+              "Text Field 1044"
+            ],
+            [
+              "Text Field 1048",
+              "Text Field 1049"
+            ],
+            [
+              "Text Field 1053",
+              "Text Field 1054"
+            ],
+            [
+              "Text Field 1058",
+              "Text Field 1059"
+            ],
+            [
+              "Text Field 1063",
+              "Text Field 1064"
+            ],
+            [
+              "Text Field 1068",
+              "Text Field 1069"
+            ],
+            [
+              "Text Field 1073",
+              "Text Field 1074"
+            ],
+            [
+              "Text Field 1078",
+              "Text Field 1079"
+            ],
+            [
+              "Text Field 1083",
+              "Text Field 1084"
+            ],
+            [
+              "Text Field 1088",
+              "Text Field 1089"
+            ],
+            [
+              "Text Field 1093",
+              "Text Field 1094"
+            ],
+            [
+              "Text Field 1098",
+              "Text Field 1099"
+            ],
+            [
+              "Text Field 10103",
+              "Text Field 10104"
+            ],
+            [
+              "Text Field 10108",
+              "Text Field 10109"
+            ],
+            [
+              "Text Field 101013",
+              "Text Field 101014"
+            ],
+            [
+              "Text Field 101018",
+              "Text Field 101019"
+            ],
+            [
+              "Text Field 101023",
+              "Text Field 101024"
+            ],
+            [
+              "Text Field 101028",
+              "Text Field 101029"
+            ],
+            [
+              "Text Field 101033",
+              "Text Field 101034"
+            ],
+            [
+              "Text Field 101038",
+              "Text Field 101039"
+            ],
+            [
+              "Text Field 101043",
+              "Text Field 101044"
+            ],
+            [
+              "Text Field 101048",
+              "Text Field 101049"
+            ],
+            [
+              "Text Field 101053",
+              "Text Field 101054"
+            ],
+            [
+              "Text Field 101058",
+              "Text Field 101059"
+            ]
+          ],
+          "rowLabels": [
+            "Día 01",
+            "Día 02",
+            "Día 03",
+            "Día 04",
+            "Día 05",
+            "Día 06",
+            "Día 07",
+            "Día 08",
+            "Día 09",
+            "Día 10",
+            "Día 11",
+            "Día 12",
+            "Día 13",
+            "Día 14",
+            "Día 15",
+            "Día 16",
+            "Día 17",
+            "Día 18",
+            "Día 19",
+            "Día 20",
+            "Día 21",
+            "Día 22",
+            "Día 23",
+            "Día 24",
+            "Día 25",
+            "Día 26",
+            "Día 27",
+            "Día 28",
+            "Día 29",
+            "Día 30"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Firma_Tripulante",
+          "label": "Tripulante"
+        },
+        {
+          "kind": "signature",
+          "field": "Firma_Capitan",
+          "label": "Capitán"
+        },
+        {
+          "kind": "signature",
+          "field": "Firma_Persona_Designada",
+          "label": "Persona Designada"
+        }
+      ]
+    }
+  ]
+}

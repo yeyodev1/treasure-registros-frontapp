@@ -1,0 +1,81 @@
+{
+  "code": "R-12",
+  "intro": "Anota cada cambio hecho al Manual de Gestión de Seguridad.",
+  "steps": [
+    {
+      "title": "Cambios",
+      "items": [
+        {
+          "kind": "table",
+          "label": "Cambios registrados",
+          "hint": "Agrega una fila por cambio; el responsable firma en su fila.",
+          "columns": [
+            {
+              "label": "Fecha de emisión",
+              "input": "date"
+            },
+            {
+              "label": "Referencia normativa y página"
+            },
+            {
+              "label": "Revisado por"
+            },
+            {
+              "label": "Aprobado por"
+            },
+            {
+              "label": "Firma del responsable"
+            },
+            {
+              "label": "Detalle del cambio incorporado",
+              "input": "textarea"
+            }
+          ],
+          "rows": [
+            ["Text Field 72", "Text Field 99", "Text Field 100", "Text Field 101", "Firma_Responsable_01", "Text Field 103"],
+            ["Text Field 104", "Text Field 105", "Text Field 106", "Text Field 107", "Firma_Responsable_02", "Text Field 109"],
+            ["Text Field 1010", "Text Field 1011", "Text Field 1012", "Text Field 1013", "Firma_Responsable_03", "Text Field 1015"],
+            ["Text Field 1016", "Text Field 1017", "Text Field 1018", "Text Field 1019", "Firma_Responsable_04", "Text Field 1021"],
+            ["Text Field 1022", "Text Field 1023", "Text Field 1024", "Text Field 1025", "Firma_Responsable_05", "Text Field 1027"],
+            ["Text Field 1028", "Text Field 1029", "Text Field 1030", "Text Field 1031", "Firma_Responsable_06", "Text Field 1033"],
+            ["Text Field 1034", "Text Field 1035", "Text Field 1036", "Text Field 1037", "Firma_Responsable_07", "Text Field 1039"],
+            ["Text Field 1040", "Text Field 1041", "Text Field 1042", "Text Field 1043", "Firma_Responsable_08", "Text Field 1045"],
+            ["Text Field 1046", "Text Field 1047", "Text Field 1048", "Text Field 1049", "Firma_Responsable_09", "Text Field 1051"],
+            ["Text Field 1052", "Text Field 1053", "Text Field 1054", "Text Field 1055", "Firma_Responsable_10", "Text Field 1057"],
+            ["Text Field 1058", "Text Field 1059", "Text Field 1060", "Text Field 1061", "Firma_Responsable_11", "Text Field 1063"],
+            ["Text Field 1064", "Text Field 1065", "Text Field 1066", "Text Field 1067", "Firma_Responsable_12", "Text Field 1069"],
+            ["Text Field 1070", "Text Field 1071", "Text Field 1072", "Text Field 1073", "Firma_Responsable_13", "Text Field 1075"],
+            ["Text Field 1076", "Text Field 1077", "Text Field 1078", "Text Field 1079", "Firma_Responsable_14", "Text Field 1081"],
+            ["Text Field 1082", "Text Field 1083", "Text Field 1084", "Text Field 1085", "Firma_Responsable_15", "Text Field 1087"],
+            ["Text Field 1088", "Text Field 1089", "Text Field 1090", "Text Field 1091", "Firma_Responsable_16", "Text Field 1093"],
+            ["Text Field 1094", "Text Field 1095", "Text Field 1096", "Text Field 1097", "Firma_Responsable_17", "Text Field 1099"],
+            ["Text Field 10100", "Text Field 10101", "Text Field 10102", "Text Field 10103", "Firma_Responsable_18", "Text Field 10105"],
+            ["Text Field 10106", "Text Field 10107", "Text Field 10108", "Text Field 10109", "Firma_Responsable_19", "Text Field 101011"],
+            ["Text Field 101012", "Text Field 101013", "Text Field 101014", "Text Field 101015", "Firma_Responsable_20", "Text Field 101017"],
+            ["Text Field 101018", "Text Field 101019", "Text Field 101020", "Text Field 101021", "Firma_Responsable_21", "Text Field 101023"],
+            ["Text Field 101024", "Text Field 101025", "Text Field 101026", "Text Field 101027", "Firma_Responsable_22", "Text Field 101029"],
+            ["Text Field 101030", "Text Field 101031", "Text Field 101032", "Text Field 101033", "Firma_Responsable_23", "Text Field 101035"],
+            ["Text Field 101036", "Text Field 101037", "Text Field 101038", "Text Field 101039", "Firma_Responsable_24", "Text Field 101041"],
+            ["Text Field 101042", "Text Field 101043", "Text Field 101044", "Text Field 101045", "Firma_Responsable_25", "Text Field 101047"]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Firmas",
+      "hint": "Lo firma la oficina.",
+      "items": [
+        {
+          "kind": "signature",
+          "field": "Signature Field 24",
+          "label": "Persona Designada"
+        },
+        {
+          "kind": "signature",
+          "field": "Signature Field 22",
+          "label": "Gerencia General"
+        }
+      ]
+    }
+  ]
+}
