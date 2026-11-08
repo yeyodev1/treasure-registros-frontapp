@@ -7,12 +7,24 @@ import { useSound } from '@/composables/useSound'
 import { apiSummary } from '@/services/api'
 import BrandSeal from '@/components/ui/BrandSeal.vue'
 import NoticeBell from '@/components/ui/NoticeBell.vue'
+import { builtAtLabel, useAppUpdate } from '@/composables/useAppUpdate'
+import { useToastStore } from '@/stores/toast'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const confirmStore = useConfirmStore()
 const { muted, toggleMute, play } = useSound()
+const { checkNow } = useAppUpdate()
+const toast = useToastStore()
+const checking = shallowRef(false)
+/** Buscar a mano: si hay versión nueva sale el aviso para actualizar; si no, se confirma. */
+async function findUpdate() {
+  checking.value = true
+  const found = await checkNow()
+  checking.value = false
+  if (!found) toast.success(`Ya tienes la última versión (${builtAtLabel})`)
+}
 
 const toSign = shallowRef(0)
 
@@ -152,6 +164,12 @@ async function logout() {
               <i class="fa-solid fa-martini-glass-citrus nav-icon" aria-hidden="true" /> Sistema del bar
               <i class="fa-solid fa-arrow-up-right-from-square ext" aria-hidden="true" />
             </a>
+          </div>
+          <div class="section version">
+            <button type="button" class="nav-item" :disabled="checking" @click="findUpdate">
+              <i class="fa-solid fa-arrows-rotate nav-icon" :class="{ 'fa-spin': checking }" aria-hidden="true" /> Buscar actualización
+            </button>
+            <p class="version-label">Versión del {{ builtAtLabel }}</p>
           </div>
         </div>
 
@@ -490,5 +508,24 @@ async function logout() {
 .content {
   flex: 1;
   min-width: 0;
+}
+.version {
+  margin-top: auto;
+
+  button.nav-item {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+}
+
+.version-label {
+  margin: 0.2rem 0 0;
+  padding: 0 0.9rem;
+  font-size: 0.82rem;
+  color: var(--ink-400);
 }
 </style>
