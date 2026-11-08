@@ -5,7 +5,7 @@ import { useUserStore } from '@/stores/user'
 import { useCatalogStore } from '@/stores/catalog'
 import { useSound } from '@/composables/useSound'
 import { appendSaid, useDictation } from '@/composables/useDictation'
-import { apiCreateRecord, apiCrewSignature, apiRecordAction, apiSaveRecord, apiSign } from '@/services/api'
+import { apiCreateRecord, apiCrewSignature, apiRecordAction, apiSaveRecord, apiSetMySignature, apiSign } from '@/services/api'
 import { apiErrorMessage, isNetworkError } from '@/services/httpBase'
 import { detectIntent, novedadText, parseSupplyList, type Intent, type SupplyLine } from '@/utils/capture'
 import { autoFillValues, type FillGuide } from '@/utils/fillGuide'
@@ -249,6 +249,8 @@ async function send() {
     if (signField.value) {
       const image = useSaved.value ? savedSignature.value : pad.value!.image()
       await apiSign(recordId, signField.value.name, image, userStore.user?.name ?? '')
+      // La firma dibujada queda guardada: la próxima vez ya está puesta.
+      if (!useSaved.value) apiSetMySignature(image).then(() => (savedSignature.value = image), () => {})
     }
     try {
       await apiRecordAction(recordId, 'submit')

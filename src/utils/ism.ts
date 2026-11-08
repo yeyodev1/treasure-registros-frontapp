@@ -21,7 +21,7 @@ export const STATUS_ICONS: Record<IsmStatus, string> = {
 }
 
 export const STAGE_LABELS: Record<SignatureStage, string> = {
-  tripulacion: 'Quien hace el chequeo',
+  tripulacion: 'Tripulación',
   capitan: 'Capitán',
   oficina: 'Persona Designada',
 }

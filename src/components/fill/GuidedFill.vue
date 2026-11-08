@@ -24,6 +24,8 @@ const props = defineProps<{
    * pregunta (se resume arriba) y los pasos de otras personas no se muestran.
    */
   compact?: boolean
+  /** Botón para enviar al final de «Revisar» ('' = no se envía desde aquí). */
+  submitLabel?: string
 }>()
 
 const emit = defineEmits<{
@@ -31,6 +33,7 @@ const emit = defineEmits<{
   sign: [field: IsmField]
   photo: [field: IsmField]
   sheet: []
+  submit: []
 }>()
 
 const top = useTemplateRef<HTMLElement>('top')
@@ -40,6 +43,12 @@ const showAll = shallowRef(false)
 const sysFields = computed(() => systemFields(props.guide))
 const isKnown = (item: GuideItem) =>
   item.kind === 'text' && sysFields.value.has(item.field) && hasValue(props.values[item.field])
+/** Firma de otra etapa (Capitán, Persona Designada): se firma en su sistema, no aquí. */
+const isOthersSignature = (item: GuideItem) => {
+  if (item.kind !== 'signature') return false
+  const f = fields.value.get(item.field)
+  return !f || (!props.canSign(f) && !signed.value.has(item.field))
+}
 /** Datos que puso el sistema, para el resumen de arriba. */
 const knownItems = computed(() =>
   props.compact
@@ -50,7 +59,7 @@ const steps = computed(() => {
   if (!props.compact || showAll.value) return props.guide.steps
   const mine = props.guide.steps.filter((st) => !(st.hint && LATER_STEP.test(st.hint)))
   return (mine.length ? mine : props.guide.steps)
-    .map((st) => ({ ...st, items: st.items.filter((i) => !isKnown(i)) }))
+    .map((st) => ({ ...st, items: st.items.filter((i) => !isKnown(i) && !isOthersSignature(i)) }))
     .filter((st) => st.items.length)
 })
 const lastStep = computed(() => steps.value.length)
@@ -477,7 +486,7 @@ function photoUrl(name: string) {
             <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Anterior
           </button>
           <button type="button" class="btn btn-primary btn-lg" @click="go(step + 1)">
-            {{ step + 1 < lastStep ? 'Siguiente' : 'Revisar' }} <i class="fa-solid fa-arrow-right" aria-hidden="true" />
+            {{ step + 1 < lastStep ? 'Siguiente' : submitLabel ? 'Revisar y enviar' : 'Revisar' }} <i class="fa-solid fa-arrow-right" aria-hidden="true" />
           </button>
         </div>
       </section>
@@ -485,7 +494,7 @@ function photoUrl(name: string) {
       <section v-else key="review" class="gf-body">
         <header>
           <h2 class="gf-title">Revisar</h2>
-          <p class="gf-hint">Todo lo que respondiste ya está en la hoja oficial. Revísala antes de enviar.</p>
+          <p class="gf-hint">Todo lo que respondiste ya está en la hoja oficial.{{ submitLabel ? ' Si está bien, envíalo.' : ' Revísala antes de enviar.' }}</p>
         </header>
         <ul class="gf-review card">
           <li v-for="(s, i) in steps" :key="s.title">
@@ -504,8 +513,11 @@ function photoUrl(name: string) {
           <button type="button" class="btn btn-ghost btn-lg" @click="go(lastStep - 1)">
             <i class="fa-solid fa-arrow-left" aria-hidden="true" /> Anterior
           </button>
-          <button type="button" class="btn btn-primary btn-lg" @click="emit('sheet')">
+          <button type="button" class="btn btn-lg" :class="submitLabel ? 'btn-ghost' : 'btn-primary'" @click="emit('sheet')">
             <i class="fa-regular fa-file-lines" aria-hidden="true" /> Ver la hoja oficial
+          </button>
+          <button v-if="submitLabel" type="button" class="btn btn-primary btn-lg" @click="emit('submit')">
+            <i class="fa-solid fa-paper-plane" aria-hidden="true" /> {{ submitLabel }}
           </button>
         </div>
       </section>
@@ -980,6 +992,7 @@ textarea {
 .gf-nav {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 0.5rem;
 

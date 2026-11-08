@@ -44,21 +44,41 @@
             { "value": "12", "label": "12 · Otros (especifique en el detalle)" }
           ]
         },
-        { "kind": "text", "field": "Text Field 76", "label": "Detalle de la causa" },
+        { "kind": "text", "field": "Text Field 76", "label": "Detalle de la causa", "input": "textarea" },
         { "kind": "signature", "field": "Signature Field 8", "label": "Firma del Capitán (análisis de la causa)" }
       ]
     },
     {
       "title": "Acción correctiva",
+      "hint": "Lo completa el Capitán.",
       "items": [
-        { "kind": "text", "field": "Text Field 73", "label": "Responsable" },
-        { "kind": "text", "field": "Fecha_Recepcion", "label": "Fecha de recepción", "input": "date" },
+        {
+          "kind": "text",
+          "field": "Text Field 73",
+          "label": "Responsable",
+          "suggestions": ["Capitán", "Primer Oficial de Puente", "Jefe de Máquinas", "Director(a) de crucero", "Persona Designada"]
+        },
+        { "kind": "text", "field": "Fecha_Recepcion", "label": "Fecha de recepción", "input": "date", "fill": "today" },
         { "kind": "text", "field": "Text Field 75", "label": "Fecha máxima de la acción correctiva", "input": "date" },
-        { "kind": "text", "field": "Text Field 65", "label": "Acción correctiva dispuesta", "input": "textarea" }
+        {
+          "kind": "text",
+          "field": "Text Field 65",
+          "label": "Acción correctiva dispuesta",
+          "input": "textarea",
+          "quick": [
+            "Reparar o reemplazar el equipo afectado",
+            "Revisar y actualizar el procedimiento",
+            "Capacitar a la tripulación involucrada",
+            "Incluir en el plan de mantenimiento",
+            "Reforzar el uso de los equipos de seguridad",
+            "Señalizar y aislar el área"
+          ]
+        }
       ]
     },
     {
       "title": "Firmas",
+      "hint": "Firman el Capitán y la Persona Designada en su etapa.",
       "items": [
         { "kind": "signature", "field": "Signature Field 11", "label": "Capitán" },
         { "kind": "signature", "field": "Signature Field 10", "label": "Persona Designada" }

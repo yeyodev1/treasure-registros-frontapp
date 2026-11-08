@@ -62,6 +62,16 @@ function fontPx(f: IsmField, pageIndex: number) {
   return `${Math.max(7, base * scale)}px`
 }
 
+/** Mismo tamaño que en el PDF (ism.service.ts): como mucho 70 % del recuadro y 28 pt de alto. */
+function signStyle(f: IsmField, pageIndex: number) {
+  const { width: pageW, height: pageH } = props.form.pages[pageIndex]!
+  const scale = pagePx.value / pageW
+  return {
+    maxWidth: `${(f.w * pageW - 4) * 0.7 * scale}px`,
+    maxHeight: `${Math.min(f.h * pageH - 10, 40) * 0.7 * scale}px`,
+  }
+}
+
 function textValue(f: IsmField): string {
   const v = props.values[f.name]
   return typeof v === 'string' ? v : ''
@@ -178,6 +188,7 @@ function photoUrl(f: IsmField): string {
                 :key="images.get(f.name)"
                 :src="images.get(f.name)"
                 :alt="`Firma de ${signatureMap.get(f.name)!.signerName}`"
+                :style="signStyle(f, pi)"
               />
               <span v-else class="sign-cta sign-name">{{ signatureMap.get(f.name)!.signerName }}</span>
             </Transition>

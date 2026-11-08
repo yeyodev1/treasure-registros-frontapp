@@ -387,6 +387,11 @@ function openSign(f: IsmField) {
 /** La firma de quien llena puede ser de otra persona (asistentes, tripulantes). */
 const askName = computed(() => signing.value?.stage === 'tripulacion')
 
+/** Firma quien inició sesión: la suya, o la de quien creó el borrador (solicitante, quien reporta). */
+const signingMine = computed(
+  () => !askName.value || (record.value?.status === 'borrador' && creatorId(record.value) === userStore.user?.id),
+)
+
 async function onSigned(image: string, signerName: string) {
   const f = signing.value
   if (!f || !record.value) return
@@ -446,6 +451,11 @@ async function run(action: () => Promise<void>) {
   }
 }
 
+/** A dónde va al enviarlo: el botón lo dice. */
+const submitLabel = computed(() =>
+  form.value?.stages.capitan ? 'Enviar al Capitán' : form.value?.officeRole === 'admin' ? 'Enviar a Administración' : 'Listo para enviar',
+)
+
 async function submit() {
   const novedades = record.value?.flags?.novedades ?? 0
   const ok = await confirmStore.ask({
@@ -456,8 +466,10 @@ async function submit() {
       ? `Pasa al Capitán para su revisión y firma${novedades ? ` con ${novedades} ${novedades === 1 ? 'novedad' : 'novedades'} destacadas` : ''}. Enviar no autoriza el zarpe: lo decide el Capitán. Ya no podrás editarlo salvo que te lo devuelvan.`
       : form.value?.stages.capitan
         ? 'Pasa al Capitán para su revisión y firma. Ya no podrás editarlo salvo que te lo devuelvan.'
-        : 'Pasa a la oficina para que la Persona Designada lo reciba y archive.',
-    confirmLabel: guided.value ? 'Enviar al Capitán' : 'Listo para enviar',
+        : form.value?.officeRole === 'admin'
+          ? 'Pasa a Administración para que lo reciba. Ya no podrás editarlo salvo que te lo devuelvan.'
+          : 'Pasa a la oficina para que la Persona Designada lo reciba y archive.',
+    confirmLabel: guided.value ? 'Enviar al Capitán' : submitLabel.value,
     icon: 'fa-paper-plane',
   })
   if (!ok) return
@@ -610,7 +622,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
         </div>
         <span class="pill rec-status" :class="statusPill">
           <i class="fa-solid" :class="record.returnInfo && record.status !== 'archivado' ? 'fa-rotate-left' : STATUS_ICONS[record.status]" aria-hidden="true" />
-          {{ statusLabel(record) }}
+          {{ record.status === 'por_oficina' && !record.returnInfo && form?.officeRole === 'admin' ? 'Por recibir · Administración' : statusLabel(record) }}
         </span>
       </header>
 
@@ -728,7 +740,9 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
               @change="onChange"
               @sign="openSign"
               @photo="openPhoto"
+              :submit-label="canSubmit && !guided && !canHandoff ? submitLabel : ''"
               @sheet="view = 'hoja'"
+              @submit="submit"
             />
             <FormCanvas
               v-else
@@ -761,8 +775,8 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             <button v-if="canHandoff" type="button" class="btn btn-primary" :disabled="busy" @click="openHandoff">
               <i class="fa-solid fa-people-arrows" aria-hidden="true" /> Enviar a quien recibe el cargo
             </button>
-            <button v-if="canSubmit && !guided" type="button" class="btn" :class="canHandoff ? 'btn-ghost' : 'btn-primary'" :disabled="busy" @click="submit">
-              <i class="fa-solid fa-paper-plane" aria-hidden="true" /> {{ receiving ? 'Firmé: enviar al Capitán' : 'Listo para enviar' }}
+            <button v-if="canSubmit && !guided && !(fillGuide && view === 'pasos' && !canHandoff)" type="button" class="btn" :class="canHandoff ? 'btn-ghost' : 'btn-primary'" :disabled="busy" @click="submit">
+              <i class="fa-solid fa-paper-plane" aria-hidden="true" /> {{ receiving ? 'Firmé: enviar al Capitán' : submitLabel }}
             </button>
             <button v-if="canApprove" type="button" class="btn btn-primary" :disabled="busy" @click="approve">
               <i class="fa-solid" :class="record.status === 'por_capitan' ? 'fa-anchor' : 'fa-box-archive'" aria-hidden="true" />
@@ -816,7 +830,7 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
             <h3><i class="fa-solid fa-signature" aria-hidden="true" /> Firmas</h3>
             <template v-for="stage in (['tripulacion', 'capitan', 'oficina'] as SignatureStage[])" :key="stage">
               <div v-if="slotsByStage[stage].length" class="sig-group">
-                <p class="sig-stage">{{ STAGE_LABELS[stage] }}</p>
+                <p class="sig-stage">{{ stage === 'oficina' && form?.officeRole === 'admin' ? 'Oficina' : STAGE_LABELS[stage] }}</p>
                 <button
                   v-for="s in slotsByStage[stage]"
                   :key="s.name"
@@ -876,7 +890,8 @@ const lastEvent = computed(() => record.value?.history?.[record.value.history.le
         v-if="signing"
         :label="signing.label ?? 'Firma'"
         :ask-name="askName"
-        :default-name="!askName || slotsByStage.tripulacion.length === 1 ? userStore.user?.name ?? '' : ''"
+        :default-name="signingMine || slotsByStage.tripulacion.length === 1 ? userStore.user?.name ?? '' : ''"
+        :mine="signingMine"
         @close="signing = null"
         @signed="onSigned"
       />

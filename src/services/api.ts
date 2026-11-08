@@ -275,6 +275,11 @@ export async function apiSetCrewSignature(id: string, image: string) {
   await http.put(`/ism/crew/${id}/signature`, { image })
 }
 
+/** Guarda mi firma: las siguientes veces se firma con un toque. */
+export async function apiSetMySignature(image: string) {
+  await http.put('/ism/me/signature', { image })
+}
+
 /** Clave temporal de un solo uso: se muestra una sola vez. */
 export async function apiTemporaryPin(id: string) {
   const { data } = await http.post<{ pin: string; name: string }>(`/ism/crew/${id}/temporary-pin`)

@@ -1,17 +1,30 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import { apiCrewSignature, apiSetMySignature } from '@/services/api'
+import { useUserStore } from '@/stores/user'
 
 /**
  * Firma con el dedo (o lápiz/mouse). Devuelve un PNG con fondo transparente.
  * `askName`: la firma es de alguien que no inició sesión (asistente, tripulante).
  */
-const props = defineProps<{ label: string; askName: boolean; defaultName: string }>()
+const props = defineProps<{
+  label: string
+  askName: boolean
+  defaultName: string
+  /** Firma quien inició sesión: se ofrece su firma guardada y la nueva se guarda (8-nov-2026). */
+  mine?: boolean
+}>()
 const emit = defineEmits<{ close: []; signed: [image: string, signerName: string] }>()
 
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas')
 const name = shallowRef(props.defaultName)
 const hasInk = shallowRef(false)
+const userStore = useUserStore()
+/** Firma guardada de quien firma ('' = aún no tiene: la que dibuje se guarda). */
+const saved = shallowRef('')
+const redraw = shallowRef(false)
+const signingAsMe = () => Boolean(props.mine) && name.value.trim() === userStore.user?.name
 
 let ctx: CanvasRenderingContext2D | null = null
 let drawing = false
@@ -98,11 +111,29 @@ function exportTrimmed(): string {
 }
 
 function confirm() {
+  if (saved.value && !redraw.value && signingAsMe()) {
+    emit('signed', saved.value, name.value.trim())
+    return
+  }
   if (!hasInk.value || !name.value.trim()) return
-  emit('signed', exportTrimmed(), name.value.trim())
+  const image = exportTrimmed()
+  if (signingAsMe()) apiSetMySignature(image).catch(() => {})
+  emit('signed', image, name.value.trim())
 }
 
-onMounted(() => {
+function drawAgain() {
+  redraw.value = true
+  requestAnimationFrame(setup)
+}
+
+onMounted(async () => {
+  if (props.mine && userStore.user?.id) {
+    try {
+      saved.value = await apiCrewSignature(userStore.user.id)
+    } catch {
+      // Sin firma guardada: se dibuja.
+    }
+  }
   requestAnimationFrame(setup)
   window.addEventListener('resize', setup)
 })
@@ -123,7 +154,14 @@ onBeforeUnmount(() => window.removeEventListener('resize', setup))
         />
       </div>
 
-      <div class="canvas-wrap">
+      <div v-if="saved && !redraw && signingAsMe()" class="saved">
+        <img :src="saved" alt="Tu firma guardada" />
+        <button type="button" class="btn btn-ghost" @click="drawAgain">
+          <i class="fa-solid fa-pen" aria-hidden="true" /> Dibujar otra
+        </button>
+      </div>
+
+      <div v-else class="canvas-wrap">
         <canvas
           ref="canvas"
           class="canvas"
@@ -141,14 +179,19 @@ onBeforeUnmount(() => window.removeEventListener('resize', setup))
 
       <p class="legal">
         Tu firma queda registrada con tu usuario, la fecha y la hora, junto a una huella del contenido del
-        registro.
+        registro.<template v-if="mine && signingAsMe() && (!saved || redraw)"> Queda guardada para tus próximas firmas.</template>
       </p>
 
       <div class="actions">
-        <button type="button" class="btn btn-ghost" @click="clear">
+        <button v-if="!(saved && !redraw && signingAsMe())" type="button" class="btn btn-ghost" @click="clear">
           <i class="fa-solid fa-eraser" aria-hidden="true" /> Limpiar
         </button>
-        <button type="button" class="btn btn-primary" :disabled="!hasInk || !name.trim()" @click="confirm">
+        <button
+          type="button"
+          class="btn btn-primary"
+          :disabled="!name.trim() || (!hasInk && !(saved && !redraw && signingAsMe()))"
+          @click="confirm"
+        >
           <i class="fa-solid fa-check" aria-hidden="true" /> Firmar
         </button>
       </div>
@@ -201,6 +244,23 @@ onBeforeUnmount(() => window.removeEventListener('resize', setup))
   opacity: 0.5;
 }
 
+.saved {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--powder-300);
+  border-radius: var(--radius-sm);
+  background: var(--powder-100);
+
+  img {
+    max-height: 90px;
+    max-width: 60%;
+    object-fit: contain;
+  }
+}
+
 .legal {
   margin: 0;
   font-size: 0.78rem;
@@ -211,5 +271,9 @@ onBeforeUnmount(() => window.removeEventListener('resize', setup))
   display: grid;
   grid-template-columns: 1fr 1.5fr;
   gap: 0.5rem;
+}
+
+.actions > :only-child {
+  grid-column: 1 / -1;
 }
 </style>
