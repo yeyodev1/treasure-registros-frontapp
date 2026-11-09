@@ -64,9 +64,9 @@ export const useUserStore = defineStore('user', () => {
     return start(() => apiLogin(email, password, remember), remember)
   }
 
-  /** Tripulación: usuario + clave de 4 números (sin correo). */
-  async function loginCrew(username: string, pin: string, newPin: string | undefined, remember: boolean) {
-    return start(() => apiCrewLogin(username, pin, newPin, remember), remember)
+  /** Tripulación: cargo (o usuario) + clave de 4 números (sin correo). */
+  async function loginCrew(who: { username: string } | { cargo: string }, pin: string, newPin: string | undefined, remember: boolean) {
+    return start(() => apiCrewLogin(who, pin, newPin, remember), remember)
   }
 
   async function start(request: () => ReturnType<typeof apiLogin>, remember: boolean) {

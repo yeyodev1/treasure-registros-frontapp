@@ -11,7 +11,70 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-/** Tripulación entra con usuario + clave; Gerencia y oficina con correo. Se recuerda la última forma. */
+/**
+ * Entrada por área → cargo → clave de 4 números (pedido del cliente,
+ * 9-nov-2026). La clave dice quién es entre las personas del cargo. Gerencia
+ * y oficina entran como siempre: con usuario y clave o con correo.
+ */
+const AREAS = [
+  {
+    key: 'puente',
+    label: 'Puente y Cubierta',
+    icon: 'fa-ship',
+    cargos: [
+      { key: 'capitan', label: 'Capitán' },
+      { key: 'marinero', label: 'Marinero de Cubierta' },
+    ],
+  },
+  {
+    key: 'maquinas',
+    label: 'Máquinas',
+    icon: 'fa-wrench',
+    cargos: [
+      { key: 'maquinas', label: 'Jefe de Máquinas' },
+      { key: 'auxmaquinas', label: 'Auxiliar de Máquinas' },
+    ],
+  },
+  {
+    key: 'hoteleria',
+    label: 'Hotelería y Servicios',
+    icon: 'fa-bell-concierge',
+    cargos: [
+      { key: 'director', label: 'Director de Crucero' },
+      { key: 'cocinero', label: 'Cocinero' },
+      { key: 'barman', label: 'Barman' },
+      { key: 'camarero', label: 'Camarero de Cabinas' },
+    ],
+  },
+  { key: 'gerencia', label: 'Gerencia', hint: 'Administración', icon: 'fa-shield-halved', cargos: [] },
+] as const
+type Area = (typeof AREAS)[number]
+type Cargo = { key: string; label: string }
+
+const area = shallowRef<Area | null>(null)
+const cargo = shallowRef<Cargo | null>(null)
+const isOffice = computed(() => area.value?.key === 'gerencia')
+
+function reset() {
+  pin.value = ''
+  newPin.value = ''
+  newPin2.value = ''
+  firstTime.value = false
+  error.value = ''
+}
+
+function pickArea(next: Area | null) {
+  area.value = next
+  cargo.value = null
+  reset()
+}
+
+function pickCargo(next: Cargo | null) {
+  cargo.value = next
+  reset()
+}
+
+/** En Gerencia: usuario + clave o correo. Se recuerda la última forma. */
 type Mode = 'usuario' | 'correo'
 function savedMode(): Mode {
   try {
@@ -57,15 +120,20 @@ const next = computed(() => {
 async function submit() {
   error.value = ''
   try {
-    if (mode.value === 'correo') {
+    if (isOffice.value && mode.value === 'correo') {
       await userStore.login(email.value, password.value, remember.value)
     } else {
-      if (!username.value.trim()) throw new Error('Escribe tu usuario')
+      if (isOffice.value && !username.value.trim()) throw new Error('Escribe tu usuario')
       if (pin.value.length < 4) throw new Error('Escribe tu clave de 4 números')
       if (firstTime.value && (newPin.value.length < 4 || newPin.value !== newPin2.value)) {
         throw new Error('Crea tu clave nueva y repítela igual')
       }
-      await userStore.loginCrew(username.value, pin.value, firstTime.value ? newPin.value : undefined, remember.value)
+      await userStore.loginCrew(
+        isOffice.value ? { username: username.value } : { cargo: cargo.value!.key },
+        pin.value,
+        firstTime.value ? newPin.value : undefined,
+        remember.value,
+      )
     }
     router.replace(next.value)
   } catch (err) {
@@ -97,7 +165,50 @@ async function submit() {
         </p>
       </Transition>
 
-      <div class="seg" role="radiogroup" aria-label="Cómo entras">
+      <!-- Paso 1: área -->
+      <template v-if="!area">
+        <h2 class="step-title">Selecciona tu área</h2>
+        <div class="areas">
+          <button v-for="a in AREAS" :key="a.key" type="button" class="area" @click="pickArea(a)">
+            <i class="fa-solid" :class="a.icon" aria-hidden="true" />
+            <span>{{ a.label }}</span>
+            <small v-if="'hint' in a">{{ a.hint }}</small>
+          </button>
+        </div>
+      </template>
+
+      <!-- Paso 2: cargo -->
+      <template v-else-if="!isOffice && !cargo">
+        <div class="step-head">
+          <button type="button" class="step-back" aria-label="Volver a las áreas" @click="pickArea(null)">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true" />
+          </button>
+          <div>
+            <h2 class="step-title">{{ area.label }}</h2>
+            <p>Selecciona tu cargo</p>
+          </div>
+        </div>
+        <div class="cargos">
+          <button v-for="c in area.cargos" :key="c.key" type="button" class="cargo" @click="pickCargo(c)">
+            <span>{{ c.label }}</span>
+            <i class="fa-solid fa-chevron-right" aria-hidden="true" />
+          </button>
+        </div>
+      </template>
+
+      <!-- Paso 3: clave (o el acceso de Gerencia) -->
+      <template v-else>
+      <div class="step-head">
+        <button type="button" class="step-back" aria-label="Volver" @click="cargo ? pickCargo(null) : pickArea(null)">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true" />
+        </button>
+        <div>
+          <h2 class="step-title">{{ cargo?.label ?? area.label }}</h2>
+          <p>{{ cargo ? area.label : 'Administración' }}</p>
+        </div>
+      </div>
+
+      <div v-if="isOffice" class="seg" role="radiogroup" aria-label="Cómo entras">
         <button type="button" role="radio" :aria-checked="mode === 'usuario'" :class="{ on: mode === 'usuario' }" @click="setMode('usuario')">
           <i class="fa-solid fa-user" aria-hidden="true" /> Usuario y clave
         </button>
@@ -106,7 +217,7 @@ async function submit() {
         </button>
       </div>
 
-      <template v-if="mode === 'correo'">
+      <template v-if="isOffice && mode === 'correo'">
         <div class="field">
           <label for="email">Correo</label>
           <input id="email" v-model="email" type="email" autocomplete="username" inputmode="email" required />
@@ -119,7 +230,7 @@ async function submit() {
       </template>
 
       <template v-else>
-        <div class="field">
+        <div v-if="isOffice" class="field">
           <label for="username">Usuario</label>
           <input
             id="username"
@@ -185,6 +296,7 @@ async function submit() {
         <i class="fa-solid" :class="userStore.loading ? 'fa-spinner fa-spin' : 'fa-arrow-right-to-bracket'" aria-hidden="true" />
         {{ userStore.loading ? 'Ingresando…' : 'Ingresar' }}
       </button>
+      </template>
     </form>
   </main>
 </template>
@@ -240,6 +352,108 @@ async function submit() {
     margin: 0.25rem 0 0;
     font-size: 1rem;
     color: var(--ink-600);
+  }
+}
+
+.step-title {
+  font-size: 1.35rem;
+  color: var(--navy-900);
+  margin: 0;
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  p {
+    margin: 0.15rem 0 0;
+    color: var(--ink-600);
+  }
+}
+
+.step-back {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  color: var(--ink-600);
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+
+.areas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.area {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--powder-100);
+  color: var(--navy-900);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: background 0.18s ease, border-color 0.18s ease;
+
+  i {
+    font-size: 1.5rem;
+  }
+
+  small {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--ink-600);
+  }
+
+  &:hover,
+  &:active {
+    background: var(--active);
+    border-color: var(--navy-800);
+  }
+}
+
+.cargos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cargo {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1.1rem;
+  text-align: left;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  color: var(--navy-900);
+  font-size: 1.15rem;
+  font-weight: 600;
+  transition: background 0.18s ease, border-color 0.18s ease;
+
+  i {
+    color: var(--ink-600);
+  }
+
+  &:hover,
+  &:active {
+    background: var(--active);
+    border-color: var(--navy-800);
   }
 }
 

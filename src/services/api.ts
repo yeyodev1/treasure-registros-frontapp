@@ -24,10 +24,15 @@ export async function apiLogin(email: string, password: string, remember: boolea
   return data
 }
 
-/** Tripulación: usuario (nombre.apellido) + clave de 4 números; `newPin` si la clave es temporal. */
-export async function apiCrewLogin(username: string, pin: string, newPin: string | undefined, remember: boolean) {
+/** Tripulación: cargo (o usuario nombre.apellido) + clave de 4 números; `newPin` si la clave es temporal. */
+export async function apiCrewLogin(
+  who: { username: string } | { cargo: string },
+  pin: string,
+  newPin: string | undefined,
+  remember: boolean,
+) {
   const { data } = await http.post<{ token: string; user: SessionUser }>('/auth/login/crew', {
-    username,
+    ...who,
     pin,
     ...(newPin ? { newPin } : {}),
     remember,
