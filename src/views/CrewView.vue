@@ -26,8 +26,8 @@ const confirmStore = useConfirmStore()
 const toast = useToastStore()
 const crewStore = useCrewStore()
 const userStore = useUserStore()
-/** La clave temporal solo la da la Persona Designada (ni Gerencia). */
-const canGivePin = computed(() => userStore.role === 'designada')
+/** La clave temporal la dan la Persona Designada y Gerencia (igual que el servidor). */
+const canGivePin = computed(() => userStore.role === 'designada' || userStore.role === 'duena')
 /** Recoger firmas: Persona Designada y Gerencia (igual que el servidor). */
 const canCollectSignature = computed(() => userStore.role === 'designada' || userStore.role === 'duena')
 const signing = shallowRef<CrewMember | null>(null)
@@ -101,7 +101,7 @@ async function add() {
     adding.value = false
     draft.value = blankDraft()
     toast.success(
-      `${m.name} quedó en la lista con el usuario ${m.username}. ${canGivePin.value ? 'Ahora dale su clave temporal.' : 'La Persona Designada le da su clave temporal.'}`,
+      `${m.name} quedó en la lista con el usuario ${m.username}. ${canGivePin.value ? 'Ahora dale su clave temporal.' : 'La Persona Designada o Gerencia le da su clave temporal.'}`,
     )
   } catch (err) {
     toast.error(apiErrorMessage(err))
