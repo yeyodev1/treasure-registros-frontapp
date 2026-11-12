@@ -39,11 +39,11 @@ const loading = shallowRef(true)
 const busy = shallowRef('')
 const adding = shallowRef(false)
 // ref (no shallowRef): v-model escribe campo por campo y el selector debe ver el cargo elegido.
-const blankDraft = () => ({ firstName: '', lastName: '', email: '', position: '', onboard: true })
+const blankDraft = () => ({ firstName: '', lastName: '', email: '', position: '', onboard: true, pin: '' })
 const draft = ref(blankDraft())
 const shownPin = shallowRef<{ name: string; pin: string } | null>(null)
 const editing = shallowRef<CrewMember | null>(null)
-const editDraft = ref({ name: '', email: '', position: '' })
+const editDraft = ref({ name: '', email: '', position: '', pin: '' })
 
 const ROLE_TEXT: Record<string, string> = { tripulante: 'Tripulante', capitan: 'Capitán', designada: 'Persona Designada' }
 
@@ -88,20 +88,21 @@ function replace(m: CrewMember) {
 
 async function add() {
   const d = draft.value
-  const missing = d.firstName.trim().length < 2 ? 'Escribe el nombre' : d.lastName.trim().length < 2 ? 'Escribe el apellido' : !d.position ? 'Elige el cargo' : ''
+  const missing = d.firstName.trim().length < 2 ? 'Escribe el nombre' : d.lastName.trim().length < 2 ? 'Escribe el apellido' : !d.position ? 'Elige el cargo' : d.pin && !/^\d{4}$/.test(d.pin) ? 'La clave son 4 números' : ''
   if (missing) {
     toast.error(missing)
     return
   }
   busy.value = 'add'
   try {
-    const m = await apiCreateCrew(draft.value)
+    const { pin, ...rest } = draft.value
+    const m = await apiCreateCrew(pin ? { ...rest, pin } : rest)
     members.value = [...members.value, m].sort((a, b) => a.name.localeCompare(b.name))
     crewStore.load(true).catch(() => undefined)
     adding.value = false
     draft.value = blankDraft()
     toast.success(
-      `${m.name} quedó en la lista con el usuario ${m.username}. ${canGivePin.value ? 'Ahora dale su clave temporal.' : 'La Persona Designada o Gerencia le da su clave temporal.'}`,
+      `${m.name} quedó en la lista con el usuario ${m.username}. ${pin ? 'Ya puede entrar con su clave.' : canGivePin.value ? 'Ahora dale su clave.' : 'La Persona Designada o Gerencia le da su clave.'}`,
     )
   } catch (err) {
     toast.error(apiErrorMessage(err))
@@ -166,7 +167,7 @@ async function saveSignature() {
 
 function openEdit(m: CrewMember) {
   editing.value = m
-  editDraft.value = { name: m.name, email: m.email, position: m.position }
+  editDraft.value = { name: m.name, email: m.email, position: m.position, pin: '' }
 }
 
 async function saveEdit() {
@@ -174,11 +175,16 @@ async function saveEdit() {
   if (!m) return
   busy.value = 'edit'
   try {
-    const { email, ...rest } = editDraft.value
+    const { email, pin, ...rest } = editDraft.value
+    if (pin && !/^\d{4}$/.test(pin)) {
+      toast.error('La clave son 4 números')
+      return
+    }
+    const withPin = pin ? { ...rest, pin } : rest
     // El correo de una cuenta propia lo maneja Gerencia.
-    replace(await apiUpdateCrew(m.id, m.hasAccount ? rest : { ...rest, email }))
+    replace(await apiUpdateCrew(m.id, m.hasAccount ? withPin : { ...withPin, email }))
     editing.value = null
-    toast.success('Ficha actualizada')
+    toast.success(pin ? 'Ficha y clave actualizadas' : 'Ficha actualizada')
   } catch (err) {
     toast.error(apiErrorMessage(err))
   } finally {
@@ -378,6 +384,11 @@ function pinState(m: CrewMember): { text: string; tone: string } {
             </button>
           </div>
         </div>
+        <div v-if="canGivePin" class="field">
+          <label for="crew-pin">Clave de 4 números <small>(opcional)</small></label>
+          <input id="crew-pin" v-model="draft.pin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="Ej. 2580" />
+          <small class="hint">Con esta clave entra y firma. Si la dejas vacía, dale una clave temporal después.</small>
+        </div>
         <p class="hint">Entra con su usuario y su clave de 4 números, y firma con esa misma clave.</p>
         <button type="button" class="btn btn-primary btn-lg" :disabled="busy === 'add'" @click="add">
           <i class="fa-solid" :class="busy === 'add' ? 'fa-spinner fa-spin' : 'fa-user-plus'" aria-hidden="true" /> Agregar a la lista
@@ -399,6 +410,11 @@ function pinState(m: CrewMember): { text: string; tone: string } {
         <div class="field">
           <label>Cargo</label>
           <BaseSelect v-model="editDraft.position" :options="positions" placeholder="Elige el cargo" />
+        </div>
+        <div v-if="canGivePin" class="field">
+          <label for="crew-edit-pin">Clave de 4 números <small>(opcional)</small></label>
+          <input id="crew-edit-pin" v-model="editDraft.pin" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="Ej. 2580" />
+          <small class="hint">{{ editing.hasPin ? 'Ya tiene clave: escribe una nueva solo si quieres cambiarla.' : 'Aún no tiene clave: ponle una para que pueda entrar y firmar.' }}</small>
         </div>
         <button type="button" class="btn btn-primary btn-lg" :disabled="busy === 'edit'" @click="saveEdit">
           <i class="fa-solid" :class="busy === 'edit' ? 'fa-spinner fa-spin' : 'fa-check'" aria-hidden="true" /> Guardar

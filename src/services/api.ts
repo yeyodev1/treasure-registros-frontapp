@@ -256,6 +256,7 @@ export async function apiCreateCrew(payload: {
   email: string
   position: string
   onboard: boolean
+  pin?: string
 }) {
   const { data } = await http.post<{ member: CrewMember }>('/ism/crew', payload)
   return data.member
@@ -263,7 +264,7 @@ export async function apiCreateCrew(payload: {
 
 export async function apiUpdateCrew(
   id: string,
-  payload: Partial<{ name: string; email: string; position: string; onboard: boolean; active: boolean; sharedDevice: boolean }>,
+  payload: Partial<{ name: string; email: string; position: string; onboard: boolean; active: boolean; sharedDevice: boolean; pin: string }>,
 ) {
   const { data } = await http.patch<{ member: CrewMember }>(`/ism/crew/${id}`, payload)
   return data.member
